@@ -1,0 +1,207 @@
+{% extends 'site_base.html' %}
+{% block site_styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='leaflet/leaflet.css') }}"/>
+    {% if config.DEBUG and current_user.role == 'admin' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='prism/prism.css') }}"/>
+    {% endif %}
+{% endblock %}
+{% block site_content %}
+    {{ super() }}
+    {% include 'confirm_delete_modal.html' %}
+    <div class="row">
+        <div class="col-sm-10">
+            <!--<div class="alert alert-info">{{ _('This is just a draft preview for debugging...') }}</div>-->
+            <dl class="dl-horizontal">
+                {% if record.data.pref_label %}
+                    <dt>
+                        {{ _('Label') }}
+                    </dt>
+                    <dd>
+                        {{ record.data.pref_label }}
+                    </dd>
+                {% endif %}
+                {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
+                    {% if record.data.dwid and record.data.dwid.0 %}
+                        <dt>
+                            {{ _('Local Admin ID') }}
+                        </dt>
+                        <dd>
+                            {% for dwid in record.data.dwid %}
+                                <a href="{{ url_for('show_orga', orga_id=dwid) }}">{{ dwid }}</a>{% if not loop.last %} | {% endif %}
+                            {% endfor %}
+                        </dd>
+                    {% endif %}
+                    {% if record.data.start_date %}
+                        <dt>
+                            {{ _('Dates') }}
+                        </dt>
+                        <dd>
+                            {{ record.data.start_date }}{% if record.data.end_date %} - {{ record.data.end_date }}{% endif %}
+                        </dd>
+                    {% endif %}
+                    {% if record.data.destatis and (record.data.destatis.0.id or record.data.destatis.0.label) %}
+                        <br/>
+                        <dt>
+                            {{ _('Destatis') }} <a href="https://www.destatis.de/DE/Methoden/Klassifikationen/BildungKultur/StudentenPruefungsstatistik.pdf?__blob=publicationFile">[Info]</a>
+                        </dt>
+                        <dd>
+                            {% for destatis in record.data.destatis %}
+                                {{ destatis.label }} ({{ destatis.id }}){% if not loop.last %} | {% endif %}
+                            {% endfor %}
+                        </dd>
+                    {% endif %}
+                {% endif %}
+                    <br/>
+                {% if record.data.parent and record.data.parent.0 and (record.data.parent.0.parent_id or record.data.parent.0.parent_label) %}
+                    <dt>
+                        {{ _('Parent') }}
+                    </dt>
+                    <dd>
+                        <a href="{{ url_for('show_orga', orga_id=record.data.parent.0.parent_id) }}">{% if record.data.parent.0.parent_label %}{{ record.data.parent.0.parent_label }}{% else %}{{ record.data.parent.0.parent_id }}{% endif %}</a><br/>
+                    </dd>
+                {% endif %}
+                {% if record.data.children and record.data.children.1 and (record.data.children.1.child_id != '' or record.data.children.1.child_label != '') %}
+                    <dt>
+                        {{ _('Children') }}
+                    </dt>
+                    <dd>
+                        {% for child in record.data.children %}
+                            {% if child.child_id != '' or child.child_label !='' %}
+                            <a href="{{ url_for('show_orga', orga_id=child.child_id) }}">{% if child.child_label %}{{ child.child_label }}{% else %}{{ child.child_id }}{% endif %}</a><br/>
+                            {% endif %}
+                        {% endfor %}
+                    </dd>
+                {% endif %}
+                {% if record.data.projects and record.data.projects.0 and (record.data.projects.0.project_id != '' or record.data.projects.0.project_label != '') %}
+                    <dt>
+                        {{ _('Projects / Working Groups') }}
+                    </dt>
+                    <dd>
+                        {% for project in record.data.projects %}
+                            {% if project.project_id != '' or project.project_label !='' %}
+                            <a href="{{ url_for('show_group', group_id=project.project_id) }}">{% if project.project_label %}{{ project.project_label }}{% else %}{{ project.project_id }}{% endif %}</a><br/>
+                            {% endif %}
+                        {% endfor %}
+                    </dd>
+                {% elif record.data.projects and record.data.projects.1 and (record.data.projects.1.project_id != '' or record.data.projects.1.project_label != '') %}
+                    <dt>
+                        {{ _('Projects / Working Groups') }}
+                    </dt>
+                    <dd>
+                        {% for project in record.data.projects %}
+                            {% if project.project_id != '' or project.project_label !='' %}
+                            <a href="{{ url_for('show_group', group_id=project.project_id) }}">{% if project.project_label %}{{ project.project_label }}{% else %}{{ project.project_id }}{% endif %}</a><br/>
+                            {% endif %}
+                        {% endfor %}
+                    </dd>
+                {% endif %}
+                <hr/>
+                    <dt>
+                        {{ _('Links') }}
+                    </dt>
+                    <dd>
+                        <a href="{{ url_for('search') }}?q=*:*&core=person&filter=faffiliation:&quot;{{ record.data.pref_label }}&quot;">{{ _('Show Members') }}</a><br/>
+                    </dd>
+                {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
+                    <hr/>
+                    {% if record.data.id %}
+                        <dt>
+                            {{ _('ID') }}
+                        </dt>
+                        <dd>
+                            {{ record.data.id }}
+                        </dd>
+                    {% endif %}
+                    {% if record.data.created %}
+                        <dt>
+                            {{ _('Record creation date') }}
+                        </dt>
+                        <dd>
+                            {{ record.data.created }}
+                        </dd>
+                    {% endif %}
+                    {% if record.data.changed %}
+                        <dt>
+                            {{ _('Record change date') }}
+                        </dt>
+                        <dd>
+                            {{ record.data.changed }}
+                        </dd>
+                    {% endif %}
+                    {% if record.data.owner %}
+                        <dt>
+                            {{ _('Owner') }}
+                        </dt>
+                        <dd>
+                            {{ record.data.owner }}
+                        </dd>
+                    {% endif %}
+                    <dt>{{ _('Editorial Status') }}</dt>
+                    <dd><span class="label label-{% if record.data.editorial_status == 'new' %}info{% elif record.data.editorial_status == 'in_process' %}default{% elif record.data.editorial_status == 'processed' %}primary{% elif record.data.editorial_status == 'final_editing' %}warning{% elif record.data.editorial_status == 'deleted' %}danger{% elif record.data.editorial_status == 'finalized' or record.data.editorial_status == 'imported' %}success{% endif %}">{% if record.locked %} <i class="fa fa-lock"></i> {% endif %}{{ record.data.editorial_status|capitalize }}</span></dd>
+                    {% if record.data.catalog and record.data.catalog[0] != '' %}
+                        <dt>{{ _('Data Catalog') }}</dt>
+                        <dd>
+                            {% for catalog in record.data.catalog %}
+                                {{ catalog }}{% if not loop.last %} | {% endif %}
+                            {% endfor %}
+                        </dd>
+                    {% endif %}
+                {% endif %}
+            </dl>
+                {% if config.DEBUG and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <div>
+                        <pre style="overflow: scroll; height: 30em"><code class="language-json">{"record": {{ wtf_json|safe }}}</code></pre>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-sm-2">
+            {% if not locked %}
+                {% if (current_user.role == 'admin' and not record.data.editorial_status == 'deleted') or current_user.role == 'superadmin' or current_user.email in record.owner %}
+                    <div class="btn-group" role="group" aria-label="action-group">
+                        <a href="{{ url_for('edit_orga', orga_id=record.data.id) }}" class="btn btn-default"><i class="fa fa-pencil"></i> {{ _('Edit') }}</a>
+                        <a href="#" data-href="{{ url_for('delete_orga', orga_id=record.data.id) }}" class="btn btn-danger" data-toggle="modal" data-target="#confirm-delete"><i class="fa fa-trash"></i> {{ _('Delete') }}</a>
+                        {#<label for="apparent_dup">{{ _('Apparent Duplicate') }}</label>
+                        <input type="checkbox" id="apparent_dup" name="apparent_dup">#}
+                    </div>
+                {% elif record.data.editorial_status == 'deleted' %}
+                    <div class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> This record is marked for deletion!</div>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-warning" role="alert"><span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> This record is currently locked!</div>
+            {% endif %}
+            </div>
+        </div>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script>
+        function page_redirect(){
+            setTimeout(function(){
+                            document.location = '{{ del_redirect }}';
+                        }, 1000);
+        }
+        $('#confirm-delete').on('show.bs.modal', function(event) {
+            $(this).find('.btn-ok').attr('href', $(event.relatedTarget).data('href'));
+        });
+        $(document).on('click', '.btn-ok', function(event){
+            event.preventDefault();
+            //var confirm_btn = $('.btn-ok');
+            //console.log($('.btn-ok').attr('href'));
+            $.get($('.btn-ok').attr('href'), function(data){
+                //console.log(data);
+                if(data.deleted == true){
+                    page_redirect();
+                }
+            });
+            //document.location.reload(true);
+        });
+        /*$(document).on('change', '#apparent_dup', function(event){
+            var dup = false;
+            if($(this).is(':checked')){
+                dup = true;
+            }
+            console.log(dup);
+            $.post('/apparent_duplicate', {'id': '{{ record_id }}', 'apparent_dup': dup});
+        })*/
+    </script>
+{% endblock %}

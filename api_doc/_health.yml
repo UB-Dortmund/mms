@@ -1,0 +1,56 @@
+Showing the health of the service and its dependencies
+---
+tags:
+  - monitoring
+definitions:
+    - schema:
+        id: Dependency
+        type: object
+        required:
+            - service
+            - status
+            - external
+        properties:
+          service:
+            description: name of the service
+            type: string
+          status:
+            description: status of the service
+            type: string
+          description:
+            description: description of the service
+            type: string
+          external:
+            description: indicates, if the service is provided by an external host
+            type: boolean
+            default: false
+    - schema:
+        id: HealthStatus
+        type: object
+        required:
+            - name
+            - timestamp
+        properties:
+            name:
+                description: name of the service
+                type: string
+            timestamp:
+                description: timestamp of the status
+                type: string
+                format: date-time
+            dependencies:
+              description: a list of dependencies of the service
+              type: array
+              items:
+                $ref: "#/definitions/Dependency"
+produces:
+  - application/json
+responses:
+  200:
+    description: A json structure listing all dependencies of this service including their status
+    schema:
+      $ref: "#/definitions/HealthStatus"
+  500:
+    description: A json structure listing all dependencies of this service including their status. This response is given, if one or more dependencies are unavailable.
+    schema:
+      $ref: "#/definitions/HealthStatus"

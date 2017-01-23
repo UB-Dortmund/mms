@@ -1,0 +1,126 @@
+Get a person
+---
+tags:
+  - persons
+produces:
+  - application/json
+definitions:
+    - schema:
+        id: PersonEntity
+        type: object
+        required:
+            - id
+            - name
+        properties:
+            id:
+                type: string
+            name:
+                type: string
+            also_known_as:
+                type: array
+                items:
+                    type: string
+            gnd:
+                type: string
+            orcid:
+                type: string
+            viaf:
+                type: string
+            scopus_id:
+                type: string
+            researcher_id:
+                type: string
+            isni:
+                type: string
+            arxiv_id:
+                type: string
+            same_as:
+                type: array
+                items:
+                    type: string
+            status:
+                type: array
+                items:
+                    type: string
+            data_supplied:
+                type: string
+            rubi:
+                type: boolean
+            tudo:
+                type: boolean
+            affiliation:
+                type: array
+                items:
+                    type: object
+                    properties:
+                        id:
+                            type: string
+                        pref_label:
+                            type: string
+                        start:
+                            type: string
+                            format: date
+                        end:
+                            type: string
+                            format: date
+            group:
+                type: array
+                items:
+                    type: object
+                    properties:
+                        id:
+                            type: string
+                        pref_label:
+                            type: string
+                        start:
+                            type: string
+                            format: date
+                        end:
+                            type: string
+                            format: date
+            url:
+                type: array
+                items:
+                    type: object
+                    properties:
+                        url:
+                            type: string
+                        label:
+                            type: string
+            created:
+                type: string
+                format: date-time
+            changed:
+                type: string
+                format: date-time
+            editorial_status:
+                type: string
+            deskman:
+                type: string
+            owner:
+                type: array
+                items:
+                    type: string
+            note:
+                type: string
+            correction_request:
+                type: string
+parameters:
+- name: Authorization
+  in: header
+  description: Bearer access token. Required for getting the whole record.
+  required: false
+  type: string
+- name: person_id
+  in: path
+  description: unique ID of the person resource.
+  required: true
+  type: string
+responses:
+  200:
+    schema:
+        $ref: "#/definitions/PersonEntity"
+  401:
+    description: Unauthorized
+  404:
+    description: Not found, if the requested resource doesn't exist

@@ -1,0 +1,110 @@
+{% extends 'site_base.html' %}
+{% import 'drill_down.html' as drill_down with context %}
+{% import 'remove_filters.html' as remove_filters with context %}
+{% block site_content %}
+    {{ super() }}
+    {% include 'confirm_delete_modal.html' %}
+    <p>{% include 'admin_nav.html' %}</p>
+    {% if results|length > 0 %}
+    {#<div class="row">
+        <form class="form-inline" role="search" action="{{ url_for('search') }}" method="get">
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Search persons" name="q">
+                    <input type="hidden" name="core" value="person">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-default">{{ _('Go') }}</button>
+        </form>
+    </div>#}
+    <div class="row">
+        <div class="col-sm-3" id="facets">
+            {{ drill_down.facets(facet_data.catalog, 'catalog', heading='Catalog', target='persons') }}
+            {{ drill_down.facets(facet_data.faffiliation, 'faffiliation', heading='Affiliation', target='persons') }}
+            {{ drill_down.facets(facet_data.fgroup, 'fgroup', heading='Working Groups', target='persons') }}
+            {{ drill_down.boolean_filter('tudo', heading='TUDO Member', target='persons') }}
+            {{ drill_down.boolean_filter('rubi', heading='RUB Member', target='persons') }}
+            {{ drill_down.simple_filter('gnd', heading='GND', target='persons') }}
+            {{ drill_down.simple_filter('orcid', heading='ORCID', target='persons') }}
+            {{ drill_down.date_filter('data_supplied', heading='Data Supplied', target='persons') }}
+            {{ drill_down.facets(facet_data.editorial_status, 'editorial_status', heading='Editorial Status', target='persons') }}
+            {{ drill_down.facets(facet_data.personal_status, 'personal_status', heading='Personal Status', target='persons') }}
+            {# drill_down.facets(facet_data.deskman, 'deskman', heading='Deskman', target='persons') #}
+            {# drill_down.facets(facet_data.owner, 'owner', heading='Owner', target='persons') #}
+        </div>
+        <div class="col-sm-9">
+            {{ pagination.info }}
+            {{ remove_filters.remove_filter(target='persons') }}
+            {{ pagination.links }}
+            <br/><span class="help-block">{{ _('Sort by date of last data supplied:') }} <a href="{{ url_for('persons') }}?sort=data_supplied asc{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}"><i class="glyphicon glyphicon-triangle-top"></i></a>  <a href="{{ url_for('persons') }}?sort=data_supplied desc{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}"><i class="glyphicon glyphicon-triangle-bottom"></i></a></span>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <td>#</td>
+                        <td>{{ _('Editorial Status') }}</td>
+                        <td>{{ _('Name') }} <a href="{{ url_for('persons') }}?sort=fname asc{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}"><i class="glyphicon glyphicon-triangle-top"></i></a>  <a href="{{ url_for('persons') }}?sort=fname desc{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}"><i class="glyphicon glyphicon-triangle-bottom"></i></a></td>
+                        <td>{{ _('Created') }} <a href="{{ url_for('persons') }}?sort=created desc{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}"><i class="glyphicon glyphicon-triangle-top"></i></a>  <a href="{{ url_for('persons') }}?sort=created asc{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}"><i class="glyphicon glyphicon-triangle-bottom"></i></a></td>
+                        <td>{{ _('Changed') }} <a href="{{ url_for('persons') }}?sort=changed desc{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}"><i class="glyphicon glyphicon-triangle-top"></i></a>  <a href="{{ url_for('persons') }}?sort=changed asc{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}"><i class="glyphicon glyphicon-triangle-bottom"></i></a></td>
+                        <td>{{ _('Action') }}</td>
+                    </tr>
+                </thead>
+                {% for record in results %}
+                    <tr>
+                        <th scope="row">{{ loop.index + offset }}</th>
+                        {#<td>{% if record.id == record.gnd %}<a href="http://d-nb.info/gnd/{{ record.id }}">{{ record.id }}</a>{% elif record.id == record.orcid %}<a href="https://orcid.org/{{ record.id }}">{{ record.id }}</a>{% else %}{{ record.id }}{% endif %}</td>#}
+                        <td>
+                            <span class="label label-{% if record.editorial_status == 'new' %}info{% elif record.editorial_status == 'in_process' %}default{% elif record.editorial_status == 'processed' %}primary{% elif record.editorial_status == 'final_editing' %}warning{% elif record.editorial_status == 'deleted' %}danger{% elif record.editorial_status == 'finalized' or record.editorial_status == 'imported' %}success{% endif %}">{% if record.locked %} <i class="fa fa-lock"></i> {% endif %}{{ record.editorial_status|capitalize }}</span>
+                        </td>
+                        <td>
+                            <a href="{% if record.gnd %}{{ url_for('show_person', person_id=record.gnd) }}{% else %}{{ url_for('show_person', person_id=record.id) }}{% endif %}">{{ record|get_name }}</a>{% if record.gnd %}
+                            <br/> <img src="https://portal.dnb.de/static/bilder/icon_gnd.gif"> <a href="http://d-nb.info/gnd/{{ record.gnd }}">{{ record.gnd }}</a>{% endif %}{% if record.orcid %}
+                            <br/> <img src="https://orcid.org/sites/default/files/images/orcid_16x16.png"> <a href="http://orcid.org/{{ record.orcid }}">http://orcid.org/{{ record.orcid }}</a>{% endif %}
+                            {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
+                                {% if record.data_supplied %}
+                                <br/><span class="help-block">{{ _('Last data supplied:') }} {{ record.data_supplied.split('T')[0] }}</span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>{{ (now - record.created|mk_time())|humanize() }}</td>
+                        <td>{{ (now - record.changed|mk_time())|humanize() }}</td>
+                        <td class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" id="action{{ loop.index }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"><i class="fa fa-cog"></i> Action <span class="fa fa-caret-down"></span></button>
+                            <ul class="dropdown-menu" aria-labelledby="action{{ loop.index }}">
+                                <li><a href="{{ url_for('show_person', person_id=record.id) }}"><i class="fa fa-eye"></i> {{ _('View') }}</a></li>
+                                {% if (current_user.role == 'admin' and not record.editorial_status == 'deleted' and not record.editorial_status == 'imported') or current_user.role == 'superadmin' or current_user.email in record.owner %}
+                                <li><a href="{{ url_for('edit_person', person_id=record.id) }}"><i class="fa fa-pencil"></i> Edit</a></li>
+                                <li class="bg-danger"><a href="#" data-href="{{ url_for('delete_person', person_id=record.id) }}" data-toggle="modal" data-target="#confirm-delete"><i class="fa fa-trash"></i> {{ _('Delete') }}</a></li>
+                                {% endif %}
+                            </ul>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+            {{ pagination.links }}
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script>
+        function page_reload(){
+            setTimeout(function(){
+                        document.location = '{{ del_redirect }}';
+                        }, 1000);
+        }
+        $('#confirm-delete').on('show.bs.modal', function(event) {
+            $(this).find('.btn-ok').attr('href', $(event.relatedTarget).data('href'));
+        });
+        $(document).on('click', '.btn-ok', function(event){
+            event.preventDefault();
+            $.get($('.btn-ok').attr('href'), function(data){
+                if(data.deleted == true){
+                    page_reload();
+                }
+            });
+        });
+    </script>
+    <script src="https://togetherjs.com/togetherjs-min.js"></script>
+{% endblock %}

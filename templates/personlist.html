@@ -1,0 +1,27 @@
+{% extends 'site_base.html' %}
+{% import 'drill_down.html' as drill_down with context %}
+{% import 'remove_filters.html' as remove_filters with context %}
+{% block site_content %}
+    {{ super() }}
+    <div class="row">
+        <div class="col-sm-4" id="facets">
+            {% if facet_data%}
+                {{ drill_down.facets(facet_data.catalog, 'catalog', heading='Catalog', target=target) }}
+                {{ drill_down.facets(facet_data.faffiliation, 'faffiliation', heading='Affiliation', target=target) }}
+                {{ drill_down.facets(facet_data.fgroup, 'fgroup', heading='Working Groups', target=target) }}
+                {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
+                    {{ drill_down.simple_filter('gnd', heading='GND', target=target) }}
+                    {{ drill_down.simple_filter('orcid', heading='ORCID', target=target) }}
+                    {{ drill_down.facets(facet_data.personal_status, 'personal_status', heading='Personal Status', target=target) }}
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="col-sm-8">
+            {{ pagination.info }}
+            {{ remove_filters.remove_filter(target=target) }}
+            {{ pagination.links }}
+            {% include 'person_list.html' %}
+            {{ pagination.links }}
+        </div>
+    </div>
+{% endblock %}

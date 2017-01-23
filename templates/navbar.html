@@ -1,0 +1,54 @@
+{% import 'bootstrap/utils.html' as utils %}
+<nav class="collapse navbar-collapse navbar navbar-inverse">
+    {# if current_user.role == 'admin' or current_user.role == 'superadmin' #}
+    <ul class="nav navbar-nav">
+        <li{% if header == 'Home' %} class="active"{% endif %}>
+            <a href="{{ url_for('homepage') }}"><i class="fa fa-home"></i> {{ _('Home') }}</a>
+        </li>
+        <li class="divider"></li>
+        {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
+            <li{% if header == 'Dashboard' %} class="active"{% endif %}>
+                <a href="{{ url_for('dashboard') }}"><i class="fa fa-list"></i> {{ _('Dashboard') }}</a>
+            </li>
+            <li class="divider"></li>
+        {% endif %}
+        <li class="dropdown{% if header == 'New Record' %} active{% endif %}">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-plus"></i> {{ _('New') }}</a>
+            <ul class="dropdown-menu">
+                <li><a href="{{ url_for('new_by_form') }}">{{ _('Work') }}</a></li>
+                {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
+                <li class="divider"></li>
+                <li><a href="{{ url_for('new_person') }}">{{ _('Person') }}</a></li>
+                <li><a href="{{ url_for('new_person_from_gnd') }}">{{ _('Person from GND') }}</a></li>
+                <li><a href="{{ url_for('new_orga') }}">{{ _('Organisation') }}</a></li>
+                {% endif %}
+                <li><a href="{{ url_for('new_group') }}">{{ _('Working Group') }}</a></li>
+            </ul>
+        </li>
+        <li class="divider"></li>
+    </ul>
+    <div class="navbar-right{% if header == query %} search_form_active{% endif %}">
+        <form class="navbar-form" role="search" action="{{ url_for('search') }}" method="get">
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Search" name="q">
+                </div>
+                <div class="input-group">
+                    <select id="core" class="form-control" name="core">
+                      <option value="hb2" {% if core == 'hb2' %}selected{% endif %}>{{ _('Works') }}</option>
+                      <option value="person" {% if core == 'person' %}selected{% endif %}>{{ _('Persons') }}</option>
+                      <option value="organisation" {% if core == 'organisation' %}selected{% endif %}>{{ _('Organisations') }}</option>
+                      <option value="group" {% if core == 'group' %}selected{% endif %}>{{ _('Working Groups') }}</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-default">{{ _('Go') }}</button>
+            </div>
+            {#<div class="form-group">
+                <a class="btn btn-default btn-sm" href="{{ url_for('search') }}?ext=1">{{ _('Extended Search') }}</a>
+            </div>#}
+        </form>
+    </div>
+    {# endif #}
+</nav>
+{{ utils.flashed_messages(container=false) }}

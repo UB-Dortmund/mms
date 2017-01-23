@@ -1,0 +1,39 @@
+Update an existing work
+---
+tags:
+  - works
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+- name: Authorization
+  in: header
+  description: Bearer access token.
+  required: true
+  type: string
+- name: work_id
+  in: path
+  description: unique ID of the work resource.
+  required: true
+  type: string
+- name: work resource
+  in: body
+  description: JSON structure representing the new person resource.
+  required: true
+  schema:
+    $ref: "#/definitions/Work"
+responses:
+  200:
+    schema:
+        $ref: "#/definitions/Work"
+  400:
+    description: Bad request, if the given data is invalid
+  401:
+    description: Unauthorized
+  403:
+    description: Forbidden
+  404:
+    description: Not found, if the requested resource doesn't exist
+  409:
+    description: Conflict! The ID of the resource already exists as "same_as"! Please check your data!

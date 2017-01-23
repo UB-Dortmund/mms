@@ -1,0 +1,23 @@
+{% extends 'site_base.html' %}
+{% import 'drill_down.html' as drill_down with context %}
+{% import 'remove_filters.html' as remove_filters with context %}
+{% block site_content %}
+    {{ super() }}
+    <div class="row">
+        <div class="col-sm-4" id="facets">
+            {% if facet_data%}
+                {{ drill_down.facets(facet_data.catalog, 'catalog', heading='Catalog', target='search') }}
+                {{ drill_down.facets(facet_data.fparent, 'fparent', heading='PARENTS', target='search') }}
+                {{ drill_down.facets(facet_data.destatis_id, 'destatis_id', heading='DESTATIS', target='search') }}
+                {{ drill_down.simple_filter('gnd', heading='GND', target='search') }}
+            {% endif %}
+        </div>
+        <div class="col-sm-8">
+            {{ pagination.info }}
+            {{ remove_filters.remove_filter(target=target) }}
+            {{ pagination.links }}
+            {% include 'orga_list.html' %}
+            {{ pagination.links }}
+        </div>
+    </div>
+{% endblock %}

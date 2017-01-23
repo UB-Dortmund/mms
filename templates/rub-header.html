@@ -1,0 +1,30 @@
+<header class="main">
+    <p>
+        <span class="pull-left">
+            <a href="https://www.rub.de" title="Ruhr-Universität Bochum">
+                <img src="{{ url_for('static', filename='site/bochum/img/rub_script.svg') }}" id="rub-wortmarke"
+                     alt="RUB-Wortmarke"/>
+            </a>
+        </span>
+        <span class="pull-right">
+            <span class="header-nav"><a href="http://www.rub.de">startseite</a> | <a
+                    href="http://www.rub.de/uebersicht/">übersicht</a> | <a
+                    href="http://www.rub.de/suche/">suche</a> | <a href="http://www.rub.de/a-z/">a-z</a></span>
+            <a href="https://www.rub.de" title="Ruhr-Universität Bochum">
+                <img src="{{ url_for('static', filename='site/bochum/img/rub-logo.svg') }}" id="rub-label" alt="RUB-Label"/>
+            </a>
+            <br/>
+            {% if current_user.is_authenticated %}<i class="fa fa-user"></i> {{ current_user.name }}
+             <a href="{{ url_for('logout', next='homepage') }}"><i class="fa fa-sign-out"></i></a>{% else %}{% if header != 'Sign In' %}<a href="{{ url_for('login', next=request.url_rule.endpoint) }}"><i class="fa fa-sign-in"></i> {{ _('Sign In') }}</a>{% endif %}{% endif %}
+            {% if current_user.is_authenticated and current_user.orcidid and current_user.orcidid != '' and current_user.orcidid != 'None' %}
+                <br/><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png"> <a href="http://orcid.org/{{ current_user.orcidid }}">http://orcid.org/{{ current_user.orcidid }}</a>
+            {% endif %}
+        </span>
+    </p>
+    <h1>{% if header != 'Home' and header != 'Startseite' %}<a href="{{ url_for('homepage') }}">{% endif %}{{ _('Research bibliography and repository') }}{% if header != 'Home' and header != 'Startseite' %}</a>{% endif %}</h1>
+    <h2>{{ header }}</h2>
+    {#{% for field in current_user %}
+        {{ field }}
+    {% endfor %}
+#}
+</header>

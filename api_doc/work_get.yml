@@ -1,0 +1,336 @@
+Get a work
+---
+tags:
+  - works
+produces:
+  - application/json
+definitions:
+    - schema:
+        id: IDL
+        type: object
+        properties:
+            id:
+                type: string
+            label:
+                type: string
+    - schema:
+        id: Person
+        type: object
+        properties:
+            name:
+                type: string
+            gnd:
+                type: string
+            orcid:
+                type: string
+            role:
+                type: string
+            corresponding_author:
+                type: boolean
+            rubi:
+                type: boolean
+            tudo:
+                type: boolean
+    - schema:
+        id: Corporation
+        type: object
+        properties:
+            name:
+                type: string
+            gnd:
+                type: string
+            viaf:
+                type: string
+            isni:
+                type: string
+            role:
+                type: string
+            corresponding_author:
+                type: boolean
+            rubi:
+                type: boolean
+            tudo:
+                type: boolean
+    - schema:
+        id: Is_Part_Of
+        type: object
+        properties:
+            is_part_of:
+                type: string
+            volume:
+                type: string
+            issue:
+                type: string
+            page_first:
+                type: string
+            page_last:
+                type: string
+    - schema:
+        id: Has_Part
+        type: object
+        properties:
+            has_part:
+                type: string
+    - schema:
+        id: Other_Version
+        type: object
+        properties:
+            other_version:
+                type: string
+    - schema:
+        id: URL
+        type: object
+        properties:
+            url:
+                type: string
+            label:
+                type: string
+    - schema:
+        id: RelatedIdentifiers
+        type: object
+        properties:
+            related_identifier:
+                type: string
+            relation_type:
+                type: string
+    - schema:
+        id: Event
+        type: object
+        properties:
+            event_name:
+                type: string
+            event_place:
+                type: string
+            event_startdate:
+                type: string
+                format: date
+            event_enddate:
+                type: string
+                format: date
+            event_numbering:
+                type: string
+    - schema:
+        id: OpenAccess
+        type: object
+        properties:
+            project_identifier:
+                type: string
+            project_type:
+                type: string
+            publication_version:
+                type: string
+            fee:
+                type: string
+            access_level:
+                type: string
+            embargo_end_date:
+                type: string
+                format: date
+            mime_type:
+                type: string
+    - schema:
+        id: Work
+        type: object
+        required:
+            - id
+            - title
+            - pubtype
+        properties:
+            id:
+                type: string
+            title:
+                type: string
+            subtitle:
+                type: string
+            title_supplement:
+                type: string
+            other_title:
+                type: string
+            pubtype:
+                type: string
+            subtype:
+                type: string
+            person:
+                type: array
+                items:
+                    $ref: "#/definitions/Person"
+            corporation:
+                type: array
+                items:
+                    $ref: "#/definitions/Corporation"
+            language:
+                type: string
+            publication_status:
+                type: string
+            version:
+                type: string
+            abstract:
+                type: string
+            table_of_contents:
+                type: string
+            number_of_pages:
+                type: int
+            medium:
+                type: string
+            publisher:
+                type: string
+            publisher_place:
+                type: string
+            edition:
+                type: string
+            licence:
+                type: string
+            licence_text:
+                type: string
+            issued:
+                type: string
+                format: date
+            last_update:
+                type: string
+                format: date
+            accessed:
+                type: string
+                format: date
+            same_as:
+                type: array
+                items:
+                    type: string
+            DOI:
+                type: string
+            PMID:
+                type: string
+            WOSID:
+                type: string
+            orcid_put_code:
+                type: string
+            hbz_id:
+                type: string
+            ISBN:
+                type: string
+            ISSN:
+                type: string
+            ISMN:
+                type: string
+            ZDBID:
+                type: string
+            frequency:
+                type: string
+            subseries:
+                type: string
+            number_of_volumes:
+                type: string
+            journal_abbreviation:
+                type: string
+            peer_reviewed:
+                type: boolean
+            DFG:
+                type: boolean
+                description: is funded by DFG Publication Funds
+            uri:
+                type: array
+                items:
+                    $ref: "#/definitions/URL"
+            related_identifiers:
+                type: array
+                items:
+                    $ref: "#/definitions/RelatedIdentifiers"
+            repository:
+                type: string
+            resource_type:
+                type: string
+            size:
+                type: string
+            format:
+                type: string
+            publication_number:
+                type: string
+            application_number:
+                type: string
+            application_country:
+                type: string
+            application_date:
+                type: string
+                format: date
+            priority_number:
+                type: string
+            priority_number:
+                type: string
+            priority_number:
+                type: string
+                format: date
+            ipc_keyword:
+                $ref: "#/definitions/IDL"
+            event:
+                type: array
+                items:
+                    $ref: "#/definitions/Event"
+            open_access:
+                $ref: "#/definitions/OpenAccess"
+            is_part_of:
+                type: array
+                items:
+                    $ref: "#/definitions/Is_Part_Of"
+            has_part:
+                type: array
+                items:
+                    $ref: "#/definitions/Has_Part"
+            other_version:
+                type: array
+                items:
+                    $ref: "#/definitions/Other_Version"
+            affiliation_context:
+                type: string
+            group_context:
+                type: string
+            keyword:
+                type: array
+                items:
+                    type: string
+            keyword_temporal:
+                type: array
+                items:
+                    type: string
+            keyword_geographic:
+                type: array
+                items:
+                    type: string
+            swd_subject:
+                $ref: "#/definitions/IDL"
+            ddc_subject:
+                $ref: "#/definitions/IDL"
+            mesh_subject:
+                $ref: "#/definitions/IDL"
+            stw_subject:
+                $ref: "#/definitions/IDL"
+            lcsh_subject:
+                $ref: "#/definitions/IDL"
+            thesoz_subject:
+                $ref: "#/definitions/IDL"
+            created:
+                type: string
+                format: date-time
+            changed:
+                type: string
+                format: date-time
+            editorial_status:
+                type: string
+            deskman:
+                type: string
+            owner:
+                type: array
+                items:
+                    type: string
+            note:
+                type: string
+parameters:
+- name: work_id
+  in: path
+  description: unique ID of the work resource.
+  required: true
+  type: string
+responses:
+  200:
+    schema:
+        $ref: "#/definitions/Work"
+  404:
+    description: Not found, if the requested resource doesn't exist

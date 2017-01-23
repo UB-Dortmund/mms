@@ -1,0 +1,16 @@
+<a href="{{ url_for('show_person', person_id=record.id) }}">{{ record.name }}</a>
+{% if record.gnd %}
+<br/> <img src="https://portal.dnb.de/static/bilder/icon_gnd.gif"> <a href="http://d-nb.info/gnd/{{ record.gnd }}">{{ record.gnd }}</a>
+{% endif %}
+{% if record.orcid %}
+<br/> <img src="https://orcid.org/sites/default/files/images/orcid_16x16.png"> <a href="http://orcid.org/{{ record.orcid }}">http://orcid.org/{{ record.orcid }}</a>
+{% endif %}
+<br/>
+{% if record.faffiliation %}
+    {% for affiliation in record.faffiliation %}{{ affiliation }}{% if not loop.last %}; {% endif %}{% endfor %}<br/>
+{% endif %}
+{% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
+    {% if record.data_supplied %}
+       <span class="help-block"> {{ _('Last data supplied:') }} {{ record.data_supplied.split('T')[0] }}</span>
+    {% endif %}
+{% endif %}

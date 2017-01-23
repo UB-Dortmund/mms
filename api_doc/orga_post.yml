@@ -1,0 +1,30 @@
+Create a new organisation
+---
+tags:
+  - organisations
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+- name: Authorization
+  in: header
+  description: Bearer access token.
+  required: true
+  type: string
+- name: organisation resource
+  in: body
+  description: JSON structure representing the new organisation resource.
+  required: true
+  schema:
+    $ref: "#/definitions/Organisation"
+responses:
+  201:
+    schema:
+        $ref: "#/definitions/Organisation"
+  400:
+    description: Bad request, if the given data is invalid
+  401:
+    description: Unauthorized
+  403:
+    description: Forbidden

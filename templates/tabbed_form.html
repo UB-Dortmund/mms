@@ -1,0 +1,459 @@
+{% extends 'site_base.html' %}
+{% import 'render_form.html' as render_form with context %}
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='site/bochum/css/bootstrap.vertical-tabs.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='site/bochum/css/typeaheadjs.css') }}">
+{% endblock %}
+{% block site_content %}
+    {{ super() }}
+    <div class="row" id="{{ record_id }}">
+        <div>
+        <p style="margin-left: 3%;">{{ _('Fields marked with <span style="color: orangered;">*</span> are required.') }}</p>
+        <form id="theform" class="form form-horizontal" method="post" action="{{ request.script_root }}/{{ action }}/{{ pubtype }}{% if action == 'update' %}/{{ form.id.data }}{% endif %}{% if cptask %}?cptask=true{% endif %}" enctype="multipart/form-data">
+            {{ form.csrf_token }}
+            <div class="tab-container"><div class="col-xs-3">
+                {% if current_user.role != 'admin' and current_user.role != 'superadmin' %}
+                    {% for groups in form.simple_groups() %}
+                        <ul class="nav nav-tabs tabs-left">
+                            {% for group in groups %}
+                                <li{% if loop.first %} class="active"{% endif %}><a href="#{{ group.label|lower|replace(' ', '_') }}" data-toggle="tab">{{ group.label }}</a> </li>
+                            {% endfor %}
+                        </ul>
+                    {% endfor %}
+                    <hr width="95%"/>
+                    <div class="text-center">{% include 'submit_form.html' %}</div>
+                    {% else %}
+                    {% for groups in form.groups() %}
+                        <ul class="nav nav-tabs tabs-left">
+                            {% for group in groups %}
+                                <li{% if loop.first %} class="active"{% endif %}><a href="#{{ group.label|lower|replace(' ', '_') }}" data-toggle="tab">{{ group.label }}</a> </li>
+                            {% endfor %}
+                        </ul>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="col-xs-9 clearfix">
+                <div class="tab-content">
+                    {% if current_user.role != 'admin' and current_user.role != 'superadmin' %}
+                        {% for simple_groups in form.simple_groups() %}
+                            {% for group in simple_groups %}
+                                <div class="tab-pane{% if loop.first %} active{% endif %}" id="{{ group.label|lower|replace(' ', '_') }}">
+                                    {% for item in group.group %}
+                                        {% if item.type != 'FieldList' %}
+                                            {% if item.type == 'FormField' %}
+                                                {% include 'form_field.html' %}
+                                            {% else %}
+                                                {% if current_user.role != 'admin' and current_user.role != 'superadmin' %}
+                                                    {% if not item.name in form.admin_only %}{{ render_form.render_field(item) }}{% endif %}
+                                                {% else %}
+                                                    {% if not item.name in form.user_only %}{{ render_form.render_field(item) }}{% endif %}
+                                                {% endif %}
+                                            {% endif %}
+                                        {% else %}
+                                            {{ render_form.render_multi_field(item) }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+                    {% else %}
+                        {% for groups in form.groups() %}
+                            {% for group in groups %}
+                                <div class="tab-pane{% if loop.first %} active{% endif %}" id="{{ group.label|lower|replace(' ', '_') }}">
+                                    {% for item in group.group %}
+                                        {% if item.type != 'FieldList' %}
+                                            {% if item.type == 'FormField' %}
+                                            {% include 'form_field.html' %}
+                                            {% else %}
+                                            {% if current_user.role != 'admin' and current_user.role != 'superadmin' %}
+                                                {% if not item.name in form.admin_only %}{{ render_form.render_field(item) }}{% endif %}
+                                            {% else %}
+                                                {% if not item.name in form.user_only %}{{ render_form.render_field(item) }}{% endif %}
+                                            {% endif %}
+                                            {% endif %}
+                                        {% else %}
+                                            {{ render_form.render_multi_field(item) }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            </div>
+        </form>
+        </div>
+    </div>
+    {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
+    <div class="row">{% include 'submit_form.html' %}</div>
+    {% endif %}
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    {% if action == 'update' %}
+    <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
+    {% endif %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+    {# <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.5/typeahead.bundle.min.js"></script> #}
+    <script src="{{ url_for('static', filename='js/typeahead.js') }}"></script>
+    <script>
+        function scrollto(element){
+            $('html, body').animate({scrollTop: $(element).offset().top}, 'slow');
+        }
+        $(document).on('click', '.add', function (event) {
+            $('.typeahead_orga').typeahead('destroy');
+            $('.typeahead_pers').typeahead('destroy');
+            $('.typeahead_group').typeahead('destroy');
+            $('.typeahead_title').typeahead('destroy');
+            $('.typeahead_part_of').typeahead('destroy');
+            $('.typeahead_has_part').typeahead('destroy');
+            $('.typeahead_other_version').typeahead('destroy');
+            event.preventDefault();
+            var container = $(this).closest('[id$="_container"]');
+            var fieldnameparts = container.attr('id').split('-');
+            var thenum = parseInt(fieldnameparts[1].replace('_container', '')) + 1;
+            var cpy = container.clone(true);
+            var container_id = cpy.attr('id').replace('-' + (thenum - 1), '-' + thenum);
+            cpy.attr('id', container_id);
+            cpy.find(':input').each(function(){
+                if ($(this).attr('id')) {
+                    var id = $(this).attr('id').replace('-' + (thenum - 1) + '-', '-' + thenum + '-');
+                    $(this).attr('name', id).attr('id', id).val('').removeAttr('checked');
+                }
+            });
+            cpy.find('label').each(function(){
+                var id = $(this).attr('for').replace('-' + (thenum - 1) + '-', '-' + thenum + '-');
+                $(this).attr('for', id);
+            });
+            $(this).replaceWith('<a class="btn btn-sm btn-danger remove" href="#"><i class="fa fa-trash"></i> {{_("Remove this")}}</a></div>');
+            container.after(cpy);
+            doTypeahead();
+            scrollto('#' + container_id);
+        });
+        $(document).on('click', '.remove', function (event) {
+            $(this).closest('[id*="container"]').remove();
+        });
+        $(document).on('click', '.submit', function (event) {
+            $(this).removeClass('btn-primary');
+            $(this).addClass('btn-warning');
+            $(this).html("<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate'></span> {{ _('Loading ...') }}");
+        });
+        $(document).on('click', '.add-atomic', function(event){
+            $('.typeahead_orga').typeahead('destroy');
+            $('.typeahead_pers').typeahead('destroy');
+            $('.typeahead_group').typeahead('destroy');
+            $('.typeahead_title').typeahead('destroy');
+            $('.typeahead_part_of').typeahead('destroy');
+            $('.typeahead_has_part').typeahead('destroy');
+            $('.typeahead_other_version').typeahead('destroy');
+            event.preventDefault();
+            var container = $(this).closest('[id$="_container"]');
+            var fieldnameparts = container.attr('id').split('-');
+            var thenum = parseInt(fieldnameparts[1].replace('_container', '')) + 1;
+            var cpy = container.clone(true);
+            var container_id = cpy.attr('id').replace('-' + (thenum - 1), '-' + thenum);
+            cpy.attr('id', container_id);
+            var input;
+            cpy.find(':input').each(function(){
+                if ($(this).attr('id')) {
+                    var id = $(this).attr('id').replace('-' + (thenum - 1), '-' + thenum);
+                    $(this).attr('name', id).attr('id', id).val('').removeAttr('checked');
+                    input = $(this);
+                }
+                else {
+                    $(this).remove();
+                }
+            });
+            cpy.find('.twitter-typeahead').replaceWith(input);
+            cpy.find('label').each(function(){
+                var id = $(this).attr('for').replace('-' + (thenum - 1), '-' + thenum);
+                $(this).attr('for', id);
+            });
+            $(this).replaceWith('<a class="btn btn-sm btn-danger remove" href="#"><i class="fa fa-trash"></i> {{_("Remove this")}}</a></div>');
+            container.after(cpy);
+            doTypeahead();
+        });
+        function dedupe(idtype, thenode){
+            $.getJSON('/dedup/' + idtype + '/' + encodeURIComponent(thenode.val()), function(data){
+                $('#' + idtype + '_dedup_note').remove();
+                if(data.duplicate == true){
+                    var myquery = idtype + ':' + thenode.val();
+                    thenode.closest('div[id$="_container"]').append('<div id="' + idtype + '_dedup_note" class="col-sm-4"><div class="alert alert-danger"><i class="fa fa-exclamation-triangle"></i> {{ _("This Title Already Exists!") }} <a href="{{ request.script_root }}/search?q=' + myquery + '">{{ _("Here") }}</a></div></div>')
+                }
+                else{
+                    thenode.closest('div[id$="_container"]').append('<div id="' + idtype + '_dedup_note" class="col-sm-4"><div class="alert alert-success"><i class="fa fa-check"></i> {{ _("This Title Does Not Exist Yet!") }}</div></div>')
+                }
+            });
+        }
+        $(document).on('change', '#DOI', function(event){
+            dedupe('doi', $(this));
+        });
+        $(document).on('change', '#ISBN', function(event){
+            dedupe('isbn', $(this));
+        });
+        $(document).on('change', '[id$="orcid"]', function(event){
+            $.getJSON('/orcid2name/' + encodeURIComponent($(this).val()), function(data){
+                console.log(data);
+                console.log($(this).closest('div[id$="_container"]').html());
+                $(this).closest('[id$="_container"] .form-group div input[id$="name"]').val(data.name);
+            });
+        });
+        {#$(document).on('change', '#pubtype', function(event){
+            console.log($(this).val());
+            console.log($('#id').val());
+            $.post('/update/' + $(this).val() + '/' + $('#id').val(), $('#theform').serialize());
+            window.location.href = '/update/' + $(this).val() + '/' + $('#id').val();
+        });#}
+        {% if action == 'create' %}
+            $(document).on('change', '#pubtype', function(event){
+                var pubtype = $(this).val();
+                //$('#pubtype select').val('{{ pubtype }}');
+                $('#pubtype option[value="{{ pubtype }}"]').prop('selected', true);
+                console.log($('#theform').serialize())
+                $.post('{{ request.script_root }}/create/' + pubtype, $('#theform').serialize(), function(){
+                    window.location.href = '{{ request.script_root }}/update/' + pubtype + '/' + $('.row').attr('id');
+                }).fail(function(e){
+                    console.log(e);
+                });
+            });
+        {% elif action == 'update' %}
+            console.log($('.row').attr('id'));
+            var socket = io.connect('https://hb2.ub.rub.de/socketio/hb2');
+            $(document).on('change', '#pubtype', function(event){
+                window.location.href = '{{ request.script_root }}/update/' + $(this).val() + '/' + $('.row').attr('id');
+            });
+            $(document).on('submit', '#theform', function(event){
+                socket.emit('unlock', {data: $('.row').attr('id')});
+            });
+        {% endif %}
+    </script>
+    <script>
+        $(document).on('drop', 'input', function (event) {
+            event.preventDefault();
+            $(this).val(event.originalEvent.dataTransfer.getData('text').split('/').pop());
+        })
+    </script>
+    <script>
+        function doTypeahead() {
+            var titles = new Bloodhound({
+                datumTokenizer: function(d){
+                    console.log(d);
+                    return Bloodhound.tokenizers.whitespace(d.pref_label)
+                },
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                remote: {
+                    ajax: {datatype: 'jsonp', jsonp: 'json.wrf'},
+                    url: '{{ request.script_root.replace('/beta', '') }}/solr/hb2/tsuggest/?q=%QUERY',
+                    filter: function(data){
+                        return data.response.docs;
+                    }
+                },
+                identify: function(obj){return obj.id;}
+            });
+
+            var organisations = new Bloodhound({
+                datumTokenizer: function(d){
+                    console.log(d);
+                    return Bloodhound.tokenizers.whitespace(d.pref_label)
+                },
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                remote: {
+                    ajax: {datatype: 'jsonp', jsonp: 'json.wrf'},
+                    url: '{{ request.script_root.replace('/beta', '') }}/solr/organisation/tsuggest/?q=%QUERY',
+                    filter: function(data){
+                        return data.response.docs;
+                    }
+                },
+                identify: function(obj){return obj.id;}
+            });
+
+            var groups = new Bloodhound({
+                datumTokenizer: function(d){
+                    console.log(d);
+                    return Bloodhound.tokenizers.whitespace(d.pref_label)
+                },
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                remote: {
+                    ajax: {datatype: 'jsonp', jsonp: 'json.wrf'},
+                    url: '{{ request.script_root.replace('/beta', '') }}/solr/group/tsuggest/?q=%QUERY',
+                    filter: function(data){
+                        return data.response.docs;
+                    }
+                },
+                identify: function(obj){return obj.id;}
+            });
+
+            var persons = new Bloodhound({
+                datumTokenizer: function(d){
+                    console.log(d);
+                    return Bloodhound.tokenizers.whitespace(d.name)
+                },
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                remote: {
+                    ajax: {datatype: 'jsonp', jsonp: 'json.wrf'},
+                    url: '{{ request.script_root.replace('/beta', '') }}/solr/person/tsuggest/?q=%QUERY',
+                    filter: function(data){
+                        return data.response.docs;
+                    }
+                },
+                identify: function(obj){return obj.id;}
+            });
+
+            titles.initialize();
+            organisations.initialize();
+            groups.initialize();
+            persons.initialize();
+
+            $('.typeahead_title').typeahead({
+                hint: true,
+                highlight: true,
+                minLength: 2,
+            }, {
+                name: 'title',
+                display: 'title',
+                source: titles.ttAdapter(),
+                templates: {
+                    empty: 'Nothing',
+                    suggestion: Handlebars.compile('{% raw %}<div>{{title}} / {{ fperson }}. <small>{{date}} (id:{{id}})</small></div>{% endraw %}')
+                }
+            });
+
+            $('.typeahead_part_of').typeahead({
+                hint: true,
+                highlight: true,
+                minLength: 2,
+            }, {
+                name: 'is_part_of',
+                display: 'id',
+                source: titles.ttAdapter(),
+                templates: {
+                    empty: 'Nothing',
+                    suggestion: Handlebars.compile('{% raw %}<div>{{title}} / {{ fperson }}. <small>{{date}} (id:{{id}})</small></div>{% endraw %}')
+                }
+            });
+
+            $('.typeahead_has_part').typeahead({
+                hint: true,
+                highlight: true,
+                minLength: 2,
+            }, {
+                name: 'has_part',
+                display: 'id',
+                source: titles.ttAdapter(),
+                templates: {
+                    empty: 'Nothing',
+                    suggestion: Handlebars.compile('{% raw %}<div>{{title}} / {{ fperson }}. <small>{{date}} (id:{{id}})</small></div>{% endraw %}')
+                }
+            });
+
+            $('.typeahead_other_version').typeahead({
+                hint: true,
+                highlight: true,
+                minLength: 2,
+            }, {
+                name: 'has_part',
+                display: 'id',
+                source: titles.ttAdapter(),
+                templates: {
+                    empty: 'Nothing',
+                    suggestion: Handlebars.compile('{% raw %}<div>{{title}} / {{ fperson }}. <small>{{date}} (id:{{id}})</small></div>{% endraw %}')
+                }
+            });
+
+            $('.typeahead_orga').typeahead({
+                hint: true,
+                highlight: true,
+                minLength: 2,
+            }, {
+                name: 'orga',
+                display: 'pref_label',
+                source: organisations.ttAdapter(),
+                templates: {
+                    empty: 'Nothing',
+                    suggestion: Handlebars.compile('{% raw %}<div>{{pref_label}} <small>(id:{{id}}, gnd:{{gnd}})</small></div>{% endraw %}')
+                }
+            });
+
+            $('.typeahead_group').typeahead({
+                hint: true,
+                highlight: true,
+                minLength: 2,
+            }, {
+                name: 'group',
+                display: 'pref_label',
+                source: groups.ttAdapter(),
+                templates: {
+                    empty: 'Nothing',
+                    suggestion: Handlebars.compile('{% raw %}<div>{{pref_label}} <small>(id:{{id}}, gnd:{{gnd}})</small></div>{% endraw %}')
+                }
+            });
+
+            $('.typeahead_pers').typeahead({
+                hint: true,
+                highlight: true,
+                minLength: 2,
+            }, {
+                name: 'pers',
+                display: 'name',
+                source: persons.ttAdapter(),
+                templates: {
+                    empty: 'Nothing',
+                    suggestion: Handlebars.compile('{% raw %}<div>{{name}} <small>{{affiliation}} (id:{{id}}, gnd:{{gnd}})</small></div>{% endraw %}')
+                }
+            });
+        }
+
+        doTypeahead();
+
+        $('.typeahead_pers').on('typeahead:selected', function(evt, item) {
+            if (item.gnd) {
+                $(this).closest('[id$="_container"]').find(':input').each(function(){
+                    if ($(this).attr('id') && $(this).attr('id').indexOf('-gnd') >= 1 ) {
+                        $(this).val(item.gnd)
+                    }
+                });
+            }
+            if (item.orcid) {
+                $(this).closest('[id$="_container"]').find(':input').each(function(){
+                    if ($(this).attr('id') && $(this).attr('id').indexOf('-orcid') >= 1 ) {
+                        $(this).val(item.orcid)
+                    }
+                });
+            }
+        })
+        $('.typeahead_orga').on('typeahead:selected', function(evt, item) {
+            if (item.gnd) {
+                $(this).closest('[id$="_container"]').find(':input').each(function(){
+                    if ($(this).attr('id') && $(this).attr('id').indexOf('-gnd') >= 1 ) {
+                        $(this).val(item.gnd)
+                    }
+                });
+            }
+            if (item.id) {
+                $(this).closest('[id$="_container"]').find(':input').each(function(){
+                    if ($(this).attr('id') && $(this).attr('id').indexOf('-organisation_id') >= 1 ) {
+                        $(this).val(item.id)
+                    }
+                });
+            }
+        })
+        $('.typeahead_group').on('typeahead:selected', function(evt, item) {
+            if (item.gnd) {
+                $(this).closest('[id$="_container"]').find(':input').each(function(){
+                    if ($(this).attr('id') && $(this).attr('id').indexOf('-gnd') >= 1 ) {
+                        $(this).val(item.gnd)
+                    }
+                });
+                $(this).closest('[id$="_container"]').find(':input').each(function(){
+                    if ($(this).attr('id') && $(this).attr('id').indexOf('-group_id') >= 1 ) {
+                        $(this).val(item.gnd)
+                    }
+                });
+            }
+        })
+
+    </script>
+    <script src="https://togetherjs.com/togetherjs-min.js"></script>
+{% endblock %}

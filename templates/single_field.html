@@ -1,0 +1,49 @@
+<div class="form-group" id="{{ field.name }}_container">
+    {% if field.type != 'HiddenField' %}
+        {% if field.flags.required %}
+            {{ field.label(class='col-sm-2 control-label required') }}
+        {% else %}
+            {{ field.label(class='col-sm-2 control-label') }}
+        {% endif %}
+    {% endif %}
+    <div class="col-sm-6">
+        {% if field.flags.required %}
+            {% if 'title' in field.name %}
+                {{ field(class='form-control typeahead_title',required='required') }}
+            {% elif 'person' in field.name %}
+                {{ field(class='form-control typeahead_pers',required='required') }}
+            {% elif 'corporation' in field.name %}
+                {{ field(class='form-control typeahead_orga',required='required') }}
+            {% elif 'affiliation_context' in field.name %}
+                {{ field(class='form-control typeahead_orga',required='required') }}
+            {% elif 'group_context' in field.name %}
+                {{ field(class='form-control typeahead_group',required='required') }}
+            {% else %}
+                {{ field(class='form-control',required='required') }}
+            {% endif %}
+        {% elif field.type == 'BooleanField' %}
+            {{ field(class='checkbox') }}
+        {% elif field.type == 'FileField' %}
+            {{ field }}
+        {% elif field.type == 'HiddenField' %}
+            {{ field }}
+        {% else %}
+            {% if 'title' in field.name %}
+                {{ field(class='form-control typeahead_title') }}
+            {% elif 'person' in field.name %}
+                {{ field(class='form-control typeahead_pers') }}
+            {% elif field.name == 'name' %}
+                {{ field(class='form-control typeahead_pers') }}
+            {% elif 'corporation' in field.name %}
+                {{ field(class='form-control typeahead_orga') }}
+            {% elif 'affiliation_context' in field.name %}
+                {{ field(class='form-control typeahead_orga') }}
+            {% elif 'group_context' in field.name %}
+                {{ field(class='form-control typeahead_group') }}
+            {% else %}
+                {{ field(class='form-control') }}
+            {% endif %}
+        {% endif %}
+        {% if field.description %}<div class="clearfix"></div><p class="help-block" style="margin-top: 8px;">{{ field.description }}</p>{% endif %}
+    </div>
+</div>

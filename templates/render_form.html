@@ -1,0 +1,162 @@
+{% macro render_field(field) %}
+    {% if field.type != 'CSRFTokenField' %}
+        {% include 'single_field.html' %}
+    {% endif %}
+{% endmacro %}
+
+{% macro render_multi_field(multifield) %}
+{% if multifield[0] %}
+    {% if multifield[0].type == 'FormField' %}
+    {% for enclosure in multifield %}
+    {% if enclosure.name|rem_form_count not in form.admin_only %}
+    <div id="{{ enclosure.name }}_container" class="multi_enclosure">
+    <div class="col-sm-2 control-label">{{ enclosure.name|capitalize|rem_form_count|replace('_', ' ') }}</div>
+    {% if not multifield.max_entries or (multifield.max_entries and multifield.max_entries > 1) %}
+    <div class="col-sm-6" style="margin: 0 0 12px -10px;;">
+        {% if multifield|length > 1 %}
+            <a class="btn btn-sm btn-danger remove" href="#"><i class="fa fa-trash"></i> {{_('Remove this')}}</a>
+        {% endif %}
+        <a class="btn btn-sm btn-default add" href="#"><i class="fa fa-plus"></i> {{_('Add another')}}</a>
+    </div>
+    <div class="col-sm-4">&nbsp;</div>
+    {% endif %}
+    <div class="clearfix"></div>
+        {% for subfield in enclosure %}
+            {% if subfield.type != 'CSRFTokenField' %}
+                <div class="form-group">
+                {% if current_user.role != 'admin' and current_user.role != 'superadmin' %}
+                    {% if subfield.name|last_split not in form.admin_only %}
+                        <div class="col-sm-2 control-label">&nbsp;</div>
+                        {% if subfield.type != 'BooleanField' %}
+                            <div class="col-sm-6">
+                                {% if subfield.type != 'HiddenField' %}
+                                <span class="subfield_label">{{ subfield.label }}</span><br/>
+                                {% endif %}
+                                {% if 'title' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_title') }}
+                                {% elif '-is_part_of' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_part_of') }}
+                                {% elif '-has_part' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_has_part') }}
+                                {% elif '-other_version' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_other_version') }}
+                                {% elif 'person-' in subfield.name and '-name' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_pers') }}
+                                {% elif 'corporation-' in subfield.name and '-name' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_orga') }}
+                                {% elif 'affiliation-' in subfield.name and '-label' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_orga') }}
+                                {% elif 'group-' in subfield.name and '-label' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_group') }}
+                                {% elif 'affiliation_context' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_orga') }}
+                                {% elif 'group_context' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_group') }}
+                                {% else %}
+                                    {{ subfield(class='form-control') }}
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="col-sm-6"><div class="checkbox">{{ subfield }}<span class="subfield_label">{{ subfield.label }}</span></div></div>
+                        {% endif %}
+                        {% if subfield.description %}<div class="clearfix"></div><div class="col-sm-offset-2"><p class="help-block" style="margin-top: 8px;margin-left:15px;">{{ subfield.description }}</p></div>{% endif %}
+                        <div class="col-sm-4">&nbsp;</div>
+                    {% endif %}
+                {% else %}
+                    {% if subfield.name not in form.user_only %}
+                        <div class="col-sm-2 control-label">&nbsp;</div>
+                        {% if subfield.type != 'BooleanField' %}
+                            <div class="col-sm-6">
+                                {% if subfield.type != 'HiddenField' %}
+                                <span class="subfield_label">{{ subfield.label }}</span><br/>
+                                {% endif %}
+                                {% if '-title' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_title') }}
+                                {% elif '-is_part_of' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_part_of') }}
+                                {% elif '-has_part' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_has_part') }}
+                                {% elif '-other_version' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_other_version') }}
+                                {% elif 'person-' in subfield.name and '-name' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_pers') }}
+                                {% elif 'corporation-' in subfield.name and '-name' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_orga') }}
+                                {% elif 'affiliation-' in subfield.name and '-label' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_orga') }}
+                                {% elif 'group-' in subfield.name and '-label' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_group') }}
+                                {% elif '-affiliation_context' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_orga') }}
+                                {% elif '-group_context' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_group') }}
+                                {% else %}
+                                    {{ subfield(class='form-control') }}
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="col-sm-6"><div class="checkbox">{{ subfield }}<span class="subfield_label">{{ subfield.label }}</span></div></div>
+                        {% endif %}
+                        {% if subfield.description %}<div class="clearfix"></div><div class="col-sm-offset-2"><p class="help-block" style="margin-top: 8px;margin-left:15px;">{{ subfield.description }}</p></div>{% endif %}
+                        <div class="col-sm-4">&nbsp;</div>
+                    {% endif %}
+                {% endif %}
+                </div>
+            {% endif %}
+        {% endfor %}
+        {#<span style="margin-left:15px;text-transform:uppercase;"><a class="btn btn-sm btn-default" href="#" data-field="{{ multifield[0].name }}"><i class="fa fa-plus"></i> {{_('Add another')}}</a></span>#}
+        </div>
+    {% endif %}
+    {% endfor %}
+    {% else %}
+        {% for entry in multifield.entries %}
+            {% if entry.name|rem_form_count not in form.admin_only %}
+            <div class="form-group" id="{{ entry.name }}_container">
+                {% if entry.type != 'HiddenField' %}
+                <div class="col-sm-2 control-label">{{ entry.label }}</div>
+                {% endif %}
+                <div class="col-sm-6">
+                    {% if entry.flags.required %}
+                        {% if '-title' in entry.name %}
+                            {{ entry(class='form-control typeahead_title',required='required') }}
+                        {% elif 'person-' in entry.name %}
+                            {{ entry(class='form-control typeahead_pers',required='required') }}
+                        {% elif 'corporation-' in entry.name %}
+                            {{ entry(class='form-control typeahead_orga',required='required') }}
+                        {% elif '-affiliation_context' in entry.name %}
+                            {{ entry(class='form-control typeahead_orga',required='required') }}
+                        {% elif '-group_context' in entry.name %}
+                            {{ entry(class='form-control typeahead_group',required='required') }}
+                        {% else %}
+                            {{ entry(class='form-control',required='required') }}
+                        {% endif %}
+                    {% else %}
+                        {% if '-title' in entry.name %}
+                            {{ entry(class='form-control typeahead_title') }}
+                        {% elif 'person-' in entry.name %}
+                            {{ entry(class='form-control typeahead_pers') }}
+                        {% elif 'corporation-' in entry.name %}
+                            {{ entry(class='form-control typeahead_orga') }}
+                        {% elif '-affiliation_context' in entry.name %}
+                            {{ entry(class='form-control typeahead_orga') }}
+                        {% elif '-group_context' in entry.name %}
+                            {{ entry(class='form-control typeahead_group') }}
+                        {% else %}
+                            {{ entry(class='form-control') }}
+                        {% endif %}
+                    {% endif %}
+                </div>
+                <div class="col-sm-1">
+                    {% if loop.last %}
+                        <a class="btn btn-sm btn-default add-atomic" href="#"><i class="fa fa-plus"></i> {{_('Add another')}}</a>
+                    {% else %}
+                        <a class="btn btn-sm btn-danger remove" href="#"><i class="fa fa-trash"></i> {{_('Remove this')}}</a>
+                    {% endif %}
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    {% endif %}
+{% endmacro %}

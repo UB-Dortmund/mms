@@ -1,0 +1,160 @@
+{% extends 'site_base.html' %}
+
+{% block site_content %}
+    {{ super() }}
+    {% if type == 'by_id' %}
+        <div class="row">
+            <div class="col-sm-10 col-sm-offset-1">
+                <h2>{{ header }}</h2>
+                <div class="section" id="my-amazing-bibliography">
+                    <h3>{{ _('Search') }}</h3>
+                    <form class="form-horizontal col-sm-offset-1" role="search">
+                        <div class="form-group">
+                            <label class="radio-inline">
+                              <input type="radio" name="id_type" id="doi" value="doi" checked="checked"> DOI
+                            </label>
+                            <label class="radio-inline">
+                              <input type="radio" name="id_type" id="isbn" value="isbn"> ISBN
+                            </label>
+                            <label class="radio-inline disabled">
+                              <input type="radio" name="id_type" id="pmid" value="pmid" disabled> PMID
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <input id="query_id" type="text" class="form-control" placeholder="{{ _('DOI, e.g. 10.1515/9783110278736.64') }}" name="q">
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-default submit">Search</button>
+                        </div>
+                    </form>
+                    <h3>{{ _('Results')}}</h3>
+                    <div id="section csl-outer-block">
+                          <div id="csl-inner-block">
+                            <div id="csl-content-block"></div>
+                          </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% elif type == 'by_search' %}
+        <div class="row">
+            <div class="col-sm-10 col-sm-offset-1">
+                <h2>{{ header }}</h2>
+                <div class="section" id="my-amazing-bibliography">
+                    <h3>{{ _('Search') }}</h3>
+                    <form class="form-horizontal col-sm-offset-1" role="search">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                                <input id="query" type="text" class="form-control" placeholder="{{ _('anything you want') }}" name="q">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-default submit_new">Search</button>
+                    </form>
+                    <h3>{{ _('Results')}}</h3>
+                    <div id="csl-outer-block">
+                      <div id="csl-inner-block">
+                          <div id="csl-books-block"></div>
+                      </div>
+                      <div id="csl-inner-block">
+                          <div id="csl-articles-block"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/citeproc.js') }}"></script>
+    <script type="text/javascript">
+        $(document).on('click', '#doi', function (event)  {
+            //console.log('DOI')
+            $('#query_id').attr({placeholder:"{{ _('DOI, e.g. 10.1515/9783110278736.64') }}"});
+            $('#doi').attr('checked', true);
+            $('#isbn').attr('checked', false);
+            $('#pmid').attr('checked', false);
+        });
+        $(document).on('click', '#isbn', function (event)  {
+            //console.log('ISBN')
+            $('#query_id').attr({placeholder:"{{ _('ISBN, e.g. 978-3-89701-956-0') }}"});
+            $('#doi').attr('checked', false);
+            $('#isbn').attr('checked', true);
+            $('#pmid').attr('checked', false);
+        });
+        $(document).on('click', '#pmid', function (event)  {
+            //console.log('PMID')
+            $('#query_id').attr({placeholder:"{{ _('PMID, e.g. 15894097') }}"});
+            $('#doi').attr('checked', false);
+            $('#isbn').attr('checked', false);
+            $('#pmid').attr('checked', true);
+        });
+
+        $(document).on('click', '.submit', function (event)  {
+
+            var id_type = $("input[type='radio']:checked").val();
+            var query_id = $('#query_id').val().trim();
+            //console.log("id_type: " + id_type);
+            //console.log("query_id: " + query_id);
+
+            var chosenLibraryItems = "";
+            if (id_type == 'doi') {
+                chosenLibraryItems = "{{ url_for('search_crossref') }}?format=html&doi=" + query_id;
+            }
+            else if (id_type == 'isbn') {
+                chosenLibraryItems = "{{ url_for('search_gbv') }}?format=html&isbns=" + query_id;
+            }
+            else if (id_type == 'pmid') {
+            }
+
+            //console.log("chosenLibraryItems: " + chosenLibraryItems);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', chosenLibraryItems, false);
+            xhr.send(null);
+            var citationData = xhr.responseText;
+            //console.log(citationData)
+
+            var content = document.getElementById("csl-content-block");
+            if (citationData == '') {
+                content.innerHTML = '{{ _('No results') }}';
+            }
+            else {
+                content.innerHTML = citationData;
+            }
+
+            return false;
+        });
+
+        $(document).on('click', '.submit_new', function (event)  {
+
+            var query = $('#query').val().trim();
+
+            var chosenLibraryItems = "{{ url_for('search_gbv') }}?format=html&q=";
+            chosenLibraryItems += query;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', chosenLibraryItems, false);
+            xhr.send(null);
+            var citationData = xhr.responseText;
+            //console.log(citationData)
+
+            var content = document.getElementById("csl-books-block");
+            content.innerHTML = '<strong>{{ _('Books') }}</strong>' + citationData;
+
+            var chosenLibraryItems = "{{ url_for('search_crossref') }}?format=html&q=";
+            chosenLibraryItems += query;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', chosenLibraryItems, false);
+            xhr.send(null);
+            var citationData = xhr.responseText;
+            //console.log(citationData)
+
+            var content = document.getElementById("csl-articles-block");
+            content.innerHTML = '<br/><strong>{{ _('Articles') }}</strong>' + citationData;
+            return false;
+        });
+    </script>
+{% endblock %}

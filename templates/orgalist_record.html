@@ -1,0 +1,8 @@
+<a href="{{ url_for('show_orga', orga_id=record.id) }}">{{ record.pref_label }}</a>
+{% if record.gnd %}<br/> <img src="https://portal.dnb.de/static/bilder/icon_gnd.gif"> <a href="http://d-nb.info/gnd/{{ record.gnd }}">{{ record.gnd }}</a>{% endif %}
+<br/>
+{% if record.parent_id %}
+In: <a href="{{ url_for('show_orga', orga_id=record.parent_id) }}">{% if record.parent_label %}{{ record.parent_label }}{% else %}{{ record.parent_id }}{% endif %}</a>
+{% elif record.parent_label %}
+In: {{ record.parent_label }}
+{% endif %}

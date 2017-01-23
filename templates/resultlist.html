@@ -1,0 +1,38 @@
+{% extends 'site_base.html' %}
+{% import 'drill_down.html' as drill_down with context %}
+{% import 'remove_filters.html' as remove_filters with context %}
+{% block site_content %}
+    {{ super() }}
+    <div class="row">
+        <div class="col-sm-4" id="facets">
+            {% if facet_data %}
+                {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
+                    {{ drill_down.facets(facet_data.catalog, 'catalog', heading='Catalog', target=target) }}
+                {% endif %}
+                {% if site == 'dortmund' %}
+                    {{ drill_down.facets(facet_data.ftudo_pers, 'ftudo_pers', heading='TUDO Member', target=target) }}
+                    {{ drill_down.facets(facet_data.ftudo_orga, 'ftudo_orga', heading='TUDO Organisations', target=target) }}
+                {% endif %}
+                {% if site == 'bochum' %}
+                    {{ drill_down.facets(facet_data.frubi_pers, 'frubi_pers', heading='RUB Member', target=target) }}
+                    {{ drill_down.facets(facet_data.frubi_orga, 'frubi_orga', heading='RUB Organisations', target=target) }}
+                {% endif %}
+                {{ drill_down.facets(facet_data.pubtype, 'pubtype', heading='Publication type', vocabulary=pubtype_map, target=target) }}
+                {{ drill_down.facets(facet_data.fdate, 'fdate', heading='Publication Date', target=target) }}
+                {{ drill_down.boolean_filter('dfg', heading='DFG funded', target=target) }}
+                {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
+                    {{ drill_down.facets(facet_data.editorial_status, 'editorial_status', heading='Editorial Status', vocabulary=edt_status_map, target=target) }}
+                {% endif %}
+                {{ drill_down.facets(facet_data.language, 'language', heading='Language', vocabulary=lang_map, target=target) }}
+            {% endif %}
+        </div>
+        <div class="col-sm-8">
+            {{ pagination.info }}
+{#            {% include 'remove_filters.html' %}#}
+            {{ remove_filters.remove_filter(target=target) }}
+            {{ pagination.links }}
+            {% include 'record_list.html' %}
+            {{ pagination.links }}
+        </div>
+    </div>
+{% endblock %}

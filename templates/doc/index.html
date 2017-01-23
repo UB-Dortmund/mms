@@ -1,0 +1,13 @@
+{% extends 'site_base.html' %}
+
+{% block site_content %}
+    {{ super() }}
+	<div class="row">
+		<div class="col-sm-12">
+			<h3>Inhaltsverzeichnis</h3>
+			<div class="list-group">
+				<a class="list-group-item" href="{{ url_for('docs', page='first_page') }}">{{ _('First page') }}</a>
+			</div>
+		</div>
+	</div>
+{% endblock %}

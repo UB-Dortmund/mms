@@ -1,0 +1,61 @@
+{% extends 'site_base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+{% block site_content %}
+    {{ super() }}
+    {% include 'confirm_delete_modal.html' %}
+    <p>{% include 'admin_nav.html' %}</p>
+        <div class="row">
+        {% if form.errors %}
+            {{ form.errors }}
+        {% endif %}
+            <div class="col-sm-6">
+                <h4>{{ _('Import New Data') }}</h4>
+                <h5>{{ _('Upload JSON File') }}</h5>
+                {{ wtf.quick_form(form, form_type='inline', action='import/solr_dump/somefile') }}
+            </div>
+            <div class="col-sm-6">
+                <h4>{{ _('Import Updated Data') }}</h4>
+                <h5>{{ _('Upload JSON File') }}</h5>
+                {{ wtf.quick_form(form, form_type='inline', action='update/solr_dump/somefile') }}
+            </div>
+        </div>
+        {% if locked_records %}
+            <div class="row">
+                <div class="col-sm-12">
+                    <h4>{{ _('Locked Records') }}</h4>
+                    <h5>{{ pagination.info }}</h5>
+                    {{ pagination.links }}
+                    <ul class="list-unstyled">
+                    {% for record in locked_records %}
+                        <li style="line-height: 2.85714286;"><span class="col-sm-8">{{ record.title }}</span><span class="col-sm-2"><a href="{{ url_for('unlock', record_id=record.id, next='superadmin') }}" class="btn btn-sm btn-info"><i class="fa fa-unlock"></i> {{ _('Unlock') }}</a> <a href="#" data-href="{{ url_for('delete_record', record_id=record.id) }}" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#confirm-delete"><i class="fa fa-trash"></i> {{ _('Delete') }}</a></span><span class="col-sm-2">{{ record.recordChangeDate|mk_time()|humanize() }}</span></li>
+                    {% endfor %}
+                    </ul>
+                    {{ pagination.links }}
+                </div>
+            </div>
+        {% endif %}
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script src="https://togetherjs.com/togetherjs-min.js"></script>
+{% endblock %}
+{% block site_scripts %}
+    <script>
+        function page_reload(){
+            setTimeout(function(){
+                        document.location = '{{ del_redirect }}';
+                        }, 1000);
+        }
+        $('#confirm-delete').on('show.bs.modal', function(event) {
+            $(this).find('.btn-ok').attr('href', $(event.relatedTarget).data('href'));
+        });
+        $(document).on('click', '.btn-ok', function(event){
+            event.preventDefault();
+            $.get($('.btn-ok').attr('href'), function(data){
+                if(data.deleted == true){
+                    page_reload();
+                }
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends 'site_base.html' %}
+{% block site_content %}
+    {{ super() }}
+    <h2>{{ header }}</h2>
+    <div class="row">
+        <div class="col-sm-offset-1 col-sm-8">
+            Publikationslisten können sowohl für Personen als auch für Organisationseinheiten wie
+            Lehrstühle, Institute, Fakultäten aber auch für "virtuelle" Einheiten wie Forschergruppen
+            aus der Hochschulbibliographie erzeugt werden. Dabei ist es einerseits möglich, diese
+            direkt zur Anzeige zu bringen oder per JavaScript in Seiten außerhalb der
+            Hochschulbibliographie einzubetten.
+
+            <br/><br/>
+
+            Es stehen zahlreiche
+            <ul>
+                <li>Zitierstile:  <a href="https://www.zotero.org/styles">Zotero Style Repository</a>,</li>
+                <li>Gruppierungen (nach Jahren, nach Publikationstypen etc.) und</li>
+                <li>Filter (Ausschluß von Publikationstypen, nur ein bestimmtes Jahr etc.)</li>
+            </ul>
+            zur Verfügung.
+
+            <br/><br/>
+
+            Das Einbetten der Publikationsliste ist sehr leicht. Sprechen Sie uns an!
+            Wir unterstützen Sie bei Auswahl und Einbettung Schritt für Schritt!
+
+            <h3>{{ _('Build your work list') }}</h3>
+
+            Zur Erzeugung einer Publikationsliste dient folgendes URL-Template:
+
+            <br/><br/>
+
+            {% if site == 'dortmund' %}
+                <code>https://hochschulbibliographie.ub.tu-dortmund.de/{Einheit oder Person}/{GND-ID}/bibliography/{Stil}</code>
+            {% elif site == 'bochum' %}
+                <code>https://bibliographie.ub.rub.de/{Einheit oder Person}/{GND-ID}/bibliography/{Stil}</code>
+            {% endif %}
+
+            <br/><br/>
+
+            Dabei sind:
+
+            <ul>
+                <li><i>Einheit oder Person</i>: Hier sind zur Zeit die Werte "person" und "research_group" möglich. Weitere Organisationseinheiten werden in Kürze ergänzt.</li>
+                <li><i>GND-ID</i>: Die ID der Person oder Organisationseinheit in der  Gemeinsamen Normdatei der Deutschen Nationalbibliothek.</li>
+                <li><i>Stil</i>: Ein Zitationsstil aus der Liste der  CSL Styles. </li>
+            </ul>
+
+            Darüber hinaus gibt es noch einige URL-Parameter:<br/><br/>
+            <ul>
+                <li><code>agent</code>: Mögliche Werte sind "person", "research_group" und "chair".</li>
+                <!-- TODO <li><code>format</code>: Mögliche Werte sind "js", "html" und "pdf".</li>-->
+                <li><code>filter_by_year</code>: Schränkt die Liste auf ein bestimmtes Jahr ein. Mögliche Werte sind Jahreszahlen mit dem Format 'JJJJ'.</li>
+                <li><code>filter_by_type</code>: Schränkt die Liste auf einen Publikationstyp ein. Mögliche Werte finden sich in der Übersicht zu Publikationstypen.</li>
+                <li><code>filter_by_pr</code>: Schränkt die Liste auf Publikationen ein, die im 'peer review'-Verfahren entstanden sind. Mögliche Werte sind 'true' oder 'false'.</li>
+                <li><code>filter_by_ger</code>: Schränkt die Liste auf deutschsprachige Publikationen ein. Mögliche Werte sind 'true' oder 'false'.</li>
+                <li><code>filter_by_eng</code>: Schränkt die Liste auf englischsprachige Publikationen ein. Mögliche Werte sind 'true' oder 'false'.</li>
+                <li><code>group_by_year</code>: Gruppiert die Publikationen nach ihrem Erscheinungsjahr. Mögliche Werte sind 'true' oder 'false'.</li>
+                <li><code>group_by_type</code>: Gruppiert die Publikationen nach ihrem Publikationstyp. Mögliche Werte sind 'true' oder 'false'.</li>
+                <li><code>group_by_type_year</code>: Gruppiert die Publikationen zuerst nach ihrem Publikationstyp und bettet die jeweilige Gruppierung nach Erscheinungsjahr darin ein. Mögliche Werte sind 'true' oder 'false'.</li>
+                <li><code>pubsort</code>: Sortiert eine nach Publikationstypen gruppierte Liste nach einer fachlichen Gewichtung, die sich an den Gepflogenheiten der STM-Fächer bzw. dem geisteswissenschaftlichen Bereich orientiert. Mögliche Werte sind 'stm' und 'anh'.</li>
+                <li><code>toc</code>: Bei einer Liste mit Gruppierung wird ein Verzeichnis der verwendeten Publikationstypen bzw. Jahre als Linkliste angelegt. Mögliche Werte sind 'true' und 'false'.</li>
+                <li><code>locale</code>: Bestimmt die Spracheinstellungen für die Publikationsliste (z.B., ob in Autorenlisten "und" oder "and" steht). Mögliche Werte sind  ISO 639-1 Codes. </li>
+            </ul>
+
+            <h3>{{ _('Embed your work list') }}</h3>
+
+            Publikationslisten könnnen per JavaScript in HTML-Seiten eingebettet werden. Zentral dafür ist ein JavaScript-Objekt, das z.B. so aussehen kann:
+
+            <br/><br/>
+            <script src="{{ url_for('static', filename='prism/prism.js') }}"></script>
+            <pre>{% if site == 'dortmund' %}<code class="language-js">&lt;div id="publist"&gt;&lt;/div&gt;
+&lt;script type="application/javascript" src="https://www.ub.tu-dortmund.de/js/citations.js"&gt;&lt;/script&gt;{% elif site == 'bochum' %}&lt;script type="application/javascript" src="https://static.ub.rub.de/bibliographie/js/citations.js"&gt;&lt;/script&gt;{% endif %}
+&lt;script type="application/javascript"&gt;
+window.onload = function(){listCitations({
+   target_id: "publist",
+   gnd: "xxxxxxxx",
+   style: "ieee-with-url",
+   group_by_type: true,
+   agent: "person",
+   locale: "de"
+   })};
+&lt;/script&gt;</code></pre>
+
+
+            <blockquote>
+                Wichtig: Die Seite, in die dieses Schnipsel eingebettet wird, darf nicht im Validation-Verfahren (mit ETags) gecacht werden, da sonst Änderungen und Ergänzungen an der Publikationsliste erst sichtbar werden, wenn das HTML der Seite an sich geändert wird. Sollten Sie dennoch diese Seite cachen wollen, empfiehlt es sich, eine "max-age" von 24 Stunden zu setzen.
+            </blockquote>
+
+            Attribute und Werte lassen sich der obigen Liste entnehmen. Ein zusätzliches Attribut ist "target_id", mit dem sich ein Block Level-Element bestimmen lässt, in das die Publikationsliste eingebettet werden soll. Auf diese Weise lassen sich mehrere Listen in einem HTML-Dokument verwenden. Wird dieses Attribut nicht angegeben, wird die Publikationsliste standardmäßig an ein Element mit der ID "citation_list" gehängt.
+
+            <h3>Hinweise zu den Stilen</h3>
+
+            Die PubMed-ID wird von drei Stilen ausgewertet und von diesen angezeigt.
+
+            <ul>
+                <li>journal-of-medical-internet-research</li>
+                <li>national-library-of-medicine-grant-proposals</li>
+                <li>world-journal-of-gastroenterology</li>
+            </ul>
+
+            Folgender Stil unterstützt zugleich Links zur DOI, zur URL und zur HSB:
+
+                <ul><li>chicago-author-date</li></ul>
+        </div>
+    </div>
+{% endblock %}

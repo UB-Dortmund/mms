@@ -1,0 +1,9 @@
+Ping the service
+---
+tags:
+  - monitoring
+responses:
+  200:
+    description: pong
+  500:
+    description: One or more dependencies unavailable!

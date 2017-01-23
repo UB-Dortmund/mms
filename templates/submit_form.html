@@ -1,0 +1,34 @@
+<div class="form-group">
+    <div class="{% if current_user.role == 'admin' or current_user.role == 'superadmin' %}col-xs-offset-9 col-xs-3{% endif %}">
+        {% if pubtype == 'organisation' %}
+            {% if locked %}
+            <a href="{{ url_for('unlock_orga', orga_id=record_id, next='orgas') }}" class="btn btn-danger">{{ _('Cancel') }}</a>
+            {% else %}
+            <a href="{% if current_user.role == 'admin' or current_user.role == 'superadmin' %}../organisations{% else %}{{ url_for('homepage') }}{% endif %}" class="btn btn-danger">{{ _('Cancel') }}</a>
+            {% endif %}
+        {% elif pubtype == 'group' %}
+            {% if locked %}
+            <a href="{{ url_for('unlock_group', group_id=record_id, next='groups') }}" class="btn btn-danger">{{ _('Cancel') }}</a>
+            {% else %}
+            <a href="{% if current_user.role == 'admin' or current_user.role == 'superadmin' %}../organisations{% else %}{{ url_for('homepage') }}{% endif %}" class="btn btn-danger">{{ _('Cancel') }}</a>
+            {% endif %}
+        {% elif pubtype == 'person' %}
+            {% if locked %}
+            <a href="{{ url_for('unlock_person', person_id=record_id, next='persons') }}" class="btn btn-danger">{{ _('Cancel') }}</a>
+            {% else %}
+            <a href="{% if current_user.role == 'admin' or current_user.role == 'superadmin' %}../persons{% else %}{{ url_for('homepage') }}{% endif %}" class="btn btn-danger">{{ _('Cancel') }}</a>
+            {% endif %}
+        {% else %}
+            {% if locked %}
+                {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
+                    <a href="{{ url_for('unlock', record_id=record_id, next='dashboard') }}" class="btn btn-danger">{{ _('Cancel') }}</a>
+                {% else %}
+                    <a href="{{ url_for('unlock', record_id=record_id, next='homepage') }}" class="btn btn-danger">{{ _('Cancel') }}</a>
+                {% endif %}
+            {% else %}
+            <a href="{% if current_user.role == 'admin' or current_user.role == 'superadmin' %}../dashboard{% else %}{{ url_for('homepage') }}{% endif %}" class="btn btn-danger">{{ _('Cancel') }}</a>
+            {% endif %}
+        {% endif %}
+        <button type="submit" class="btn btn-primary submit" form="theform">{{ _('Submit') }}</button>
+    </div>
+</div>

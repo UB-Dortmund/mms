@@ -1,0 +1,30 @@
+{% extends 'site_base.html' %}
+{% block site_content %}
+    {{ super() }}
+    <p>{% include 'admin_nav.html' %}</p>
+        <div class="row">{% import 'drill_down.html' as drill_down with context %}
+            {#<div class="col-sm-4" id="facets">
+                {{ drill_down.facets(facet_data.fperson, 'fperson', heading='Person') }}
+                {{ drill_down.facets(facet_data.fdate, 'fdate', heading='Publication Date') }}
+                {{ drill_down.facets(facet_data.language, 'language', heading='Language') }}
+            </div>#}
+            <div class="col-sm-offset-3 col-sm-8">
+                {{ records }}
+                {{ pagination.info }}
+                {{ pagination.links }}
+{#                {% include 'record_list.html' %}#}
+                {% for group in groups %}
+                    {% set grouploop = loop %}
+                    {% set records = group.doclist.docs %}
+                    <h3>{{ grouploop.index }}. {{ group.groupValue }}</h3>
+                    {% include 'record_list.html' %}
+                {% endfor %}
+
+                {{ pagination.links }}
+            </div>
+        </div>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script src="https://togetherjs.com/togetherjs-min.js"></script>
+{% endblock %}

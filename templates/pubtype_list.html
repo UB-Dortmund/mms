@@ -1,0 +1,233 @@
+{% extends 'site_base.html' %}
+{% block site_content %}
+    {{ super() }}
+    {#<div class="row">
+        <div class="alert alert-info">{{ _('Choose a Publication Type or its Subtype to Enter the Data in a Form') }}</div>
+    </div>#}
+    <div class="row">
+        <div class="col-sm-4">
+            <ul class="{% if site == 'dortmund' %}list-group{% else %}list-unstyled{% endif %}">
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='ArticleJournal') }}">{{ _('Article in Journal') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='ArticleJournal', subtype='abstract') }}">{{ _('Abstract') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='ArticleJournal', subtype='festschrift') }}">{{ _('Festschrift') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='ArticleJournal', subtype='interview') }}">{{ _('Interview') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='ArticleJournal', subtype='lexicon_article') }}">{{ _('Article in Lexicon') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='ArticleJournal', subtype='meeting_abstract') }}">{{ _('Meeting Abstract') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='ArticleJournal', subtype='poster') }}">{{ _('Poster') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='ArticleJournal', subtype='poster_abstract') }}">{{ _('Poster Abstract') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='ArticleJournal', subtype='sermon') }}">{{ _('Sermon') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='ArticleJournal', subtype='review') }}">{{ _('Review') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='ArticleJournal', subtype='introduction') }}">{{ _('Introduction') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='Chapter') }}">{{ _('Chapter') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='Chapter', subtype='abstract') }}">{{ _('Abstract') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Chapter', subtype='afterword') }}">{{ _('Afterword') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Chapter', subtype='festschrift') }}">{{ _('Festschrift') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Chapter', subtype='interview') }}">{{ _('Interview') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Chapter', subtype='introduction') }}">{{ _('Foreword') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Chapter', subtype='lexicon_article') }}">{{ _('Article in Lexicon') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Chapter', subtype='meeting_abstract') }}">{{ _('Meeting Abstract') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Chapter', subtype='poster') }}">{{ _('Poster') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Chapter', subtype='poster_abstract') }}">{{ _('Poster Abstract') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Chapter', subtype='review') }}">{{ _('Review') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Chapter', subtype='sermon') }}">{{ _('Sermon') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='Collection') }}">{{ _('Collection') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='Collection', subtype='festschrift') }}">{{ _('Festschrift') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='Monograph') }}">{{ _('Monograph') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='Monograph', subtype='dissertation') }}">{{ _('Dissertation') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Monograph', subtype='festschrift') }}">{{ _('Festschrift') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Monograph', subtype='habilitation') }}">{{ _('Habilitation') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Monograph', subtype='notated_music') }}">{{ _('Notated Music') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    {% if current_user.role == 'admin' or current_user.role == 'superadmin'%}
+                        <a href="{{ url_for('new_record', pubtype='Report') }}">{{ _('Report') }}</a>
+                    {% else %}
+                        <a href="{{ url_for('new_record', pubtype='Report') }}">{{ _('Report / Other') }}</a>
+                    {% endif %}
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='ResearchData') }}">{{ _('Research Data including Software') }}</a>
+                </li>
+            </ul>
+        </div>
+    {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
+        <div class="col-sm-4">
+            <ul class="{% if site == 'dortmund' %}list-group{% else %}list-unstyled{% endif %}">
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='MultivolumeWork') }}">{{ _('MultivolumeWork') }}</a>
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='Thesis') }}">{{ _('Thesis') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='Thesis', subtype='bachelor_thesis') }}">{{ _('Bachelor Thesis') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Thesis', subtype='diploma_thesis') }}">{{ _('Diploma Thesis') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Thesis', subtype='dissertation') }}">{{ _('Dissertation') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Thesis', subtype='habilitation') }}">{{ _('Habilitation') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Thesis', subtype='magisterarbeit') }}">{{ _('Magisterarbeit') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Thesis', subtype='masters_thesis') }}">{{ _("Master's Thesis") }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Thesis', subtype='first_state_examination') }}">{{ _('1st State Examination') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Thesis', subtype='second_state_examination') }}">{{ _('2nd State Examination') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='InternetDocument') }}">{{ _('Internet Document') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='InternetDocument', subtype='abstract') }}">{{ _('Abstract') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='InternetDocument', subtype='interview') }}">{{ _('Interview') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='InternetDocument', subtype='lexicon_article') }}">{{ _('Article in Lexicon') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='InternetDocument', subtype='meeting_abstract') }}">{{ _('Meeting Abstract') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='InternetDocument', subtype='poster') }}">{{ _('Poster') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='InternetDocument', subtype='poster_abstract') }}">{{ _('Poster Abstract') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='InternetDocument', subtype='review') }}">{{ _('Review') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='InternetDocument', subtype='sermon') }}">{{ _('Sermon') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='Patent') }}">{{ _('Patent') }}</a>
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='Standard') }}">{{ _('Standard') }}</a>
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='Other') }}">{{ _('Other') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='Other', subtype='article_lexicon') }}">{{ _('Article in Lexicon') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Other', subtype='festschrift') }}">{{ _('Festschrift') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Other', subtype='lecture_notes') }}">{{ _('Lecture Notes') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Other', subtype='poster') }}">{{ _('Poster') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Other', subtype='poster_abstract') }}">{{ _('Poster Abstract') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Other', subtype='report') }}">{{ _('Report') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Other', subtype='sermon') }}">{{ _('Sermon') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Other', subtype='expert_opinion') }}">{{ _('Expert Opinion') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
+    {% endif %}
+    {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
+        <div class="col-sm-4">
+            <ul class="{% if site == 'dortmund' %}list-group{% else %}list-unstyled{% endif %}">
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='Journal') }}">{{ _('Journal') }}</a>
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='Newspaper') }}">{{ _('Newspaper') }}</a>
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='ArticleNewspaper') }}">{{ _('Article in Newspaper') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='ArticleNewspaper', subtype='review') }}">{{ _('Review') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='ArticleNewspaper', subtype='interview') }}">{{ _('Interview') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='Series') }}">{{ _('Series') }}</a>
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='Conference') }}">{{ _('Conference') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='Conference', subtype='festschrift') }}">{{ _('Festschrift') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='Lecture') }}">{{ _('Lecture') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='Lecture', subtype='abstract') }}">{{ _('Abstract') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Lecture', subtype='meeting_abstract') }}">{{ _('Meeting Abstract') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='Edition') }}">{{ _('Edition') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='Edition', subtype='festschrift') }}">{{ _('Festschrift') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='Edition', subtype='notated_music') }}">{{ _('Notated Music') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='LegalCommentary') }}">{{ _('Legal Commentary') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='LegalCommentary', subtype='festschrift') }}">{{ _('Festschrift') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='ChapterInLegalCommentary') }}">{{ _('Chapter in a Legal Commentary') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='ChapterInLegalCommentary', subtype='lexicon_article') }}">{{ _('Article in Lexicon') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='AudioVideoDocument') }}">{{ _('Audio or Video Document') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='AudioVideoDocument', subtype='image_database') }}">{{ _('Image Database') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='AudioVideoDocument', subtype='dramatic_work') }}">{{ _('Dramatic Work') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='AudioVideoDocument', subtype='interview') }}">{{ _('Interview') }}</a></li>
+                        <li><a href="{{ url_for('new_record', pubtype='AudioVideoDocument', subtype='audio_book') }}">{{ _('Audio Book') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='RadioTVProgram') }}">{{ _('Radio or TV program') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='RadioTVProgram', subtype='interview') }}">{{ _('Interview') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='PressRelease') }}">{{ _('Press Release') }}</a>
+                </li>
+                <li class="{% if site == 'dortmund' %}list-group-item{% else %}{% endif %}">
+                    <a href="{{ url_for('new_record', pubtype='SpecialIssue') }}">{{ _('Special Issue') }}</a>
+                    {% if site == 'bochum' and (current_user.role == 'admin' or current_user.role == 'superadmin') %}
+                    <ul>
+                        <li><a href="{{ url_for('new_record', pubtype='SpecialIssue', subtype='festschrift') }}">{{ _('Festschrift') }}</a></li>
+                    </ul>
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}}

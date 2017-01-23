@@ -1,0 +1,15 @@
+<a href="{{ url_for('show_record', pubtype=record.pubtype, record_id=record.id) }}">{{ record.title }}</a>{% if (current_user.role == 'admin' or current_user.role == 'superadmin') and record.same_as and record.same_as[0] != '' %} <span class="glyphicon glyphicon-paperclip" aria-hidden="true"></span>{% endif %}<br/>
+{% if record.person %}
+    {% for author in record.person %}{% if loop.index == 4 %}...{% endif %}{% if loop.index < 4 %}{{ author }}{% if not loop.last %}; {% endif %}{% endif %}{% endfor %}
+{% elif record.institution %}
+    {% for corp in record.institution %}{{ corp }}{% if not loop.last %}; {% endif %}{% endfor %}
+{% endif %}
+{% if record.person or record.institution and record.fdate %}, {% endif %}
+{% if record.circa == 'y' %}{{ _('ca.') }} {% endif %}{{ record.fdate }}
+{% block scripts %}
+    <!-- http://www.codecogs.com/latex/integration/htmlequations.php -->
+    <script type="text/javascript" src="https://latex.codecogs.com/latexit.js"></script>
+    <script type="text/javascript">
+        LatexIT.add('li',true);
+    </script>
+{% endblock %}

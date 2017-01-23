@@ -1,0 +1,30 @@
+Create a new person
+---
+tags:
+  - persons
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+- name: Authorization
+  in: header
+  description: Bearer access token.
+  required: true
+  type: string
+- name: person resource
+  in: body
+  description: JSON structure representing the new person resource.
+  required: true
+  schema:
+    $ref: "#/definitions/PersonEntity"
+responses:
+  201:
+    schema:
+        $ref: "#/definitions/PersonEntity"
+  400:
+    description: Bad request, if the given data is invalid
+  401:
+    description: Unauthorized
+  403:
+    description: Forbidden

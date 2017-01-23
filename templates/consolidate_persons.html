@@ -1,0 +1,98 @@
+{% extends 'site_base.html' %}
+{% block site_content %}
+    {{ super() }}
+    <p>{% include 'admin_nav.html' %}</p>
+    <div class="alert alert-warning" role="alert">
+        <i class="glyphicon glyphicon-flash"></i>
+        <strong>Diese Funktion kann nun getestet werden.</strong> Nähere Informationen in der Dokumentation unter <a href="{{ url_for('docs', page='persons') }}" target="_blank">Personendatenerfassung</a></div>
+    <div>
+        <b>{{ _('Tasks found') }}: {{ count }} / {{ num_found }}</b> ({{ catalog }})
+    </div>
+    <table class="table table-bordered">
+    <thead>
+        <tr>
+            <td>{{ _('Documents') }}</td>
+            <td>{{ _('Candidate Persons') }}</td>
+        </tr>
+    </thead>
+    <tbody>
+    {% for result in results %}
+        <tr>
+            <td>
+                <span class="is_locked" data-pubtype="{{ result.pubtype }}" data-id="{{ result.id }}"></span> <a href="{{ url_for('edit_record', record_id=result.id, pubtype=result.pubtype) }}?cptask=true" target="_blank">{{ result.title }}</a><br/>
+            </td>
+            <td>
+                <ul>
+                    {% for person in result.persons %}
+                        <li>
+                            <b>{{ person.name }}</b><br/>
+                            {% if person.candidates and person.candidates[0] %}
+                            <ul>
+                                {% for match in person.candidates %}
+                                <li>
+                                    {{ match.name }}
+                                    {% if match.tudo or match.rubi or match.affiliation %}<br/>{% endif %}
+                                    {% if match.tudo %}<img src="http://www.tu-dortmund.de/favicon.ico"> {% endif %}
+                                    {% if match.rubi %}<img src="http://www.rub.de/favicon.ico">{% endif %}
+                                    {% if match.affiliation %}{% for affiliation in match.affiliation %}{{ affiliation }}{% if not loop.last %}; {% endif %}{% endfor %}{% endif %}
+                                    <br/><b>{{ _('Probability') }}: {{ match.probability }}%</b>
+                                    {% if match.gnd or match.orcid %}
+                                        <br/>
+                                        {% if match.gnd %}<b>{{ _('GND') }}:</b> <a id="{{ match.gnd }}" href="http://d-nb.info/gnd/{{ match.gnd }}">{{ match.gnd }}</a> <button class="btn clipboard" data-clipboard-text="{{ match.gnd }}" data-clipboard-action="copy"><i class="octicon octicon-clippy"></i></button>{% endif %}
+                                        {% if match.orcid %} | <b>{{ _('ORCID iD') }}:</b> <a id="{{ match.orcid }}" href="https://orcid.org/{{ match.orcid }}">{{ match.orcid }}</a> <button class="btn clipboard" data-clipboard-text="{{ match.orcid }}" data-clipboard-action="copy"><i class="octicon octicon-clippy"></i></button>{% endif %}
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            {{ _('No candidates found') }}
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/clipboard.min.js') }}"></script>
+    <script>
+    Notification.requestPermission();
+    function clp_notify(){
+        if(!('Notification' in window)){
+            alert('{{ _("This browser does not support system notifications") }}');
+        }
+        else if(Notification.permission === 'granted'){
+            var notification = new Notification('{{ _("Copied to clipboard") }}');
+        }
+        else if(Notification.permission === 'denied'){
+            Notification.requestPermission(function(permission){
+                if(Notification.permission === 'granted'){
+                    var notification = new Notification('{{ _("Copied to clipboard") }}');
+                }
+            });
+        }
+    }
+    var btns = document.querySelectorAll('.clipboard');
+    var clipboard = new Clipboard(btns);
+    clipboard.on('success', function(e){
+        clp_notify();
+    })
+    </script>
+    <script>
+        $('.is_locked').each( function(){
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '{{ request.script_root.replace('/beta', '') }}/is_locked/' + $(this).attr('data-pubtype') + '/' + $(this).attr('data-id'), false);
+            xhr.send(null);
+            var is_locked = jQuery.parseJSON(xhr.responseText).is_locked;
+            //console.log(is_locked)
+
+            if (is_locked) {
+                $(this).attr('class', 'fa fa-lock')
+            }
+        });
+    </script>
+{% endblock %}

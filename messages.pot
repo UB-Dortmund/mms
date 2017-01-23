@@ -1,0 +1,3678 @@
+# Translations template for PROJECT.
+# Copyright (C) 2016 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2016.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2016-09-29 12:51+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.2.0\n"
+
+#: display_vocabularies.py:5 forms_vocabularies.py:126
+#: templates/pubtype_list.html:11
+msgid "Article in Journal"
+msgstr ""
+
+#: display_vocabularies.py:6 forms_vocabularies.py:142
+#: templates/pubtype_list.html:146
+msgid "Article in Newspaper"
+msgstr ""
+
+#: display_vocabularies.py:7 forms.py:1197 templates/pubtype_list.html:206
+msgid "Audio Book"
+msgstr ""
+
+#: display_vocabularies.py:8 forms_vocabularies.py:143
+#: templates/pubtype_list.html:200
+msgid "Audio or Video Document"
+msgstr ""
+
+#: display_vocabularies.py:9 forms_vocabularies.py:127
+msgid "Chapter in..."
+msgstr ""
+
+#: display_vocabularies.py:10 forms_vocabularies.py:144
+#: templates/pubtype_list.html:192
+msgid "Chapter in a Legal Commentary"
+msgstr ""
+
+#: display_vocabularies.py:11
+msgid "Chapter in a Monograph"
+msgstr ""
+
+#: display_vocabularies.py:12 forms.py:1421 forms_vocabularies.py:128
+#: forms_vocabularies.py:223 templates/pubtype_list.html:46
+msgid "Collection"
+msgstr ""
+
+#: display_vocabularies.py:13 forms.py:1422 forms_vocabularies.py:145
+#: templates/pubtype_list.html:158
+msgid "Conference"
+msgstr ""
+
+#: display_vocabularies.py:14 forms.py:512 forms.py:612 forms.py:1484
+#: forms_vocabularies.py:146 templates/pubtype_list.html:175
+#: templates/record.html:391
+msgid "Edition"
+msgstr ""
+
+#: display_vocabularies.py:15 forms_vocabularies.py:147
+#: templates/pubtype_list.html:98
+msgid "Internet Document"
+msgstr ""
+
+#: display_vocabularies.py:16 forms.py:752 forms.py:784
+#: forms_vocabularies.py:148 templates/pubtype_list.html:140
+msgid "Journal"
+msgstr ""
+
+#: display_vocabularies.py:17 forms_vocabularies.py:149
+#: templates/pubtype_list.html:166
+msgid "Lecture"
+msgstr ""
+
+#: display_vocabularies.py:18 forms_vocabularies.py:150
+#: templates/pubtype_list.html:184
+msgid "Legal Commentary"
+msgstr ""
+
+#: display_vocabularies.py:19 forms.py:1420 forms_vocabularies.py:130
+#: templates/pubtype_list.html:54
+msgid "Monograph"
+msgstr ""
+
+#: display_vocabularies.py:20 forms_vocabularies.py:129
+#: templates/pubtype_list.html:80
+msgid "MultivolumeWork"
+msgstr ""
+
+#: display_vocabularies.py:21 forms.py:815 forms_vocabularies.py:151
+#: templates/pubtype_list.html:143
+msgid "Newspaper"
+msgstr ""
+
+#: display_vocabularies.py:22 display_vocabularies.py:228 forms.py:229
+#: forms_vocabularies.py:131 forms_vocabularies.py:194
+#: forms_vocabularies.py:235 templates/pubtype_list.html:119
+msgid "Other"
+msgstr ""
+
+#: display_vocabularies.py:23 forms_vocabularies.py:133
+#: templates/pubtype_list.html:113
+msgid "Patent"
+msgstr ""
+
+#: display_vocabularies.py:24 forms_vocabularies.py:152
+#: templates/pubtype_list.html:219
+msgid "Press Release"
+msgstr ""
+
+#: display_vocabularies.py:25
+msgid "Radio or TV Program"
+msgstr ""
+
+#: display_vocabularies.py:26 display_vocabularies.py:57
+#: forms_vocabularies.py:132 templates/pubtype_list.html:66
+#: templates/pubtype_list.html:127
+msgid "Report"
+msgstr ""
+
+#: display_vocabularies.py:27 forms_vocabularies.py:136
+msgid "Research Data"
+msgstr ""
+
+#: display_vocabularies.py:28 forms_vocabularies.py:154
+#: templates/pubtype_list.html:155
+msgid "Series"
+msgstr ""
+
+#: display_vocabularies.py:29 forms_vocabularies.py:135
+#: forms_vocabularies.py:231
+msgid "Software"
+msgstr ""
+
+#: display_vocabularies.py:30 forms.py:1423 forms_vocabularies.py:155
+#: templates/pubtype_list.html:222
+msgid "Special Issue"
+msgstr ""
+
+#: display_vocabularies.py:31 forms_vocabularies.py:156
+#: templates/pubtype_list.html:116
+msgid "Standard"
+msgstr ""
+
+#: display_vocabularies.py:32 forms_vocabularies.py:134
+#: templates/pubtype_list.html:83
+msgid "Thesis"
+msgstr ""
+
+#: display_vocabularies.py:36 forms.py:712 forms.py:1025 forms.py:1073
+#: forms.py:1151 forms.py:1239 forms.py:1628 templates/pubtype_list.html:17
+#: templates/pubtype_list.html:36 templates/pubtype_list.html:103
+#: templates/pubtype_list.html:122 templates/pubtype_list.html:195
+msgid "Article in Lexicon"
+msgstr ""
+
+#: display_vocabularies.py:37 forms.py:63 forms.py:709 forms.py:788
+#: forms.py:942 forms.py:1067 forms.py:1144 forms.py:1236 forms.py:1292
+#: forms.py:1413 forms.py:1545 forms.py:1621 templates/pubtype_list.html:14
+#: templates/pubtype_list.html:31 templates/pubtype_list.html:101
+#: templates/pubtype_list.html:169
+msgid "Abstract"
+msgstr ""
+
+#: display_vocabularies.py:38 forms.py:1068 templates/pubtype_list.html:32
+msgid "Afterword"
+msgstr ""
+
+#: display_vocabularies.py:39 forms.py:1980 templates/pubtype_list.html:86
+msgid "Bachelor Thesis"
+msgstr ""
+
+#: display_vocabularies.py:40 forms.py:1981 templates/pubtype_list.html:87
+msgid "Diploma Thesis"
+msgstr ""
+
+#: display_vocabularies.py:41 forms.py:1340 forms.py:1982
+#: templates/pubtype_list.html:57 templates/pubtype_list.html:88
+msgid "Dissertation"
+msgstr ""
+
+#: display_vocabularies.py:42 forms.py:1194 templates/pubtype_list.html:204
+msgid "Dramatic Work"
+msgstr ""
+
+#: display_vocabularies.py:43 forms.py:1634 templates/pubtype_list.html:129
+msgid "Expert Opinion"
+msgstr ""
+
+#: display_vocabularies.py:44 forms.py:710 forms.py:833 forms.py:882
+#: forms.py:987 forms.py:1024 forms.py:1069 forms.py:1342 forms.py:1629
+#: templates/pubtype_list.html:15 templates/pubtype_list.html:33
+#: templates/pubtype_list.html:49 templates/pubtype_list.html:58
+#: templates/pubtype_list.html:123 templates/pubtype_list.html:161
+#: templates/pubtype_list.html:178 templates/pubtype_list.html:187
+#: templates/pubtype_list.html:225
+msgid "Festschrift"
+msgstr ""
+
+#: display_vocabularies.py:45 forms.py:1986 templates/pubtype_list.html:92
+msgid "1st State Examination"
+msgstr ""
+
+#: display_vocabularies.py:46 forms.py:1341 forms.py:1983
+#: templates/pubtype_list.html:59 templates/pubtype_list.html:89
+msgid "Habilitation"
+msgstr ""
+
+#: display_vocabularies.py:47 forms.py:1193 templates/pubtype_list.html:203
+msgid "Image Database"
+msgstr ""
+
+#: display_vocabularies.py:48 forms.py:711 forms.py:796 forms.py:1071
+#: forms.py:1195 forms.py:1238 forms.py:1822 templates/pubtype_list.html:16
+#: templates/pubtype_list.html:34 templates/pubtype_list.html:102
+#: templates/pubtype_list.html:150 templates/pubtype_list.html:205
+#: templates/pubtype_list.html:214
+msgid "Interview"
+msgstr ""
+
+#: display_vocabularies.py:49 forms.py:718 forms.py:1072
+#: templates/pubtype_list.html:35
+msgid "Foreword"
+msgstr ""
+
+#: display_vocabularies.py:50 forms.py:1631 templates/pubtype_list.html:124
+msgid "Lecture Notes"
+msgstr ""
+
+#: display_vocabularies.py:51 forms.py:1984 templates/pubtype_list.html:90
+msgid "Magisterarbeit"
+msgstr ""
+
+#: display_vocabularies.py:52 templates/pubtype_list.html:91
+msgid "Master's Thesis"
+msgstr ""
+
+#: display_vocabularies.py:53 forms.py:713 forms.py:1074 forms.py:1240
+#: forms.py:1293 templates/pubtype_list.html:18 templates/pubtype_list.html:37
+#: templates/pubtype_list.html:104 templates/pubtype_list.html:170
+msgid "Meeting Abstract"
+msgstr ""
+
+#: display_vocabularies.py:54 forms.py:988 forms.py:1343
+#: templates/pubtype_list.html:60 templates/pubtype_list.html:179
+msgid "Notated Music"
+msgstr ""
+
+#: display_vocabularies.py:55 forms.py:714 forms.py:1075 forms.py:1241
+#: forms.py:1632 templates/pubtype_list.html:19 templates/pubtype_list.html:38
+#: templates/pubtype_list.html:105 templates/pubtype_list.html:125
+msgid "Poster"
+msgstr ""
+
+#: display_vocabularies.py:56 forms.py:715 forms.py:1076 forms.py:1242
+#: forms.py:1633 templates/pubtype_list.html:20 templates/pubtype_list.html:39
+#: templates/pubtype_list.html:106 templates/pubtype_list.html:126
+msgid "Poster Abstract"
+msgstr ""
+
+#: display_vocabularies.py:58 forms.py:717 forms.py:795 forms.py:1077
+#: forms.py:1243 templates/pubtype_list.html:22 templates/pubtype_list.html:40
+#: templates/pubtype_list.html:107 templates/pubtype_list.html:149
+msgid "Review"
+msgstr ""
+
+#: display_vocabularies.py:59 forms.py:1987 templates/pubtype_list.html:93
+msgid "2nd State Examination"
+msgstr ""
+
+#: display_vocabularies.py:60 forms.py:716 forms.py:1070 forms.py:1196
+#: forms.py:1237 forms.py:1630 templates/pubtype_list.html:21
+#: templates/pubtype_list.html:41 templates/pubtype_list.html:108
+#: templates/pubtype_list.html:128
+msgid "Sermon"
+msgstr ""
+
+#: display_vocabularies.py:102 forms_vocabularies.py:89
+msgid "Abridger"
+msgstr ""
+
+#: display_vocabularies.py:103 forms_vocabularies.py:90
+msgid "Actor"
+msgstr ""
+
+#: display_vocabularies.py:104 forms_vocabularies.py:61
+msgid "Author"
+msgstr ""
+
+#: display_vocabularies.py:105 forms_vocabularies.py:91
+msgid "Author of Afterword"
+msgstr ""
+
+#: display_vocabularies.py:106 forms_vocabularies.py:93
+msgid "Arranger"
+msgstr ""
+
+#: display_vocabularies.py:107
+msgid "Author of Introduction"
+msgstr ""
+
+#: display_vocabularies.py:108 forms_vocabularies.py:73
+msgid "Broadcaster"
+msgstr ""
+
+#: display_vocabularies.py:109 forms_vocabularies.py:94
+msgid "Choreographer"
+msgstr ""
+
+#: display_vocabularies.py:110 forms_vocabularies.py:95
+msgid "Composer"
+msgstr ""
+
+#: display_vocabularies.py:111 forms_vocabularies.py:63
+#: forms_vocabularies.py:68
+msgid "Contributor"
+msgstr ""
+
+#: display_vocabularies.py:112 forms_vocabularies.py:96
+msgid "Costume Designer"
+msgstr ""
+
+#: display_vocabularies.py:113 forms_vocabularies.py:97
+msgid "Commentator for written text"
+msgstr ""
+
+#: display_vocabularies.py:114
+msgid "Degree Granting Institution"
+msgstr ""
+
+#: display_vocabularies.py:115 forms_vocabularies.py:98
+msgid "Director"
+msgstr ""
+
+#: display_vocabularies.py:116 forms_vocabularies.py:62
+#: forms_vocabularies.py:69
+msgid "Editor"
+msgstr ""
+
+#: display_vocabularies.py:117 forms_vocabularies.py:99
+msgid "Electrician"
+msgstr ""
+
+#: display_vocabularies.py:118 forms_vocabularies.py:100
+msgid "Filmmaker"
+msgstr ""
+
+#: display_vocabularies.py:119 forms_vocabularies.py:101
+msgid "Honoree"
+msgstr ""
+
+#: display_vocabularies.py:120 forms_vocabularies.py:70
+msgid "Host institution"
+msgstr ""
+
+#: display_vocabularies.py:121 forms_vocabularies.py:102
+msgid "Illustrator"
+msgstr ""
+
+#: display_vocabularies.py:122 forms_vocabularies.py:103
+msgid "Instrumentalist"
+msgstr ""
+
+#: display_vocabularies.py:123 forms_vocabularies.py:104
+msgid "Interviewee"
+msgstr ""
+
+#: display_vocabularies.py:124 forms_vocabularies.py:105
+msgid "Interviewer"
+msgstr ""
+
+#: display_vocabularies.py:125 forms_vocabularies.py:78
+msgid "Inventor"
+msgstr ""
+
+#: display_vocabularies.py:126 forms_vocabularies.py:106
+msgid "Moderator"
+msgstr ""
+
+#: display_vocabularies.py:127 forms_vocabularies.py:107
+msgid "Musician"
+msgstr ""
+
+#: display_vocabularies.py:128 forms_vocabularies.py:108
+msgid "Originator"
+msgstr ""
+
+#: display_vocabularies.py:129 forms_vocabularies.py:72
+msgid "Organizer"
+msgstr ""
+
+#: display_vocabularies.py:130 forms_vocabularies.py:109
+msgid "Project Director"
+msgstr ""
+
+#: display_vocabularies.py:131 forms_vocabularies.py:110
+msgid "Photographer"
+msgstr ""
+
+#: display_vocabularies.py:132 forms_vocabularies.py:111
+msgid "Production Manager"
+msgstr ""
+
+#: display_vocabularies.py:133 forms_vocabularies.py:113
+msgid "Producer"
+msgstr ""
+
+#: display_vocabularies.py:134 forms_vocabularies.py:112
+msgid "Programmer"
+msgstr ""
+
+#: display_vocabularies.py:135 forms_vocabularies.py:79
+#: forms_vocabularies.py:83
+msgid "Patent applicant"
+msgstr ""
+
+#: display_vocabularies.py:136 forms_vocabularies.py:114
+msgid "Redaktor"
+msgstr ""
+
+#: display_vocabularies.py:137
+msgid "Set Designer"
+msgstr ""
+
+#: display_vocabularies.py:138 forms_vocabularies.py:115
+msgid "Singer"
+msgstr ""
+
+#: display_vocabularies.py:139 forms_vocabularies.py:116
+msgid "Speaker"
+msgstr ""
+
+#: display_vocabularies.py:140 forms_vocabularies.py:118
+msgid "Storyteller"
+msgstr ""
+
+#: display_vocabularies.py:141 forms_vocabularies.py:121
+msgid "Translator"
+msgstr ""
+
+#: display_vocabularies.py:142 forms_vocabularies.py:119
+msgid "Technical Director"
+msgstr ""
+
+#: display_vocabularies.py:143
+msgid "Thesis Advisor"
+msgstr ""
+
+#: display_vocabularies.py:148 forms_vocabularies.py:14
+msgid "English"
+msgstr ""
+
+#: display_vocabularies.py:149 forms_vocabularies.py:15
+msgid "German"
+msgstr ""
+
+#: display_vocabularies.py:150 forms_vocabularies.py:16
+msgid "French"
+msgstr ""
+
+#: display_vocabularies.py:151 forms_vocabularies.py:17
+msgid "Russian"
+msgstr ""
+
+#: display_vocabularies.py:152 forms_vocabularies.py:18
+msgid "Spanish"
+msgstr ""
+
+#: display_vocabularies.py:153 forms_vocabularies.py:19
+msgid "Italian"
+msgstr ""
+
+#: display_vocabularies.py:154 forms_vocabularies.py:20
+msgid "Japanese"
+msgstr ""
+
+#: display_vocabularies.py:155 forms_vocabularies.py:21
+msgid "Latin"
+msgstr ""
+
+#: display_vocabularies.py:156 forms_vocabularies.py:22
+msgid "Chinese"
+msgstr ""
+
+#: display_vocabularies.py:157 forms_vocabularies.py:23
+msgid "Dutch"
+msgstr ""
+
+#: display_vocabularies.py:158 forms_vocabularies.py:24
+msgid "Turkish"
+msgstr ""
+
+#: display_vocabularies.py:159 forms_vocabularies.py:25
+msgid "Portuguese"
+msgstr ""
+
+#: display_vocabularies.py:160 forms_vocabularies.py:26
+msgid "Polish"
+msgstr ""
+
+#: display_vocabularies.py:161 forms_vocabularies.py:27
+msgid "Greek"
+msgstr ""
+
+#: display_vocabularies.py:162 forms_vocabularies.py:28
+msgid "Serbian"
+msgstr ""
+
+#: display_vocabularies.py:163 forms_vocabularies.py:29
+msgid "Catalan"
+msgstr ""
+
+#: display_vocabularies.py:164 forms_vocabularies.py:30
+msgid "Danish"
+msgstr ""
+
+#: display_vocabularies.py:165 forms_vocabularies.py:31
+msgid "Czech"
+msgstr ""
+
+#: display_vocabularies.py:166 forms_vocabularies.py:32
+msgid "Korean"
+msgstr ""
+
+#: display_vocabularies.py:167 forms_vocabularies.py:33
+msgid "Arabic"
+msgstr ""
+
+#: display_vocabularies.py:168 forms_vocabularies.py:34
+msgid "Hungarian"
+msgstr ""
+
+#: display_vocabularies.py:169 forms_vocabularies.py:35
+msgid "Swedish"
+msgstr ""
+
+#: display_vocabularies.py:170 forms_vocabularies.py:36
+msgid "Ukranian"
+msgstr ""
+
+#: display_vocabularies.py:171 forms_vocabularies.py:37
+msgid "Hebrew"
+msgstr ""
+
+#: display_vocabularies.py:172 forms_vocabularies.py:38
+msgid "Croatian"
+msgstr ""
+
+#: display_vocabularies.py:173 forms_vocabularies.py:39
+msgid "Slovak"
+msgstr ""
+
+#: display_vocabularies.py:174 forms_vocabularies.py:40
+msgid "Norwegian"
+msgstr ""
+
+#: display_vocabularies.py:175 forms_vocabularies.py:41
+msgid "Romanian"
+msgstr ""
+
+#: display_vocabularies.py:176 forms_vocabularies.py:42
+msgid "Finnish"
+msgstr ""
+
+#: display_vocabularies.py:177 forms_vocabularies.py:43
+msgid "Georgian"
+msgstr ""
+
+#: display_vocabularies.py:178 forms_vocabularies.py:44
+msgid "Bulgarian"
+msgstr ""
+
+#: display_vocabularies.py:179 forms_vocabularies.py:45
+msgid "Ancient Greek"
+msgstr ""
+
+#: display_vocabularies.py:180 forms_vocabularies.py:46
+msgid "Indonesian Language"
+msgstr ""
+
+#: display_vocabularies.py:181 forms_vocabularies.py:47
+msgid "Middle High German"
+msgstr ""
+
+#: display_vocabularies.py:182 forms_vocabularies.py:48
+msgid "Mongolian Language"
+msgstr ""
+
+#: display_vocabularies.py:183 forms_vocabularies.py:49
+msgid "Persian"
+msgstr ""
+
+#: display_vocabularies.py:184 forms_vocabularies.py:50
+msgid "Albanian"
+msgstr ""
+
+#: display_vocabularies.py:185 forms_vocabularies.py:51
+msgid "Bosnian"
+msgstr ""
+
+#: display_vocabularies.py:186 forms_vocabularies.py:52
+msgid "Lithuanian"
+msgstr ""
+
+#: display_vocabularies.py:187 forms_vocabularies.py:53
+msgid "Slovenian"
+msgstr ""
+
+#: display_vocabularies.py:188 forms_vocabularies.py:54
+msgid "Basque"
+msgstr ""
+
+#: display_vocabularies.py:189 forms_vocabularies.py:55
+msgid "Galician"
+msgstr ""
+
+#: display_vocabularies.py:193 forms_vocabularies.py:240
+msgid "Completely Irregular"
+msgstr ""
+
+#: display_vocabularies.py:194 forms_vocabularies.py:241
+msgid "Annual"
+msgstr ""
+
+#: display_vocabularies.py:195 forms_vocabularies.py:242
+msgid "Quarterly"
+msgstr ""
+
+#: display_vocabularies.py:196 forms_vocabularies.py:243
+msgid "Semiannual"
+msgstr ""
+
+#: display_vocabularies.py:197 forms_vocabularies.py:244
+msgid "Monthly"
+msgstr ""
+
+#: display_vocabularies.py:198 forms_vocabularies.py:245
+msgid "Bimonthly"
+msgstr ""
+
+#: display_vocabularies.py:199 forms_vocabularies.py:246
+msgid "Three Times a Year"
+msgstr ""
+
+#: display_vocabularies.py:200 forms_vocabularies.py:247
+msgid "Semimonthly"
+msgstr ""
+
+#: display_vocabularies.py:201 forms_vocabularies.py:248
+msgid "Biannial"
+msgstr ""
+
+#: display_vocabularies.py:202 forms_vocabularies.py:249
+msgid "Fifteen Issues a Year"
+msgstr ""
+
+#: display_vocabularies.py:203 forms_vocabularies.py:250
+msgid "Continuously Updated"
+msgstr ""
+
+#: display_vocabularies.py:204 forms_vocabularies.py:251
+msgid "Daily"
+msgstr ""
+
+#: display_vocabularies.py:205 forms_vocabularies.py:252
+msgid "Semiweekly"
+msgstr ""
+
+#: display_vocabularies.py:206 forms_vocabularies.py:253
+msgid "Three Times a Week"
+msgstr ""
+
+#: display_vocabularies.py:207 forms_vocabularies.py:254
+msgid "Weekly"
+msgstr ""
+
+#: display_vocabularies.py:208 forms_vocabularies.py:255
+msgid "Biweekly"
+msgstr ""
+
+#: display_vocabularies.py:209 forms_vocabularies.py:256
+msgid "Three Times a Month"
+msgstr ""
+
+#: display_vocabularies.py:210 forms_vocabularies.py:257
+msgid "Triennial"
+msgstr ""
+
+#: display_vocabularies.py:214 forms.py:215
+msgid "Homepage"
+msgstr ""
+
+#: display_vocabularies.py:215 forms.py:216
+msgid "ResearchGate"
+msgstr ""
+
+#: display_vocabularies.py:216 forms.py:217
+msgid "ResearcherID"
+msgstr ""
+
+#: display_vocabularies.py:217 forms.py:218
+msgid "AcademiaNet"
+msgstr ""
+
+#: display_vocabularies.py:218 forms.py:219
+msgid "Academia.edu"
+msgstr ""
+
+#: display_vocabularies.py:219 forms.py:220
+msgid "Wikipedia"
+msgstr ""
+
+#: display_vocabularies.py:220 forms.py:221
+msgid "Xing"
+msgstr ""
+
+#: display_vocabularies.py:221 forms.py:222
+msgid "LinkedIn"
+msgstr ""
+
+#: display_vocabularies.py:222 forms.py:223
+msgid "Blog"
+msgstr ""
+
+#: display_vocabularies.py:223 forms.py:224
+msgid "Facebook"
+msgstr ""
+
+#: display_vocabularies.py:224 forms.py:225
+msgid "Twitter"
+msgstr ""
+
+#: display_vocabularies.py:225 forms.py:226
+msgid "identi.ca"
+msgstr ""
+
+#: display_vocabularies.py:226 forms.py:227
+msgid "Zotero"
+msgstr ""
+
+#: display_vocabularies.py:227 forms.py:228
+msgid "Mendeley"
+msgstr ""
+
+#: display_vocabularies.py:232 forms_vocabularies.py:5
+msgid "Creative Commons Zero - Public Domain"
+msgstr ""
+
+#: display_vocabularies.py:233 forms_vocabularies.py:6
+msgid "Creative Commons Attribution"
+msgstr ""
+
+#: display_vocabularies.py:234 forms_vocabularies.py:7
+msgid "Creative Commons Attribution Share Alike"
+msgstr ""
+
+#: display_vocabularies.py:235 forms_vocabularies.py:8
+msgid "Creative Commons Attribution No Derivatives"
+msgstr ""
+
+#: display_vocabularies.py:239 forms_vocabularies.py:172
+msgid "Alumnus"
+msgstr ""
+
+#: display_vocabularies.py:240 forms_vocabularies.py:173
+msgid "Assistant Lecturer"
+msgstr ""
+
+#: display_vocabularies.py:241 forms_vocabularies.py:174
+msgid "Callcenter"
+msgstr ""
+
+#: display_vocabularies.py:242 forms_vocabularies.py:175
+msgid "Relevant for Ranking"
+msgstr ""
+
+#: display_vocabularies.py:243 forms_vocabularies.py:176
+msgid "External Staff"
+msgstr ""
+
+#: display_vocabularies.py:244 forms_vocabularies.py:177
+msgid "Manually added"
+msgstr ""
+
+#: display_vocabularies.py:245 forms_vocabularies.py:178
+msgid "Official"
+msgstr ""
+
+#: display_vocabularies.py:246 forms_vocabularies.py:179
+msgid "Official, Non-Scientific"
+msgstr ""
+
+#: display_vocabularies.py:247 forms_vocabularies.py:180
+msgid "Doctoral Candidate"
+msgstr ""
+
+#: display_vocabularies.py:248 forms_vocabularies.py:181
+msgid "Principal Investigator"
+msgstr ""
+
+#: display_vocabularies.py:249 forms_vocabularies.py:182
+msgid "Professor"
+msgstr ""
+
+#: display_vocabularies.py:250 forms_vocabularies.py:183
+msgid "Emeritus"
+msgstr ""
+
+#: display_vocabularies.py:251 forms_vocabularies.py:184
+msgid "Teaching Assistant"
+msgstr ""
+
+#: display_vocabularies.py:252 forms_vocabularies.py:185
+msgid "Technical and Administrative Staff"
+msgstr ""
+
+#: display_vocabularies.py:264 forms.py:125 forms.py:724 forms.py:887
+#: forms.py:1348 forms.py:1428 forms_vocabularies.py:262
+msgid "Published"
+msgstr ""
+
+#: display_vocabularies.py:265 forms.py:127 forms.py:725 forms.py:888
+#: forms.py:1349 forms.py:1429 forms_vocabularies.py:263
+msgid "Unpublished"
+msgstr ""
+
+#: forms.py:37
+msgid "Not a valid ISBN!"
+msgstr ""
+
+#: forms.py:53
+msgid "URI"
+msgstr ""
+
+#: forms.py:54 forms.py:150 forms.py:156 forms.py:213 forms.py:332 forms.py:340
+#: forms.py:384 templates/group.html:17 templates/orga.html:17
+msgid "Label"
+msgstr ""
+
+#: forms.py:58
+msgid "e.g. http://d-nb.info/1035670232/04"
+msgstr ""
+
+#: forms.py:59
+msgid "Table of Contents in textform"
+msgstr ""
+
+#: forms.py:64 forms.py:212 forms.py:1245 templates/person.html:151
+msgid "URL"
+msgstr ""
+
+#: forms.py:65 forms.py:529 forms.py:541 templates/record.html:157
+msgid "Language"
+msgstr ""
+
+#: forms.py:66
+msgid "Shareable"
+msgstr ""
+
+#: forms.py:66
+msgid "I hereby declare that I own the rights to publish this abstract."
+msgstr ""
+
+#: forms.py:70 forms.py:87 forms.py:243 forms.py:431 forms.py:2044
+#: templates/person.html:17 templates/persons.html:45
+msgid "Name"
+msgstr ""
+
+#: forms.py:71 forms.py:88
+msgid "Name, Given name"
+msgstr ""
+
+#: forms.py:72 forms.py:234 forms.py:256 forms.py:343 forms.py:434
+#: templates/consolidate_persons.html:33 templates/person.html:27
+#: templates/record.html:116
+msgid "GND"
+msgstr ""
+
+#: forms.py:74 forms.py:190 forms.py:195 forms.py:234 forms.py:256 forms.py:345
+#: forms.py:434
+msgid ""
+"<a href=\"https://portal.d-nb.de/opac.htm?method=showOptions#top\" "
+"target=\"_blank\">Find in GND</a>"
+msgstr ""
+
+#: forms.py:75 forms.py:257 templates/consolidate_persons.html:34
+#: templates/person.html:35
+msgid "ORCID"
+msgstr ""
+
+#: forms.py:76 forms.py:257
+msgid ""
+"<a href=\"https://orcid.org/orcid-search/search\" target=\"_blank\">Find "
+"in ORCID</a>"
+msgstr ""
+
+#: forms.py:77 forms.py:98 forms.py:102 forms.py:432 forms.py:445 forms.py:449
+#: forms.py:2046
+msgid "Role"
+msgstr ""
+
+#: forms.py:78 forms.py:93 forms.py:109
+msgid "Corresponding Author"
+msgstr ""
+
+#: forms.py:79 forms.py:94 forms.py:109
+msgid "The person handling the publication process"
+msgstr ""
+
+#: forms.py:80 forms.py:110 forms.py:296 forms.py:438
+msgid "RUB member"
+msgstr ""
+
+#: forms.py:81 forms.py:111 forms.py:297 forms.py:439
+msgid "TUDO member"
+msgstr ""
+
+#: forms.py:103 forms.py:450
+msgid "First Year"
+msgstr ""
+
+#: forms.py:104 forms.py:451
+msgid "First Volume"
+msgstr ""
+
+#: forms.py:105 forms.py:452
+msgid "First Issue"
+msgstr ""
+
+#: forms.py:106 forms.py:453
+msgid "Last Year"
+msgstr ""
+
+#: forms.py:107 forms.py:454
+msgid "Last Volume"
+msgstr ""
+
+#: forms.py:108 forms.py:455
+msgid "Last Issue"
+msgstr ""
+
+#: forms.py:115
+msgid "Project Identifier"
+msgstr ""
+
+#: forms.py:115
+msgid "e.g. http://purl.org/info:eu-repo/grantAgreement/EC/FP7/12345P"
+msgstr ""
+
+#: forms.py:116
+msgid "Project Type"
+msgstr ""
+
+#: forms.py:117
+msgid "Publication Version"
+msgstr ""
+
+#: forms.py:118
+msgid "Select a Publication Version"
+msgstr ""
+
+#: forms.py:119 forms.py:723
+msgid "Accepted"
+msgstr ""
+
+#: forms.py:120
+msgid "Draft"
+msgstr ""
+
+#: forms.py:121 forms.py:886 forms.py:1347 forms.py:1427
+msgid "Forthcoming"
+msgstr ""
+
+#: forms.py:122
+msgid "Legal"
+msgstr ""
+
+#: forms.py:123
+msgid "Non Peer Reviewed"
+msgstr ""
+
+#: forms.py:124 forms.py:727 forms.py:890 forms.py:948 forms.py:1083
+#: forms.py:1358 forms.py:1490 forms.py:1567
+msgid "Peer Reviewed"
+msgstr ""
+
+#: forms.py:126
+msgid "Rejected"
+msgstr ""
+
+#: forms.py:129
+msgid "Author Pays"
+msgstr ""
+
+#: forms.py:130
+msgid "Access Level"
+msgstr ""
+
+#: forms.py:131
+msgid "Select an Access Level"
+msgstr ""
+
+#: forms.py:132
+msgid "Closed Access"
+msgstr ""
+
+#: forms.py:133
+msgid "Embargoed Access"
+msgstr ""
+
+#: forms.py:134
+msgid "Restricted Access"
+msgstr ""
+
+#: forms.py:135 forms.py:761 forms.py:916 forms.py:976 forms.py:1014
+#: forms.py:1057 forms.py:1117 forms.py:1182 forms.py:1330 forms.py:1386
+#: forms.py:1471 forms.py:1731 forms.py:1891 forms.py:1922 forms.py:1970
+#: forms.py:2031
+msgid "Open Access"
+msgstr ""
+
+#: forms.py:137
+msgid "Embargo End Date"
+msgstr ""
+
+#: forms.py:137 forms.py:147 forms.py:149 forms.py:272 forms.py:462
+#: forms.py:466 forms.py:556 forms.py:568 forms.py:1156 forms.py:1248
+#: forms.py:1442 forms.py:1690 forms.py:1746 forms.py:1826 forms.py:1991
+#: forms.py:1995
+msgid "YYYY-MM-DD"
+msgstr ""
+
+#: forms.py:137 forms.py:463 forms.py:467 forms.py:1249 forms.py:1827
+#: forms.py:1992 forms.py:1996
+msgid "If you don't know the month and/or day please use 01"
+msgstr ""
+
+#: forms.py:138
+msgid "MIME-type"
+msgstr ""
+
+#: forms.py:139
+msgid "application/pdf"
+msgstr ""
+
+#: forms.py:140
+msgid "application/msword"
+msgstr ""
+
+#: forms.py:141
+msgid "application/x-latex"
+msgstr ""
+
+#: forms.py:142
+msgid "text/plain"
+msgstr ""
+
+#: forms.py:147 forms.py:348 forms.py:394
+msgid "Start Date"
+msgstr ""
+
+#: forms.py:148 forms.py:349 forms.py:395
+msgid "End Date"
+msgstr ""
+
+#: forms.py:155 forms.py:190 forms.py:195 forms.py:292 forms.py:331
+#: forms.py:341 forms.py:594 templates/group.html:67 templates/orga.html:86
+#: templates/person.html:186 templates/record.html:745
+msgid "ID"
+msgstr ""
+
+#: forms.py:160
+msgid "Funds Administration"
+msgstr ""
+
+#: forms.py:161
+msgid "Funds Administration ID"
+msgstr ""
+
+#: forms.py:162
+msgid "e.g. GND ID of the Funds Administration"
+msgstr ""
+
+#: forms.py:163
+msgid "Funds Administration Project ID"
+msgstr ""
+
+#: forms.py:164
+msgid "Project ID given by the Funds Administration"
+msgstr ""
+
+#: forms.py:184
+msgid "Project ID"
+msgstr ""
+
+#: forms.py:199 forms.py:537 templates/dashboard.html:34
+msgid "Title"
+msgstr ""
+
+#: forms.py:200
+msgid "Year"
+msgstr ""
+
+#: forms.py:201 forms.py:533
+msgid "Type"
+msgstr ""
+
+#: forms.py:202
+msgid "Select a Thesis Type"
+msgstr ""
+
+#: forms.py:203
+msgid "M.A. Thesis"
+msgstr ""
+
+#: forms.py:204
+msgid "M.Sc. Thesis"
+msgstr ""
+
+#: forms.py:205
+msgid "Doctoral Thesis"
+msgstr ""
+
+#: forms.py:206
+msgid "Professorial Dissertation"
+msgstr ""
+
+#: forms.py:214
+msgid "Select a Label for the URL"
+msgstr ""
+
+#: forms.py:238
+msgid "Salutation"
+msgstr ""
+
+#: forms.py:239
+msgid "Select a Salutation"
+msgstr ""
+
+#: forms.py:240 templates/person.html:20
+msgid "Mr."
+msgstr ""
+
+#: forms.py:241 templates/person.html:21
+msgid "Mrs./Ms."
+msgstr ""
+
+#: forms.py:243
+msgid "Family Name, Given Name"
+msgstr ""
+
+#: forms.py:245
+msgid "Former Name"
+msgstr ""
+
+#: forms.py:246 templates/person.html:105
+msgid "E-Mail (IDM)"
+msgstr ""
+
+#: forms.py:247
+msgid "Your institutional e-mail address"
+msgstr ""
+
+#: forms.py:248 templates/person.html:113
+msgid "E-Mail (Contact)"
+msgstr ""
+
+#: forms.py:249
+msgid "Your contact e-mail address"
+msgstr ""
+
+#: forms.py:250
+msgid "Account"
+msgstr ""
+
+#: forms.py:250
+msgid "Your 7-digit account number"
+msgstr ""
+
+#: forms.py:251 forms.py:342
+msgid "Verwaltungs-ID"
+msgstr ""
+
+#: forms.py:258 forms.py:435 templates/person.html:81 templates/record.html:93
+#: templates/record.html:116
+msgid "VIAF"
+msgstr ""
+
+#: forms.py:258
+msgid "<a href=\"http://www.viaf.org\" target=\"_blank\">Find in VIAF</a>"
+msgstr ""
+
+#: forms.py:259 forms.py:436 templates/person.html:89 templates/record.html:94
+#: templates/record.html:116
+msgid "ISNI"
+msgstr ""
+
+#: forms.py:259
+msgid "<a href=\"http://www.isni.org\" target=\"_blank\">Find in ISNI</a>"
+msgstr ""
+
+#: forms.py:260 templates/person.html:65
+msgid "Researcher ID"
+msgstr ""
+
+#: forms.py:260
+msgid ""
+"<a href=\"http://www.researcherid.com/ViewProfileSearch.action\" "
+"target=\"_blank\">Find in Researcher ID</a>"
+msgstr ""
+
+#: forms.py:262
+msgid "Scopus Author ID"
+msgstr ""
+
+#: forms.py:262
+msgid ""
+"<a href=\"https://www.scopus.com/search/form/authorFreeLookup.uri\" "
+"target=\"_blank\">Find in Scopus Author ID</a>"
+msgstr ""
+
+#: forms.py:263
+msgid "ArXiv Author ID"
+msgstr ""
+
+#: forms.py:263
+msgid ""
+"<a href=\"http://arxiv.org/find\" target=\"_blank\">Find in ArXiv Author "
+"ID</a>"
+msgstr ""
+
+#: forms.py:264 templates/person.html:162
+msgid "Research Interest"
+msgstr ""
+
+#: forms.py:266 templates/person.html:194
+msgid "Status"
+msgstr ""
+
+#: forms.py:266
+msgid "Choose one or more Status"
+msgstr ""
+
+#: forms.py:268 templates/person.html:239
+msgid "Note"
+msgstr ""
+
+#: forms.py:269
+msgid "Commentary on the person"
+msgstr ""
+
+#: forms.py:270
+msgid "Data Supplied"
+msgstr ""
+
+#: forms.py:271
+msgid "The date of the latest data delivery"
+msgstr ""
+
+#: forms.py:274 forms.py:352 forms.py:398 forms.py:597
+#: templates/dashboard.html:33 templates/group.html:97 templates/groups.html:39
+#: templates/orga.html:116 templates/orgas.html:38 templates/person.html:226
+#: templates/persons.html:44 templates/record.html:763
+msgid "Editorial Status"
+msgstr ""
+
+#: forms.py:275 forms_vocabularies.py:160
+msgid "Select an Editorial Status"
+msgstr ""
+
+#: forms.py:276 forms_vocabularies.py:161 templates/navbar.html:16
+msgid "New"
+msgstr ""
+
+#: forms.py:277
+msgid "In Process"
+msgstr ""
+
+#: forms.py:278
+msgid "Processed"
+msgstr ""
+
+#: forms.py:279 forms_vocabularies.py:164
+msgid "Final Editing"
+msgstr ""
+
+#: forms.py:280 forms_vocabularies.py:165
+msgid "Finalized"
+msgstr ""
+
+#: forms.py:281 forms_vocabularies.py:166
+msgid "Imported"
+msgstr ""
+
+#: forms.py:282 forms_vocabularies.py:167
+msgid "Deleted"
+msgstr ""
+
+#: forms.py:285 forms.py:354 forms.py:400 forms.py:600
+msgid "Data Catalog"
+msgstr ""
+
+#: forms.py:286 forms_vocabularies.py:273
+msgid "Ruhr-UniversitÃ¤t Bochum"
+msgstr ""
+
+#: forms.py:287 forms_vocabularies.py:274
+msgid "Technische UniversitÃ¤t Dortmund"
+msgstr ""
+
+#: forms.py:288 forms_vocabularies.py:275
+msgid "TemporÃ¤re Daten"
+msgstr ""
+
+#: forms.py:289 forms.py:355 forms.py:401
+msgid "Choose one or more DataCatalog"
+msgstr ""
+
+#: forms.py:290 forms.py:356 forms.py:402 forms.py:595
+msgid "Record Creation Date"
+msgstr ""
+
+#: forms.py:291 forms.py:357 forms.py:403 forms.py:596
+msgid "Record Change Date"
+msgstr ""
+
+#: forms.py:293 forms.py:351 forms.py:397 forms.py:599 templates/group.html:91
+#: templates/orga.html:110 templates/person.html:220
+msgid "Owner"
+msgstr ""
+
+#: forms.py:294 forms.py:358 forms.py:404 forms.py:602
+msgid "Deskman"
+msgstr ""
+
+#: forms.py:299 forms.py:364 forms.py:407 forms.py:605
+msgid "Same As"
+msgstr ""
+
+#: forms.py:305 forms.py:370 forms.py:412 forms.py:647 forms.py:677
+#: forms.py:742 forms.py:807 forms.py:846 forms.py:899 forms.py:957
+#: forms.py:997 forms.py:1038 forms.py:1098 forms.py:1165 forms.py:1209
+#: forms.py:1263 forms.py:1309 forms.py:1367 forms.py:1452 forms.py:1501
+#: forms.py:1576 forms.py:1656 forms.py:1711 forms.py:1768 forms.py:1797
+#: forms.py:1835 forms.py:1872 forms.py:1903 forms.py:1949 forms.py:2014
+msgid "Basic"
+msgstr ""
+
+#: forms.py:307 forms.py:648 forms.py:679 forms.py:744 forms.py:809
+#: forms.py:848 forms.py:901 forms.py:959 forms.py:999 forms.py:1040
+#: forms.py:1100 forms.py:1167 forms.py:1211 forms.py:1265 forms.py:1311
+#: forms.py:1369 forms.py:1454 forms.py:1503 forms.py:1580 forms.py:1658
+#: forms.py:1716 forms.py:1799 forms.py:1837 forms.py:1874 forms.py:1905
+#: forms.py:1953 forms.py:2016
+msgid "IDs"
+msgstr ""
+
+#: forms.py:308 templates/person.html:123
+msgid "Affiliation"
+msgstr ""
+
+#: forms.py:309 forms.py:583 templates/record.html:709
+msgid "Notes"
+msgstr ""
+
+#: forms.py:318 forms.py:379 forms.py:421 forms.py:662 forms.py:693
+#: forms.py:765 forms.py:826 forms.py:864 forms.py:919 forms.py:980
+#: forms.py:1017 forms.py:1060 forms.py:1121 forms.py:1186 forms.py:1229
+#: forms.py:1285 forms.py:1333 forms.py:1390 forms.py:1475 forms.py:1521
+#: forms.py:1594 forms.py:1678 forms.py:1734 forms.py:1784 forms.py:1815
+#: forms.py:1853 forms.py:1894 forms.py:1925 forms.py:1973 forms.py:2034
+msgid "Administrative"
+msgstr ""
+
+#: forms.py:346 forms.py:392
+msgid "Parent ID"
+msgstr ""
+
+#: forms.py:347 forms.py:393
+msgid "Parent Label"
+msgstr ""
+
+#: forms.py:350 forms.py:396
+msgid "Correction Request"
+msgstr ""
+
+#: forms.py:372 forms.py:416 templates/group.html:58 templates/groups.html:52
+#: templates/orga.html:57 templates/orgas.html:54 templates/orgas.html:56
+msgid "Parent"
+msgstr ""
+
+#: forms.py:374 templates/orga.html:65
+msgid "Children"
+msgstr ""
+
+#: forms.py:376 forms.py:418 templates/group.html:47 templates/orga.html:45
+msgid "Destatis"
+msgstr ""
+
+#: forms.py:385
+msgid "Working Group ID"
+msgstr ""
+
+#: forms.py:386
+msgid "A working group ID such as GND, ISNI or a URI"
+msgstr ""
+
+#: forms.py:388 templates/record.html:153
+msgid "Description"
+msgstr ""
+
+#: forms.py:389 forms.py:584
+msgid "Please put any information that does not fit other fields here."
+msgstr ""
+
+#: forms.py:414 templates/group.html:34
+msgid "Funds"
+msgstr ""
+
+#: forms.py:426 forms_vocabularies.py:226
+msgid "Image"
+msgstr ""
+
+#: forms.py:459
+msgid "Name of the Event"
+msgstr ""
+
+#: forms.py:460
+msgid "First day of the Event"
+msgstr ""
+
+#: forms.py:464
+msgid "Last day of the Event"
+msgstr ""
+
+#: forms.py:468
+msgid "Location of the Event"
+msgstr ""
+
+#: forms.py:469
+msgid "Numbering of the Event"
+msgstr ""
+
+#: forms.py:473 forms.py:656 forms.py:687 forms.py:856 forms.py:909
+#: forms.py:969 forms.py:1007 forms.py:1048 forms.py:1219 forms.py:1275
+#: forms.py:1321 forms.py:1377 forms.py:1511 forms.py:1668 forms.py:1724
+#: forms.py:1882 forms.py:1913 forms.py:1961 forms.py:2024
+#: templates/record.html:551
+msgid "Has Part"
+msgstr ""
+
+#: forms.py:477 forms.py:482 forms.py:654 forms.py:685 forms.py:854
+#: forms.py:907 forms.py:967 forms.py:1005 forms.py:1046 forms.py:1108
+#: forms.py:1173 forms.py:1217 forms.py:1273 forms.py:1319 forms.py:1375
+#: forms.py:1460 forms.py:1509 forms.py:1666 forms.py:1722 forms.py:1805
+#: forms.py:1843 forms.py:1880 forms.py:1911 forms.py:1959 forms.py:2022
+msgid "Is Part of"
+msgstr ""
+
+#: forms.py:478 forms.py:483 forms.py:511 forms.py:519 forms.py:1462
+msgid "Volume"
+msgstr ""
+
+#: forms.py:484 forms.py:504 templates/record.html:506
+#: templates/record.html:509 templates/record.html:533
+#: templates/record.html:536 templates/record.html:558
+#: templates/record.html:561
+msgid "Issue"
+msgstr ""
+
+#: forms.py:488 forms.py:754 forms.py:817 forms.py:1050 forms.py:1110
+#: forms.py:1175 forms.py:1221 forms.py:1277 forms.py:1323 forms.py:1379
+#: forms.py:1464 forms.py:1513 forms.py:1670 forms.py:1807 forms.py:1845
+#: forms.py:1884 forms.py:1915 forms.py:1963 templates/record.html:578
+msgid "Other Version"
+msgstr ""
+
+#: forms.py:492 forms.py:497 forms.py:505 forms.py:514
+msgid "First Page"
+msgstr ""
+
+#: forms.py:493 forms.py:498 forms.py:506 forms.py:515
+msgid "Last Page"
+msgstr ""
+
+#: forms.py:503
+msgid "Volume / Year"
+msgstr ""
+
+#: forms.py:513
+msgid "Name or number of the edition that the article was published in"
+msgstr ""
+
+#: forms.py:527
+msgid "Other Title"
+msgstr ""
+
+#: forms.py:528
+msgid "translated title, parallel title or EST of the work"
+msgstr ""
+
+#: forms.py:534
+msgid "DOI"
+msgstr ""
+
+#: forms.py:538
+msgid "The title of the work"
+msgstr ""
+
+#: forms.py:539 templates/record.html:24
+msgid "Subtitle"
+msgstr ""
+
+#: forms.py:540
+msgid "The subtitle of the work"
+msgstr ""
+
+#: forms.py:544 templates/record.html:56
+msgid "Title Supplement"
+msgstr ""
+
+#: forms.py:545
+msgid "Additions to the title of the work"
+msgstr ""
+
+#: forms.py:547 forms.py:720 forms.py:884 forms.py:1345 forms.py:1425
+#: forms.py:1756 templates/record.html:301
+msgid "Publication Status"
+msgstr ""
+
+#: forms.py:549 forms.py:1558
+msgid "Version"
+msgstr ""
+
+#: forms.py:550
+msgid "Select a Version"
+msgstr ""
+
+#: forms.py:551
+msgid "Preprint"
+msgstr ""
+
+#: forms.py:552
+msgid "Postprint"
+msgstr ""
+
+#: forms.py:553
+msgid "Publisher's Version"
+msgstr ""
+
+#: forms.py:555 forms.py:1441 templates/record.html:336
+msgid "Date"
+msgstr ""
+
+#: forms.py:561
+msgid "Link to full text"
+msgstr ""
+
+#: forms.py:562
+msgid "A URI, URL, or URN"
+msgstr ""
+
+#: forms.py:563
+msgid "PubMed ID"
+msgstr ""
+
+#: forms.py:563
+msgid "e.g. 15894097"
+msgstr ""
+
+#: forms.py:564
+msgid "Web of Science ID"
+msgstr ""
+
+#: forms.py:565
+msgid "e.g. 000229082300022"
+msgstr ""
+
+#: forms.py:566 templates/record.html:701
+msgid "Last Seen"
+msgstr ""
+
+#: forms.py:569 templates/record.html:424
+msgid "Additions"
+msgstr ""
+
+#: forms.py:570 forms.py:659 forms.py:690 forms.py:757 forms.py:821
+#: forms.py:859 forms.py:912 forms.py:972 forms.py:1010 forms.py:1053
+#: forms.py:1113 forms.py:1178 forms.py:1224 forms.py:1280 forms.py:1326
+#: forms.py:1382 forms.py:1467 forms.py:1516 forms.py:1591 forms.py:1673
+#: forms.py:1727 forms.py:1779 forms.py:1810 forms.py:1848 forms.py:1887
+#: forms.py:1918 forms.py:1966 forms.py:2027
+msgid "Keyword"
+msgstr ""
+
+#: forms.py:571
+msgid "Temporal"
+msgstr ""
+
+#: forms.py:572
+msgid "Geographic"
+msgstr ""
+
+#: forms.py:581
+msgid "Extent"
+msgstr ""
+
+#: forms.py:582 templates/record.html:725
+msgid "Medium"
+msgstr ""
+
+#: forms.py:585 forms.py:1578 forms.py:1615 templates/record.html:134
+msgid "License"
+msgstr ""
+
+#: forms.py:586
+msgid "Copyright"
+msgstr ""
+
+#: forms.py:587
+msgid ""
+"If you have granted the exclusive use of rights to a commercial service, "
+"please enter relevant information."
+msgstr ""
+
+#: forms.py:590
+msgid "Affiliation Context"
+msgstr ""
+
+#: forms.py:591
+msgid "The organisational unit this publication belongs to"
+msgstr ""
+
+#: forms.py:592
+msgid "Working Group Context"
+msgstr ""
+
+#: forms.py:593
+msgid "The working group this publication belongs to"
+msgstr ""
+
+#: forms.py:601
+msgid "Choose one or more data catalog by clicking and pressing \"strg\""
+msgstr ""
+
+#: forms.py:603 templates/group_list.html:9 templates/orga_list.html:9
+#: templates/person_list.html:9 templates/record_list.html:9
+msgid "Apparent Duplicate"
+msgstr ""
+
+#: forms.py:606
+msgid "Key Publication"
+msgstr ""
+
+#: forms.py:610 templates/record.html:353
+msgid "Publisher"
+msgstr ""
+
+#: forms.py:611
+msgid "Place of Publication"
+msgstr ""
+
+#: forms.py:615 forms.py:1353 forms.py:1433 forms.py:1989
+msgid "HBZ-ID"
+msgstr ""
+
+#: forms.py:619 templates/record.html:32
+msgid "Subseries"
+msgstr ""
+
+#: forms.py:620
+msgid "The title of a subseries"
+msgstr ""
+
+#: forms.py:621
+msgid "ISSN"
+msgstr ""
+
+#: forms.py:622
+msgid "e.g. 1932-6203"
+msgstr ""
+
+#: forms.py:623
+msgid "ZDB-ID"
+msgstr ""
+
+#: forms.py:624
+msgid "e.g. 2267670-3"
+msgstr ""
+
+#: forms.py:626 templates/record.html:432
+msgid "Frequency"
+msgstr ""
+
+#: forms.py:628 forms.py:871
+msgid "External"
+msgstr ""
+
+#: forms.py:638 forms.py:869 templates/record.html:369
+msgid "Number of Volumes"
+msgstr ""
+
+#: forms.py:650 forms.py:681 forms.py:746 forms.py:811 forms.py:850
+#: forms.py:903 forms.py:961 forms.py:1001 forms.py:1042 forms.py:1102
+#: forms.py:1169 forms.py:1213 forms.py:1267 forms.py:1313 forms.py:1371
+#: forms.py:1456 forms.py:1505 forms.py:1582 forms.py:1660 forms.py:1718
+#: forms.py:1774 forms.py:1801 forms.py:1839 forms.py:1876 forms.py:1907
+#: forms.py:1955 forms.py:2018 forms.py:2064 templates/navbar.html:21
+msgid "Person"
+msgstr ""
+
+#: forms.py:652 forms.py:683 forms.py:748 forms.py:813 forms.py:852
+#: forms.py:905 forms.py:963 forms.py:1003 forms.py:1044 forms.py:1104
+#: forms.py:1171 forms.py:1215 forms.py:1269 forms.py:1315 forms.py:1373
+#: forms.py:1458 forms.py:1507 forms.py:1584 forms.py:1662 forms.py:1720
+#: forms.py:1776 forms.py:1803 forms.py:1841 forms.py:1878 forms.py:1909
+#: forms.py:1957 forms.py:2020
+msgid "Corporation"
+msgstr ""
+
+#: forms.py:667
+msgid "Journal Abbreviation"
+msgstr ""
+
+#: forms.py:668
+msgid "The Abbreviated Title of the Journal"
+msgstr ""
+
+#: forms.py:698
+msgid "Newspaper Abbreviation"
+msgstr ""
+
+#: forms.py:699
+msgid "The Abbreviated Title of the Newspaper"
+msgstr ""
+
+#: forms.py:707 forms.py:793 forms.py:831 forms.py:880 forms.py:985
+#: forms.py:1022 forms.py:1065 forms.py:1149 forms.py:1191 forms.py:1234
+#: forms.py:1290 forms.py:1338 forms.py:1418 forms.py:1626 forms.py:1820
+#: forms.py:1978
+msgid "Subtype"
+msgstr ""
+
+#: forms.py:708 forms.py:794 forms.py:832 forms.py:881 forms.py:986
+#: forms.py:1023 forms.py:1066 forms.py:1150 forms.py:1192 forms.py:1235
+#: forms.py:1291 forms.py:1339 forms.py:1419 forms.py:1627 forms.py:1821
+#: forms.py:1979
+msgid "Select a Subtype"
+msgstr ""
+
+#: forms.py:721 forms.py:885 forms.py:1346 forms.py:1426
+#: forms_vocabularies.py:261
+msgid "Select a Publication Status"
+msgstr ""
+
+#: forms.py:722
+msgid "Submitted"
+msgstr ""
+
+#: forms.py:730 forms.py:1085
+msgid "DFG Funded"
+msgstr ""
+
+#: forms.py:730 forms.py:1085
+msgid ""
+"APCs funded by the DFG and the RUB OA Fund (<a "
+"href=\"https://github.com/OpenAPC/openapc-"
+"de/tree/master/data/rub\">OpenAPC</a>)"
+msgstr ""
+
+#: forms.py:750 forms.py:965 forms.py:1106 forms.py:1271 forms.py:1317
+#: forms.py:1664 forms_vocabularies.py:225 templates/record.html:325
+msgid "Event"
+msgstr ""
+
+#: forms.py:759 forms.py:823 forms.py:861 forms.py:914 forms.py:974
+#: forms.py:1012 forms.py:1055 forms.py:1115 forms.py:1180 forms.py:1226
+#: forms.py:1282 forms.py:1328 forms.py:1384 forms.py:1469 forms.py:1518
+#: forms.py:1588 forms.py:1675 forms.py:1729 forms.py:1781 forms.py:1812
+#: forms.py:1850 forms.py:1889 forms.py:1920 forms.py:1968 forms.py:2029
+msgid "Content"
+msgstr ""
+
+#: forms.py:780 forms.py:936 forms.py:1136 forms.py:1407 forms.py:1537
+#: forms.py:1611
+msgid "Publication Details"
+msgstr ""
+
+#: forms.py:782 forms.py:938 forms.py:1138 forms.py:1409 forms.py:1539
+#: forms.py:1613
+msgid "Contributors"
+msgstr ""
+
+#: forms.py:786 forms.py:940 forms.py:1142 forms.py:1411 forms.py:1543
+#: forms.py:1619
+msgid "Keywords"
+msgstr ""
+
+#: forms.py:835 forms.py:873 forms.py:1199 forms.py:1351 forms.py:1431
+#: forms.py:1491 forms.py:1646
+msgid "ISBN"
+msgstr ""
+
+#: forms.py:836 forms.py:874 forms.py:1200 forms.py:1352 forms.py:1432
+msgid "ISMN"
+msgstr ""
+
+#: forms.py:1027
+msgid "Standard Abbreviation"
+msgstr ""
+
+#: forms.py:1029
+msgid "The standard abbreviation of the legal commentary"
+msgstr ""
+
+#: forms.py:1079 forms.py:1480
+msgid "Parent Title"
+msgstr ""
+
+#: forms.py:1080 forms.py:1480
+msgid "The Title of the Parent Reference"
+msgstr ""
+
+#: forms.py:1081 forms.py:1481
+msgid "Parent Subtitle"
+msgstr ""
+
+#: forms.py:1082 forms.py:1482
+msgid "The Subtitle of the Parent Reference"
+msgstr ""
+
+#: forms.py:1140 forms.py:1541
+msgid "Is published in"
+msgstr ""
+
+#: forms.py:1154
+msgid "Date updated"
+msgstr ""
+
+#: forms.py:1157
+msgid ""
+"The last update of the legal text. If you don't know the month and/or day"
+" please use 01"
+msgstr ""
+
+#: forms.py:1246
+msgid "Last update"
+msgstr ""
+
+#: forms.py:1250 forms.py:1483 forms.py:1636 forms.py:1789
+msgid "Place"
+msgstr ""
+
+#: forms.py:1295
+msgid "Lecture Series"
+msgstr ""
+
+#: forms.py:1297
+msgid "The Title of the Lecture Series"
+msgstr ""
+
+#: forms.py:1485
+msgid "Number"
+msgstr ""
+
+#: forms.py:1550
+msgid "Related Identifier"
+msgstr ""
+
+#: forms.py:1551 forms.py:1563
+msgid "Resource Type"
+msgstr ""
+
+#: forms.py:1553
+msgid "Specify identifiers of related publications and datasets."
+msgstr ""
+
+#: forms.py:1557 templates/record.html:361
+msgid "Publisher Place"
+msgstr ""
+
+#: forms.py:1562
+msgid "Repository / Publisher"
+msgstr ""
+
+#: forms.py:1565
+msgid "Size"
+msgstr ""
+
+#: forms.py:1566
+msgid "Format"
+msgstr ""
+
+#: forms.py:1586 forms.py:1617
+msgid "Relations"
+msgstr ""
+
+#: forms.py:1683
+msgid "Patent Number"
+msgstr ""
+
+#: forms.py:1684
+msgid "The publication number for a patent, e.g. DE102004031250 A1"
+msgstr ""
+
+#: forms.py:1685 templates/record.html:165
+msgid "Claims"
+msgstr ""
+
+#: forms.py:1686
+msgid "e.g. Eur. Pat. Appl."
+msgstr ""
+
+#: forms.py:1687
+msgid "Applicant"
+msgstr ""
+
+#: forms.py:1688
+msgid "The name of the person applying for the patent"
+msgstr ""
+
+#: forms.py:1689 forms.py:1745
+msgid "Application Date"
+msgstr ""
+
+#: forms.py:1691 forms.py:1743
+msgid "Application Country"
+msgstr ""
+
+#: forms.py:1692 forms.py:1696
+msgid "e.g. Germany"
+msgstr ""
+
+#: forms.py:1693 forms.py:1741
+msgid "Application Number"
+msgstr ""
+
+#: forms.py:1694
+msgid "e.g. PCT/US2007/066814"
+msgstr ""
+
+#: forms.py:1695
+msgid "Issue Country"
+msgstr ""
+
+#: forms.py:1697 templates/record.html:456
+msgid "Bibliographic IPC"
+msgstr ""
+
+#: forms.py:1698
+msgid ""
+"Number according to the International Patent Classification, e. g. A63G "
+"29/00"
+msgstr ""
+
+#: forms.py:1699 forms.py:1751
+msgid "Priority Date"
+msgstr ""
+
+#: forms.py:1700 forms.py:1752
+msgid "e.g. 60/744,997, 17.04.2006, US"
+msgstr ""
+
+#: forms.py:1714 forms.py:1772 forms.py:1951
+msgid "Specific"
+msgstr ""
+
+#: forms.py:1739
+msgid "Publication Number"
+msgstr ""
+
+#: forms.py:1740
+msgid "The publication number for a patent, e.g. DE102004031250A1"
+msgstr ""
+
+#: forms.py:1742 forms.py:1748
+msgid "e.g. 2012071376"
+msgstr ""
+
+#: forms.py:1744 forms.py:1750
+msgid "e.g. DE"
+msgstr ""
+
+#: forms.py:1747
+msgid "Priority Number"
+msgstr ""
+
+#: forms.py:1749
+msgid "Priority Country"
+msgstr ""
+
+#: forms.py:1824
+msgid "Broadcast Date"
+msgstr ""
+
+#: forms.py:1858
+msgid "Program Name"
+msgstr ""
+
+#: forms.py:1860
+msgid "The Name of the Software"
+msgstr ""
+
+#: forms.py:1936
+msgid "ISBN of the Collection"
+msgstr ""
+
+#: forms.py:1985
+msgid "Master`s Thesis"
+msgstr ""
+
+#: forms.py:1990
+msgid "Date issued"
+msgstr ""
+
+#: forms.py:1993
+msgid "Day of the Oral Exam"
+msgstr ""
+
+#: forms.py:1997
+msgid "Location of Academic Institution"
+msgstr ""
+
+#: forms.py:1998
+msgid "Where the thesis was submitted"
+msgstr ""
+
+#: forms.py:2042
+msgid "<i class=\"fa fa-user\"></i> LoginID"
+msgstr ""
+
+#: forms.py:2043 hb2_flask.py:3776
+msgid "Password"
+msgstr ""
+
+#: forms.py:2044
+msgid "First Name Last Name"
+msgstr ""
+
+#: forms.py:2045
+msgid "Email"
+msgstr ""
+
+#: forms.py:2047 forms_vocabularies.py:60 forms_vocabularies.py:67
+#: forms_vocabularies.py:77
+msgid "Select a Role"
+msgstr ""
+
+#: forms.py:2048
+msgid "User"
+msgstr ""
+
+#: forms.py:2049
+msgid "Admin"
+msgstr ""
+
+#: forms.py:2051
+msgid "<i class=\"fa fa-user-plus\"></i> Register"
+msgstr ""
+
+#: forms.py:2055
+msgid "List of IDs"
+msgstr ""
+
+#: forms.py:2056
+msgid "A List of one or more Identifiers such as ISBNs, DOIs, or PubMED IDs."
+msgstr ""
+
+#: forms.py:2057 forms.py:2074 hb2_flask.py:269 hb2_flask.py:321
+#: templates/search.html:7 templates/search.html:12
+msgid "Search"
+msgstr ""
+
+#: forms.py:2061
+msgid "Entity Type"
+msgstr ""
+
+#: forms.py:2062
+msgid "Select a Type"
+msgstr ""
+
+#: forms.py:2063
+msgid "Publication"
+msgstr ""
+
+#: forms.py:2065 templates/navbar.html:23 templates/orgas.html:39
+msgid "Organisation"
+msgstr ""
+
+#: forms.py:2066 templates/groups.html:40 templates/navbar.html:25
+#: templates/person.html:138
+msgid "Working Group"
+msgstr ""
+
+#: forms.py:2068
+msgid "Data"
+msgstr ""
+
+#: forms.py:2073
+msgid "Publication Search"
+msgstr ""
+
+#: forms_vocabularies.py:4
+msgid "Select a License"
+msgstr ""
+
+#: forms_vocabularies.py:13
+msgid "Select a Language"
+msgstr ""
+
+#: forms_vocabularies.py:71
+msgid "Degree granting institution"
+msgstr ""
+
+#: forms_vocabularies.py:92
+msgid "Author of Foreword"
+msgstr ""
+
+#: forms_vocabularies.py:117
+msgid "Set designer"
+msgstr ""
+
+#: forms_vocabularies.py:120
+msgid "Thesis Adviser"
+msgstr ""
+
+#: forms_vocabularies.py:125
+msgid "Select a Publication Type"
+msgstr ""
+
+#: forms_vocabularies.py:153 templates/pubtype_list.html:211
+msgid "Radio or TV program"
+msgstr ""
+
+#: forms_vocabularies.py:162
+msgid "Editing"
+msgstr ""
+
+#: forms_vocabularies.py:163
+msgid "Edited"
+msgstr ""
+
+#: forms_vocabularies.py:171
+msgid "Select a Status"
+msgstr ""
+
+#: forms_vocabularies.py:189
+msgid "Select a Project Type"
+msgstr ""
+
+#: forms_vocabularies.py:190
+msgid "FP7"
+msgstr ""
+
+#: forms_vocabularies.py:191
+msgid "Horizon 2020"
+msgstr ""
+
+#: forms_vocabularies.py:192
+msgid "DFG"
+msgstr ""
+
+#: forms_vocabularies.py:193
+msgid "Mercator Research Center Ruhr (MERCUR)"
+msgstr ""
+
+#: forms_vocabularies.py:198
+msgid "Select a Carrier"
+msgstr ""
+
+#: forms_vocabularies.py:199
+msgid "Audio disc"
+msgstr ""
+
+#: forms_vocabularies.py:200
+msgid "Audiocassette"
+msgstr ""
+
+#: forms_vocabularies.py:201
+msgid "Audiotape reel"
+msgstr ""
+
+#: forms_vocabularies.py:202
+msgid "Computer disc"
+msgstr ""
+
+#: forms_vocabularies.py:203
+msgid "Online-ressource"
+msgstr ""
+
+#: forms_vocabularies.py:204
+msgid "Microfiche"
+msgstr ""
+
+#: forms_vocabularies.py:205
+msgid "Microfilm cassette"
+msgstr ""
+
+#: forms_vocabularies.py:206
+msgid "Microfilm reel"
+msgstr ""
+
+#: forms_vocabularies.py:207
+msgid "Microfilm roll"
+msgstr ""
+
+#: forms_vocabularies.py:208
+msgid "Microscope slide"
+msgstr ""
+
+#: forms_vocabularies.py:209
+msgid "Film cassette"
+msgstr ""
+
+#: forms_vocabularies.py:210
+msgid "Film reel"
+msgstr ""
+
+#: forms_vocabularies.py:211
+msgid "Film roll"
+msgstr ""
+
+#: forms_vocabularies.py:212
+msgid "Film strip"
+msgstr ""
+
+#: forms_vocabularies.py:213
+msgid "Object"
+msgstr ""
+
+#: forms_vocabularies.py:214
+msgid "card"
+msgstr ""
+
+#: forms_vocabularies.py:215
+msgid "Videocassette"
+msgstr ""
+
+#: forms_vocabularies.py:216
+msgid "Videodisc"
+msgstr ""
+
+#: forms_vocabularies.py:217
+msgid "Unspecified"
+msgstr ""
+
+#: forms_vocabularies.py:221
+msgid "Select a Resource Type"
+msgstr ""
+
+#: forms_vocabularies.py:222
+msgid "Audiovisual"
+msgstr ""
+
+#: forms_vocabularies.py:224
+msgid "Dataset"
+msgstr ""
+
+#: forms_vocabularies.py:227
+msgid "InteractiveResource"
+msgstr ""
+
+#: forms_vocabularies.py:228
+msgid "Model"
+msgstr ""
+
+#: forms_vocabularies.py:229
+msgid "PhysicalObject"
+msgstr ""
+
+#: forms_vocabularies.py:230
+msgid "Service"
+msgstr ""
+
+#: forms_vocabularies.py:232
+msgid "Sound"
+msgstr ""
+
+#: forms_vocabularies.py:233
+msgid "Text"
+msgstr ""
+
+#: forms_vocabularies.py:234
+msgid "Workflow"
+msgstr ""
+
+#: forms_vocabularies.py:239
+msgid "Select a Frequency"
+msgstr ""
+
+#: forms_vocabularies.py:269
+msgid "Granted"
+msgstr ""
+
+#: forms_vocabularies.py:279
+msgid "Select a Relation Type"
+msgstr ""
+
+#: forms_vocabularies.py:280
+msgid "cited by this upload"
+msgstr ""
+
+#: forms_vocabularies.py:281
+msgid "is cited by this upload"
+msgstr ""
+
+#: forms_vocabularies.py:282
+msgid "is supplement by this upload"
+msgstr ""
+
+#: forms_vocabularies.py:283
+msgid "is a supplement to this upload"
+msgstr ""
+
+#: forms_vocabularies.py:284
+msgid "is referenced by this upload"
+msgstr ""
+
+#: forms_vocabularies.py:285
+msgid "references this upload"
+msgstr ""
+
+#: forms_vocabularies.py:286
+msgid "is previous version of this upload"
+msgstr ""
+
+#: forms_vocabularies.py:287
+msgid "is new version of this upload"
+msgstr ""
+
+#: forms_vocabularies.py:288
+msgid "has this upload as part"
+msgstr ""
+
+#: forms_vocabularies.py:289
+msgid "is part of this upload"
+msgstr ""
+
+#: forms_vocabularies.py:290
+msgid "is compiled/created by this upload"
+msgstr ""
+
+#: forms_vocabularies.py:291
+msgid "compiled/created this upload"
+msgstr ""
+
+#: forms_vocabularies.py:292
+msgid "is identical to this upload"
+msgstr ""
+
+#: hb2_flask.py:185 hb2_flask.py:2667 hb2_flask.py:2700 hb2_flask.py:2733
+#: hb2_flask.py:2766 hb2_flask.py:2999 hb2_flask.py:3030 hb2_flask.py:3047
+#: hb2_flask.py:3064 hb2_flask.py:3082 hb2_flask.py:3101 hb2_flask.py:3120
+#: hb2_flask.py:3139 hb2_flask.py:3163 hb2_flask.py:3188 hb2_flask.py:3214
+#: hb2_flask.py:3234 hb2_flask.py:3284 hb2_flask.py:3362 hb2_flask.py:3414
+msgid "For SuperAdmins ONLY!!!"
+msgstr ""
+
+#: hb2_flask.py:236
+msgid ""
+"You are currently not registered as contributor of any work. Please "
+"register new works..."
+msgstr ""
+
+#: hb2_flask.py:245
+msgid "You haven't registered any records with us yet. Please do so now..."
+msgstr ""
+
+#: hb2_flask.py:247 templates/navbar.html:6
+msgid "Home"
+msgstr ""
+
+#: hb2_flask.py:320
+msgid "Your Search Found no Results"
+msgstr ""
+
+#: hb2_flask.py:324 hb2_flask.py:1611 hb2_flask.py:1669 hb2_flask.py:1699
+#: hb2_flask.py:1729
+msgid "titles"
+msgstr ""
+
+#: hb2_flask.py:325 hb2_flask.py:1612 hb2_flask.py:2819 hb2_flask.py:3011
+#: hb2_flask.py:3247
+msgid "Showing {start} to {end} of {found} {record_name}"
+msgstr ""
+
+#: hb2_flask.py:329 hb2_flask.py:334 hb2_flask.py:339 hb2_flask.py:344
+msgid "Resultlist"
+msgstr ""
+
+#: hb2_flask.py:536
+#, python-format
+msgid "IDs from relation \"person\" could not be found! Ref: %s"
+msgstr ""
+
+#: hb2_flask.py:590
+#, python-format
+msgid "IDs from relation \"corporation\" could not be found! Ref: %s"
+msgstr ""
+
+#: hb2_flask.py:646
+#, python-format
+msgid "IDs from relation \"affiliation\" could not be found! Ref: %s"
+msgstr ""
+
+#: hb2_flask.py:675
+#, python-format
+msgid "IDs from relation \"group\" could not be found! Ref: %s"
+msgstr ""
+
+#: hb2_flask.py:769
+#, python-format
+msgid "Not all IDs from relation \"is part of\" could be found! Ref: %s"
+msgstr ""
+
+#: hb2_flask.py:830
+#, python-format
+msgid "Not all IDs from relation \"has part\" could be found! Ref: %s"
+msgstr ""
+
+#: hb2_flask.py:872
+#, python-format
+msgid "Not all IDs from relation \"other version\" could be found! Ref: %s"
+msgstr ""
+
+#: hb2_flask.py:927 hb2_flask.py:962 hb2_flask.py:997 hb2_flask.py:1473
+#, python-format
+msgid "ERROR linking from %s: %s"
+msgstr ""
+
+#: hb2_flask.py:1117
+#, python-format
+msgid "IDs from relation \"organisation_id\" could not be found! Ref: %s"
+msgstr ""
+
+#: hb2_flask.py:1150
+#, python-format
+msgid "IDs from relation \"group_id\" could not be found! Ref: %s"
+msgstr ""
+
+#: hb2_flask.py:1309 hb2_flask.py:1559
+#, python-format
+msgid "IDs from relation \"parent_id\" could not be found! Ref: %s"
+msgstr ""
+
+#: hb2_flask.py:1337
+#, python-format
+msgid "IDs from relation \"child_id\" could not be found! Ref: %s"
+msgstr ""
+
+#: hb2_flask.py:1369
+#, python-format
+msgid "Not all IDs from relation \"children\" could be found! Ref: %s"
+msgstr ""
+
+#: hb2_flask.py:1587 hb2_flask.py:1626 hb2_flask.py:1636 hb2_flask.py:1995
+#: hb2_flask.py:2023 hb2_flask.py:2140 hb2_flask.py:2163 hb2_flask.py:2492
+#: hb2_flask.py:2545 hb2_flask.py:2593 hb2_flask.py:2829
+msgid "For Admins ONLY!!!"
+msgstr ""
+
+#: hb2_flask.py:1608
+msgid "There Are No Records Yet!"
+msgstr ""
+
+#: hb2_flask.py:1616 templates/navbar.html:11
+msgid "Dashboard"
+msgstr ""
+
+#: hb2_flask.py:1629 templates/admin_nav.html:43
+msgid "Documentation"
+msgstr ""
+
+#: hb2_flask.py:1639 templates/admin_nav.html:38
+msgid "News"
+msgstr ""
+
+#: hb2_flask.py:1662
+msgid "There Are No Persons Yet!"
+msgstr ""
+
+#: hb2_flask.py:1663 hb2_flask.py:1672 templates/admin_nav.html:9
+#: templates/search.html:19
+msgid "Persons"
+msgstr ""
+
+#: hb2_flask.py:1670
+msgid "Showing {start} to {end} of {found} Persons"
+msgstr ""
+
+#: hb2_flask.py:1693
+msgid "There Are No Organisations Yet!"
+msgstr ""
+
+#: hb2_flask.py:1694 hb2_flask.py:1702 templates/admin_nav.html:10
+#: templates/search.html:20
+msgid "Organisations"
+msgstr ""
+
+#: hb2_flask.py:1700
+msgid "Showing {start} to {end} of {found} Organisational Units"
+msgstr ""
+
+#: hb2_flask.py:1723
+msgid "There Are No Working Groups Yet!"
+msgstr ""
+
+#: hb2_flask.py:1724 hb2_flask.py:1732 templates/admin_nav.html:11
+#: templates/search.html:21
+msgid "Working Groups"
+msgstr ""
+
+#: hb2_flask.py:1730
+msgid "Showing {start} to {end} of {found} Working Groups"
+msgstr ""
+
+#: hb2_flask.py:1814 hb2_flask.py:1834
+msgid "New Record"
+msgstr ""
+
+#: hb2_flask.py:1842
+msgid "New Record by Publication Type"
+msgstr ""
+
+#: hb2_flask.py:1902 hb2_flask.py:2782
+msgid ""
+"Thank you for uploading your data! We will now edit them and make them "
+"available as soon as possible."
+msgstr ""
+
+#: hb2_flask.py:1904
+msgid "Upload a List of Citations"
+msgstr ""
+
+#: hb2_flask.py:1975
+#, python-format
+msgid "Register New %s"
+msgstr ""
+
+#: hb2_flask.py:1981
+msgid "Register New Work"
+msgstr ""
+
+#: hb2_flask.py:2006
+#, python-format
+msgid "A person with id %s already exists!"
+msgstr ""
+
+#: hb2_flask.py:2007 hb2_flask.py:2015
+msgid "New Person"
+msgstr ""
+
+#: hb2_flask.py:2032
+msgid "New Person from GND"
+msgstr ""
+
+#: hb2_flask.py:2110 hb2_flask.py:2131 hb2_flask.py:2536
+#, python-format
+msgid "Edit: %(person)s"
+msgstr ""
+
+#: hb2_flask.py:2114
+#, python-format
+msgid "The requested ID %s is not known in GND!"
+msgstr ""
+
+#: hb2_flask.py:2155
+msgid "New Organisation"
+msgstr ""
+
+#: hb2_flask.py:2179
+msgid "New Working Group"
+msgstr ""
+
+#: hb2_flask.py:2439
+msgid ""
+"<p><i class=\"fa fa-exclamation-triangle fa-3x\"></i> <h3>The publication"
+" type for the following data has changed. Please check the data.</h3></p>"
+msgstr ""
+
+#: hb2_flask.py:2459 hb2_flask.py:2483 hb2_flask.py:2522 hb2_flask.py:2570
+#: hb2_flask.py:2619
+#, python-format
+msgid "Edit: %(title)s"
+msgstr ""
+
+#: hb2_flask.py:2584
+#, python-format
+msgid "Edit: %(orga)s"
+msgstr ""
+
+#: hb2_flask.py:2633
+#, python-format
+msgid "Edit: %(group)s"
+msgstr ""
+
+#: hb2_flask.py:2656
+#, python-format
+msgid "Set editorial status of %s to deleted!"
+msgstr ""
+
+#: hb2_flask.py:2663
+#, python-format
+msgid "Record %s deleted!"
+msgstr ""
+
+#: hb2_flask.py:2675 hb2_flask.py:2708 hb2_flask.py:2741
+#, python-format
+msgid "Set status of %s to deleted!"
+msgstr ""
+
+#: hb2_flask.py:2696
+#, python-format
+msgid "Person %s deleted!"
+msgstr ""
+
+#: hb2_flask.py:2729
+#, python-format
+msgid "Organisation %s deleted!"
+msgstr ""
+
+#: hb2_flask.py:2762
+#, python-format
+msgid "Working Group %s deleted!"
+msgstr ""
+
+#: hb2_flask.py:2784
+msgid "Upload File"
+msgstr ""
+
+#: hb2_flask.py:2815
+msgid "There are currently no Duplicates!"
+msgstr ""
+
+#: hb2_flask.py:2818
+msgid "duplicate groups"
+msgstr ""
+
+#: hb2_flask.py:2822 templates/admin_nav.html:14
+msgid "Duplicates"
+msgstr ""
+
+#: hb2_flask.py:2846 templates/admin_nav.html:32
+msgid "Consolidate Persons"
+msgstr ""
+
+#: hb2_flask.py:3010
+msgid "records"
+msgstr ""
+
+#: hb2_flask.py:3021
+msgid "Superadmin Board"
+msgstr ""
+
+#: hb2_flask.py:3036
+#, python-format
+msgid "%s downgraded to user!"
+msgstr ""
+
+#: hb2_flask.py:3039 hb2_flask.py:3056 hb2_flask.py:3074
+msgid "You did not supply an ID!"
+msgstr ""
+
+#: hb2_flask.py:3053
+#, python-format
+msgid "%s made to admin!"
+msgstr ""
+
+#: hb2_flask.py:3071
+#, python-format
+msgid "%s upgraded to superadmin!"
+msgstr ""
+
+#: hb2_flask.py:3246
+msgid "dumps"
+msgstr ""
+
+#: hb2_flask.py:3251 templates/solr_dumps.html:18
+msgid "Import Dump"
+msgstr ""
+
+#: hb2_flask.py:3433
+msgid "read limited"
+msgstr ""
+
+#: hb2_flask.py:3434
+msgid "update activities"
+msgstr ""
+
+#: hb2_flask.py:3435
+msgid "update personal information"
+msgstr ""
+
+#: hb2_flask.py:3469
+msgid "You haven't granted any of the scopes!"
+msgstr ""
+
+#: hb2_flask.py:3553
+msgid "Link to your ORCID iD"
+msgstr ""
+
+#: hb2_flask.py:3578
+msgid "You haven't granted the selected rights!"
+msgstr ""
+
+#: hb2_flask.py:3621
+msgid "Added in linking process to ORCID record!"
+msgstr ""
+
+#: hb2_flask.py:3702
+#, python-format
+msgid "Your institutional account %s is now linked to your ORCID iD %s!"
+msgstr ""
+
+#: hb2_flask.py:3708
+#, python-format
+msgid "ORCID-ERROR: %s"
+msgstr ""
+
+#: hb2_flask.py:3775
+msgid "Username"
+msgstr ""
+
+#: hb2_flask.py:3777
+msgid "Where Are You From?"
+msgstr ""
+
+#: hb2_flask.py:3842 hb2_flask.py:3901
+msgid "Username and Password Don't Match"
+msgstr ""
+
+#: templates/admin_nav.html:2
+msgid "Admin Actions"
+msgstr ""
+
+#: templates/admin_nav.html:6
+msgid "Views"
+msgstr ""
+
+#: templates/admin_nav.html:8 templates/search.html:18
+msgid "Works"
+msgstr ""
+
+#: templates/admin_nav.html:12
+msgid "Containers"
+msgstr ""
+
+#: templates/admin_nav.html:49
+msgid "Super Admin"
+msgstr ""
+
+#: templates/admin_nav.html:49
+msgid "Proceed with Caution!"
+msgstr ""
+
+#: templates/confirm_delete_modal.html:6
+msgid "Confirm Delete"
+msgstr ""
+
+#: templates/confirm_delete_modal.html:9
+msgid "You are about to delete one record, this procedure is irreversible."
+msgstr ""
+
+#: templates/confirm_delete_modal.html:10
+msgid "Do you want to proceed?"
+msgstr ""
+
+#: templates/confirm_delete_modal.html:13 templates/submit_form.html:5
+#: templates/submit_form.html:7 templates/submit_form.html:11
+#: templates/submit_form.html:13 templates/submit_form.html:17
+#: templates/submit_form.html:19 templates/submit_form.html:23
+#: templates/submit_form.html:25
+msgid "Cancel"
+msgstr ""
+
+#: templates/confirm_delete_modal.html:14 templates/dashboard.html:59
+#: templates/group.html:111 templates/groups.html:61 templates/orga.html:131
+#: templates/orgas.html:68 templates/person.html:258 templates/persons.html:76
+#: templates/record.html:781 templates/solr_dumps.html:19
+#: templates/superadmin.html:30
+msgid "Delete"
+msgstr ""
+
+#: templates/consolidate_persons.html:6
+msgid "Tasks found"
+msgstr ""
+
+#: templates/consolidate_persons.html:11
+msgid "Documents"
+msgstr ""
+
+#: templates/consolidate_persons.html:12
+msgid "Candidate Persons"
+msgstr ""
+
+#: templates/consolidate_persons.html:30
+msgid "Probability"
+msgstr ""
+
+#: templates/consolidate_persons.html:40
+msgid "No candidates found"
+msgstr ""
+
+#: templates/consolidate_persons.html:58
+msgid "This browser does not support system notifications"
+msgstr ""
+
+#: templates/consolidate_persons.html:61 templates/consolidate_persons.html:66
+msgid "Copied to clipboard"
+msgstr ""
+
+#: templates/dashboard.html:35 templates/groups.html:41 templates/orgas.html:40
+#: templates/persons.html:46
+msgid "Created"
+msgstr ""
+
+#: templates/dashboard.html:36 templates/groups.html:42 templates/orgas.html:41
+#: templates/persons.html:47
+msgid "Changed"
+msgstr ""
+
+#: templates/dashboard.html:39 templates/dashboard.html:54
+#: templates/groups.html:43 templates/orgas.html:42 templates/persons.html:48
+msgid "Action"
+msgstr ""
+
+#: templates/dashboard.html:56 templates/groups.html:58 templates/orgas.html:65
+#: templates/persons.html:73
+msgid "View"
+msgstr ""
+
+#: templates/dashboard.html:58 templates/group.html:110
+#: templates/groups.html:60 templates/orga.html:130 templates/orgas.html:67
+#: templates/person.html:257 templates/record.html:780
+msgid "Edit"
+msgstr ""
+
+#: templates/dashboard.html:63 templates/record.html:791
+#: templates/superadmin.html:30
+msgid "Unlock"
+msgstr ""
+
+#: templates/dashboard.html:67
+msgid "Add"
+msgstr ""
+
+#: templates/dashboard.html:68
+msgid "File"
+msgstr ""
+
+#: templates/drill_down.html:3 templates/drill_down.html:19
+#: templates/drill_down.html:34 templates/drill_down.html:46
+#: templates/drill_down.html:58
+#, python-format
+msgid "%(title)s"
+msgstr ""
+
+#: templates/drill_down.html:9 templates/drill_down.html:11
+msgid "No Value"
+msgstr ""
+
+#: templates/drill_down.html:37 templates/drill_down.html:49
+#: templates/drill_down.html:61
+msgid "All"
+msgstr ""
+
+#: templates/drill_down.html:39 templates/drill_down.html:51
+#: templates/drill_down.html:63
+msgid "Yes"
+msgstr ""
+
+#: templates/drill_down.html:41 templates/drill_down.html:53
+#: templates/drill_down.html:65
+msgid "No"
+msgstr ""
+
+#: templates/file_upload.html:28
+msgid "Drop files here or click to upload"
+msgstr ""
+
+#: templates/file_upload.html:32
+msgid ""
+"Thank you for your data! We will now process it and add it to the "
+"bibliography."
+msgstr ""
+
+#: templates/footer.html:6
+msgid "Contact"
+msgstr ""
+
+#: templates/group.html:13 templates/orga.html:13 templates/person.html:13
+msgid "This is just a draft preview for debugging..."
+msgstr ""
+
+#: templates/group.html:25 templates/orga.html:36
+msgid "Dates"
+msgstr ""
+
+#: templates/group.html:75 templates/group.html:83 templates/orga.html:94
+#: templates/person.html:204 templates/person.html:212
+msgid "Record creation date"
+msgstr ""
+
+#: templates/groups.html:17 templates/navbar.html:38 templates/orgas.html:17
+#: templates/persons.html:17 templates/search.html:25
+msgid "Go"
+msgstr ""
+
+#: templates/index.html:8 templates/index.html:67
+msgid "Register works"
+msgstr ""
+
+#: templates/index.html:10
+msgid "I have IDs"
+msgstr ""
+
+#: templates/index.html:11
+msgid "Import one or more ISBNs, DOIs, or PubMed IDs"
+msgstr ""
+
+#: templates/index.html:14
+msgid "I don't have IDs"
+msgstr ""
+
+#: templates/index.html:15
+msgid "Enter data manually"
+msgstr ""
+
+#: templates/index.html:19
+msgid "I have a list"
+msgstr ""
+
+#: templates/index.html:21
+msgid "Upload a list of citations in BibTeX, RIS, Word, Excel, PDF..."
+msgstr ""
+
+#: templates/index.html:24
+msgid "I want to search"
+msgstr ""
+
+#: templates/index.html:25
+msgid "Import one or more titles by searching"
+msgstr ""
+
+#: templates/index.html:31
+msgid "My Titles"
+msgstr ""
+
+#: templates/index.html:33
+msgid "Show works"
+msgstr ""
+
+#: templates/index.html:34
+msgid "Show my works."
+msgstr ""
+
+#: templates/index.html:38
+msgid "Show records"
+msgstr ""
+
+#: templates/index.html:40
+msgid "Show my registered records."
+msgstr ""
+
+#: templates/index.html:45
+msgid "Show tasks"
+msgstr ""
+
+#: templates/index.html:47
+msgid "Show my task."
+msgstr ""
+
+#: templates/index.html:54 templates/index.html:76
+msgid "Integrate with ORCID"
+msgstr ""
+
+#: templates/index.html:55 templates/index.html:77 templates/orcid.html:13
+msgid ""
+"With just a few clicks we will make you and your work individually "
+"recognisable on the web and in important data sources."
+msgstr ""
+
+#: templates/index.html:68
+msgid ""
+"Send us your list of works in whatsoever form, we will edit it into "
+"beautiful metadata."
+msgstr ""
+
+#: templates/index.html:71 templates/rub-header.html:18
+#: templates/tudo-header.html:21
+msgid "Sign In"
+msgstr ""
+
+#: templates/index.html:86
+msgid "Embed work list"
+msgstr ""
+
+#: templates/index.html:87
+msgid ""
+"If you maintain your works in our research bibliography, you can embed "
+"this list on your own homepage and have it perpetually updated by "
+"registering new titles with us."
+msgstr ""
+
+#: templates/index.html:96
+msgid "This feature will be available soon!"
+msgstr ""
+
+#: templates/linear_form.html:13 templates/tabbed_form.html:15
+msgid ""
+"Fields marked with <span style=\"color: orangered;\">*</span> are "
+"required."
+msgstr ""
+
+#: templates/linear_form.html:50 templates/linear_form.html:72
+#: templates/render_form.html:16 templates/render_form.html:152
+#: templates/tabbed_form.html:129 templates/tabbed_form.html:173
+msgid "Remove this"
+msgstr ""
+
+#: templates/linear_form.html:79 templates/tabbed_form.html:182
+msgid "This Title Already Exists!"
+msgstr ""
+
+#: templates/linear_form.html:79 templates/tabbed_form.html:182
+msgid "Here"
+msgstr ""
+
+#: templates/linear_form.html:82 templates/tabbed_form.html:185
+msgid "This Title Does Not Exist Yet!"
+msgstr ""
+
+#: templates/login.html:6
+msgid "Sign in with your RUB credentials"
+msgstr ""
+
+#: templates/login.html:34
+msgid "Sign in with your TU Dortmund credentials"
+msgstr ""
+
+#: templates/navbar.html:18
+msgid "Work"
+msgstr ""
+
+#: templates/navbar.html:22
+msgid "Person from GND"
+msgstr ""
+
+#: templates/navbar.html:40
+msgid "Extended Search"
+msgstr ""
+
+#: templates/orcid.html:8
+msgid "Integrate with your ORCID record"
+msgstr ""
+
+#: templates/orcid.html:9
+msgid ""
+"ORCID is an independent non-profit effort to provide an open registry of "
+"unique researcher identifiers and open services to link research "
+"activities and organizations to these identifiers. Learn more at <a "
+"href=\"http://orcid.org/\">orcid.org</a>."
+msgstr ""
+
+#: templates/orcid.html:11
+msgid ""
+"With just a few clicks TU Dortmund will make you and your work "
+"individually recognisable on the web and in important data sources."
+msgstr ""
+
+#: templates/orcid.html:12
+msgid ""
+"With just a few clicks RUB will make you and your work individually "
+"recognisable on the web and in important data sources."
+msgstr ""
+
+#: templates/orcid.html:17
+msgid "Please grant TU Dortmund the following rights:"
+msgstr ""
+
+#: templates/orcid.html:18
+msgid "Please grant RUB the following rights:"
+msgstr ""
+
+#: templates/orcid.html:19
+msgid "Please grant us the following rights:"
+msgstr ""
+
+#: templates/orcid.html:32 templates/orcid.html:92
+msgid ""
+"This scope is used to get access to read public and limited visibility "
+"items on an ORCID record.<br/>TU Dortmund will use this scope to read "
+"your work data."
+msgstr ""
+
+#: templates/orcid.html:33 templates/orcid.html:93
+msgid ""
+"This scope is used to get access to read public and limited visibility "
+"items on an ORCID record.<br/>RUB will use this scope to read your work "
+"data."
+msgstr ""
+
+#: templates/orcid.html:34 templates/orcid.html:94
+msgid ""
+"This scope is used to get access to read public and limited visibility "
+"items on an ORCID record.<br/>We will use this scope to read your work "
+"data."
+msgstr ""
+
+#: templates/orcid.html:47 templates/orcid.html:101
+msgid ""
+"This scope is used to write, update and delete items in the education, "
+"employment, funding, works and peer-review sections of an ORCID "
+"record.<br/>TU Dortmund will use this scope to add new works and a "
+"normalized description of your affiliation (TU Dortmund) to your ORCID "
+"record."
+msgstr ""
+
+#: templates/orcid.html:48 templates/orcid.html:102
+msgid ""
+"This scope is used to write, update and delete items in the education, "
+"employment, funding, works and peer-review sections of an ORCID "
+"record.<br/>RUB will use this scope to add new works and a normalized "
+"description of your affiliation (RUB) to your ORCID record."
+msgstr ""
+
+#: templates/orcid.html:49 templates/orcid.html:103
+msgid ""
+"This scope is used to write, update and delete items in the education, "
+"employment, funding, works and peer-review sections of an ORCID "
+"record.<br/>We will use this scope to add new works and a normalized "
+"description of your affiliation to your ORCID record."
+msgstr ""
+
+#: templates/orcid.html:62 templates/orcid.html:110
+msgid ""
+"This scope is used to write, update and delete items in the other-names, "
+"keywords, countries, researcher-urls, websites, and personal external "
+"identifiers sections of the record.<br/>TU Dortmund will use this scope "
+"only to add external identifiers such as the researcher id to your ORCID "
+"record."
+msgstr ""
+
+#: templates/orcid.html:63 templates/orcid.html:111
+msgid ""
+"This scope is used to write, update and delete items in the other-names, "
+"keywords, countries, researcher-urls, websites, and personal external "
+"identifiers sections of the record.<br/>RUB will use this scope only to "
+"add external identifiers such as the researcher id to your ORCID record."
+msgstr ""
+
+#: templates/orcid.html:64 templates/orcid.html:112
+msgid ""
+"This scope is used to write, update and delete items in the other-names, "
+"keywords, countries, researcher-urls, websites, and personal external "
+"identifiers sections of the record.<br/>We will use this scope only to "
+"add external identifiers such as the researcher id to your ORCID record."
+msgstr ""
+
+#: templates/orcid.html:69
+msgid ""
+"If you click on the button, you will be redirected to the ORCID login "
+"page for authentication or registration and authorization of the above "
+"scopes. We will only request this marked scopes. Please be sure to check "
+"\"Allow this permission until I revoke it.\" on the following page."
+msgstr ""
+
+#: templates/orcid.html:77
+msgid "Linked with your ORCID record"
+msgstr ""
+
+#: templates/orcid.html:78
+msgid "You currently have linked your institutional account to your ORCID iD:"
+msgstr ""
+
+#: templates/orcid.html:81
+msgid ""
+"You currently have granted TU Dortmund rights to update your ORCID record"
+" as follows:"
+msgstr ""
+
+#: templates/orcid.html:82
+msgid ""
+"You currently have granted RUB rights to update your ORCID record as "
+"follows:"
+msgstr ""
+
+#: templates/orcid.html:83
+msgid ""
+"You currently have granted us rights to update your ORCID record as "
+"follows:"
+msgstr ""
+
+#: templates/orga.html:26 templates/person.html:97
+msgid "Local Admin ID"
+msgstr ""
+
+#: templates/orga.html:77 templates/person.html:173
+msgid "Links"
+msgstr ""
+
+#: templates/orga.html:80
+msgid "Show Members"
+msgstr ""
+
+#: templates/orga.html:102
+msgid "Record change date"
+msgstr ""
+
+#: templates/person.html:44
+msgid "Also known as"
+msgstr ""
+
+#: templates/person.html:55
+msgid "Scopus ID"
+msgstr ""
+
+#: templates/person.html:73
+msgid "Arxiv ID"
+msgstr ""
+
+#: templates/person.html:177 templates/person.html:179
+msgid "Show Works"
+msgstr ""
+
+#: templates/person.html:231
+msgid "Data supplied"
+msgstr ""
+
+#: templates/personlist_record.html:14 templates/persons.html:64
+msgid "Last data supplied:"
+msgstr ""
+
+#: templates/persons.html:39
+msgid "Sort by date of last data supplied:"
+msgstr ""
+
+#: templates/pubtype_list.html:23
+msgid "Introduction"
+msgstr ""
+
+#: templates/pubtype_list.html:28
+msgid "Chapter"
+msgstr ""
+
+#: templates/pubtype_list.html:68
+msgid "Report / Other"
+msgstr ""
+
+#: templates/pubtype_list.html:72
+msgid "Research Data including Software"
+msgstr ""
+
+#: templates/record.html:17
+msgid "This is a Key Publication"
+msgstr ""
+
+#: templates/record.html:41
+msgid ""
+"\n"
+"                        Journal Abbreviation\n"
+"                        "
+msgid_plural ""
+"\n"
+"                        Journal Abbreviations\n"
+"                        "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:64
+msgid ""
+"\n"
+"                    Other Title\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    Other Titles\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:80
+msgid ""
+"\n"
+"                    Person\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    Persons\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:108
+msgid ""
+"\n"
+"                    Corporation\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    Corporations\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:142
+msgid "License text"
+msgstr ""
+
+#: templates/record.html:172
+msgid "Table of Contents"
+msgstr ""
+
+#: templates/record.html:183
+msgid ""
+"\n"
+"                    SWD-Subject\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    SWD-Subjects\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:216
+msgid ""
+"\n"
+"                    STW-Subject\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    STW-Subjects\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:231
+msgid ""
+"\n"
+"                    LCSH-Subject\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    LCSH-Subjects\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:246
+msgid ""
+"\n"
+"                    Keyword\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    Keywords\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:261
+msgid ""
+"\n"
+"                    Geographic Keyword\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    Geographic Keywords\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:276
+msgid ""
+"\n"
+"                    Temporal Keyword\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    Temporal Keywords\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:292
+msgid "Publication Type"
+msgstr ""
+
+#: templates/record.html:310
+msgid ""
+"\n"
+"                    Language\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    Languages\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:344
+msgid "Location"
+msgstr ""
+
+#: templates/record.html:377
+msgid ""
+"\n"
+"                    Number\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    Numbers\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:399
+msgid "Held"
+msgstr ""
+
+#: templates/record.html:399
+msgid "Issued"
+msgstr ""
+
+#: templates/record.html:408
+msgid "Duration"
+msgstr ""
+
+#: templates/record.html:411
+msgid "min."
+msgstr ""
+
+#: templates/record.html:415
+msgid "Number of Pages"
+msgstr ""
+
+#: templates/record.html:418 templates/record.html:512
+#: templates/record.html:515 templates/record.html:539
+#: templates/record.html:542 templates/record.html:564
+#: templates/record.html:567
+msgid "p."
+msgstr ""
+
+#: templates/record.html:440
+msgid "Patent number"
+msgstr ""
+
+#: templates/record.html:448
+msgid "Application number"
+msgstr ""
+
+#: templates/record.html:464
+msgid "Date of application"
+msgstr ""
+
+#: templates/record.html:472
+msgid "Place of application"
+msgstr ""
+
+#: templates/record.html:480
+msgid ""
+"\n"
+"                    Priority date\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    Priority dates\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:496 templates/record.html:524
+msgid "Is Part Of"
+msgstr ""
+
+#: templates/record.html:506 templates/record.html:533
+#: templates/record.html:558
+msgid "Vol."
+msgstr ""
+
+#: templates/record.html:593
+msgid ""
+"\n"
+"                    ISBN\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    ISBNs\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:607
+msgid ""
+"\n"
+"                    HBZ-ID\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    HBZ-IDs\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:621
+msgid ""
+"\n"
+"                    ISSN\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    ISSNs\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:635
+msgid ""
+"\n"
+"                    ZDB ID\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    ZDB IDs\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:649
+msgid ""
+"\n"
+"                    DOI\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    DOIs\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:663
+msgid "PMID"
+msgstr ""
+
+#: templates/record.html:671
+msgid "WOSID"
+msgstr ""
+
+#: templates/record.html:679
+msgid ""
+"\n"
+"                    URI\n"
+"                    "
+msgid_plural ""
+"\n"
+"                    URIs\n"
+"                    "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/record.html:693
+msgid "Last Update"
+msgstr ""
+
+#: templates/record.html:717
+msgid "Funding"
+msgstr ""
+
+#: templates/record.html:720
+msgid ""
+"Article Processing Charge funded by the Deutsche Forschungsgemeinschaft "
+"(DFG) and the Open Access Publication Fund of"
+msgstr ""
+
+#: templates/record.html:732
+msgid "Similar Records"
+msgstr ""
+
+#: templates/record.html:752
+msgid "Same as"
+msgstr ""
+
+#: templates/record.html:761
+msgid "Record Information"
+msgstr ""
+
+#: templates/record.html:762
+#, python-format
+msgid "Created %(created)s by %(owner)s."
+msgstr ""
+
+#: templates/record.html:762
+#, python-format
+msgid "Last changed %(changed)s."
+msgstr ""
+
+#: templates/remove_filters.html:5
+msgid ""
+"\n"
+"                Remove Filter\n"
+"            "
+msgid_plural ""
+"\n"
+"                Remove Filters\n"
+"            "
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/render_form.html:18 templates/render_form.html:150
+msgid "Add another"
+msgstr ""
+
+#: templates/resultlist_record.html:8
+msgid "ca."
+msgstr ""
+
+#: templates/rub-header.html:24 templates/tudo-header.html:26
+msgid "Research bibliography and repository"
+msgstr ""
+
+#: templates/search.html:14
+msgid "Options"
+msgstr ""
+
+#: templates/search.html:16
+msgid "Core"
+msgstr ""
+
+#: templates/search_external.html:13
+msgid "DOI, e.g. 10.1515/9783110278736.64"
+msgstr ""
+
+#: templates/search_external.html:18
+msgid "Results"
+msgstr ""
+
+#: templates/search_external.html:108
+msgid "No Records found"
+msgstr ""
+
+#: templates/search_external.html:110
+msgid "Use this Record"
+msgstr ""
+
+#: templates/solr_dumps.html:28 templates/superadmin.html:13
+#: templates/superadmin.html:18
+msgid "Upload JSON File"
+msgstr ""
+
+#: templates/submit_form.html:28
+msgid "Submit"
+msgstr ""
+
+#: templates/superadmin.html:12
+msgid "Import New Data"
+msgstr ""
+
+#: templates/superadmin.html:17
+msgid "Import Updated Data"
+msgstr ""
+
+#: templates/superadmin.html:25
+msgid "Locked Records"
+msgstr ""
+
+#: templates/tabbed_form.html:140
+msgid "Loading ..."
+msgstr ""
+

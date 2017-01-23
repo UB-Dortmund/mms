@@ -1,0 +1,26 @@
+Delete an existing group
+---
+tags:
+  - groups
+produces:
+  - application/json
+parameters:
+- name: Authorization
+  in: header
+  description: Bearer access token.
+  required: true
+  type: string
+- name: group_id
+  in: path
+  description: unique ID of the group resource.
+  required: true
+  type: string
+responses:
+  204:
+    description: group deleted
+  401:
+    description: Unauthorized
+  403:
+    description: Forbidden
+  404:
+    description: Not found, if the requested resource doesn't exist

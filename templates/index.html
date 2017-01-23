@@ -1,0 +1,181 @@
+{% extends 'site_base.html' %}
+
+{% block site_content %}
+    {{ super() }}
+    {% if current_user.is_authenticated %}
+        <div class="row">
+            {% if current_user.orcidid %}
+            <div class="col-sm-offset-1 col-sm-10">
+                <h3>{{ _('You are linked with ORCID') }}</h3>
+                <div class="col-sm-8">
+                    <a class="btn btn-default btn-lg" href="{{ url_for('orcid_start') }}">
+                        <img id="orcid-id-logo" src="https://orcid.org/sites/default/files/images/orcid_24x24.png" width='24' height='24' alt="ORCID logo"/> {{ _('More information about your ORCID integration') }}
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-sm-offset-1 col-sm-10">
+                <h3>{{ _('Integrate with ORCID') }}</h3>
+                <p>{{ _('With just a few clicks we will make you and your work individually recognisable on the web and in important data sources.') }}</p>
+                <p>
+                    {% if site == 'dortmund' %}
+                    {{ _('You can find further information on our ') }}<a href="https://www.ub.tu-dortmund.de/publikationsunterstuetzung/orcid.html" target="_blank">{{ _('ORCID Website') }}</a>
+                    {% elif site == 'bochum' %}
+                    {{ _('You can find further information on our ') }}<a href="http://www.ub.ruhr-uni-bochum.de/informationen/orcid.html" target="_blank">{{ _('ORCID Website') }}</a>
+                    {% endif %}
+                    {{ _('or learn more in this short <a href="https://vimeo.com/97150912">video clip</a>.') }}
+                </p>
+                <p></p>
+                <div class="col-sm-8">
+                    <a class="btn btn-default btn-lg" href="{{ url_for('orcid_start') }}">
+                        <img id="orcid-id-logo" src="https://orcid.org/sites/default/files/images/orcid_24x24.png" width='24' height='24' alt="ORCID logo"/> {{ _('Create or Connect your ORCID iD') }}
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <div class="row">
+            <div class="col-sm-offset-1 col-sm-10">
+                <h3>{{ _('Register works') }}</h3>
+                <div class="col-sm-3">
+                    <a class="btn btn-default btn-lg" href="{{ url_for('new_by_identifiers') }}"><i class="fa fa-barcode"></i> {{ _('I have IDs') }}</a><br/>
+                    <span class="help-block">{{ _('Import one or more ISBNs, DOIs, or PubMed IDs') }}</span>
+                </div>
+                <div class="col-sm-3">
+                    <a class="btn btn-default btn-lg" href="{{ url_for('new_by_form') }}"><i class="fa fa-keyboard-o"></i> {{ _("I don't have IDs") }}</a><br/>
+                    <span class="help-block">{{ _('Enter data manually') }}</span>
+                </div>
+                <div class="col-sm-3">
+                    <a class="btn btn-default btn-lg" href="{{ url_for('file_upload') }}">
+                        <i class="fa fa-cloud-upload"></i> {{ _('I have a list') }}
+                    </a><br/>
+                    <span class="help-block">{{ _('Upload a list of citations in BibTeX, RIS, Word, Excel, PDF...') }}</span>
+                </div>
+                <div class="col-sm-3">
+                    <a class="btn btn-default btn-lg" href="{{ url_for('new_by_search') }}"><i class="fa fa-search-plus"></i> {{ _('I want to search') }}</a><br/>
+                    <span class="help-block">{{ _('Import one or more titles by searching') }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-offset-1 col-sm-10">
+                <h3>{{ _('My Titles') }}</h3>
+                <div class="col-sm-3">
+                    <a class="btn btn-default btn-lg" {% if gnd_id == '' %}disabled="disabled"{% endif %} href="{{ url_for('search') }}?q=*:*&core=hb2&filter=ftudo_pers:&quot;{{ gnd_id }}%23{{ current_user.name }}&quot;">{{ _('Show works') }}</a>
+                    <span class="help-block">{{ _('Show my works.') }}</span>
+                </div>
+                <div class="col-sm-3">
+                    <a class="btn btn-default btn-lg" href="{{ url_for('search') }}?q=*:*&core=hb2&filter=owner:&quot;{{ current_user.email }}&quot;">
+                        {{ _('Show records') }}
+                    </a>
+                    <span class="help-block">{{ _('Show my registered records.') }}</span>
+                </div>
+                {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
+                <div class="col-sm-3">
+                    <a class="btn btn-default btn-lg" href="{{ url_for('search') }}?q=*:*&core=hb2&filter=deskman:&quot;{{ current_user.email }}&quot;">
+                        {{ _('Show tasks') }}
+                    </a>
+                    <span class="help-block">{{ _('Show my task.') }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-offset-1 col-sm-10">
+                <h3>{{ _('Embed your work list') }}</h3>
+                <p>{{ _('If you maintain your works in our research bibliography, you can embed this list on your own homepage and have it perpetually updated by registering new titles with us.') }}</p>
+                {% if site == 'rub' %}
+                    <p>
+                        If you are currently interested in using this service,
+                        please
+                        consult <a href="http://bibliographie-trac.ub.rub.de/wiki/Publikationslisten">our docs</a> or
+                        <a href="{{ url_for('contact') }}">contac us</a>.
+                    </p>
+                {% endif %}
+                <p>{{ _('Examples') }}:</p>
+                <ul>
+                    <li><a href="{{ url_for('bibliography', agent='person', agent_id=gnd_id, style='ieee-with-url') }}" target="_blank">{{ _('simple work list in citation style "IEEE"') }}</a></li>
+                    <li><a href="{{ url_for('bibliography', agent='person', agent_id=gnd_id, style='harvard1') }}?group_by_year=true" target="_blank">{{ _('work list grouped by year in citation style "Harvard1"') }}</a></li>
+                    <li><a href="{{ url_for('bibliography', agent='person', agent_id=gnd_id, style='modern-language-association-with-url') }}?group_by_type=true" target="_blank">{{ _('work list grouped by publication type in citation style "MLA"') }}</a></li>
+                </ul>
+                <p class="alert alert-info">{{ _('This feature will be available soon!') }}</p>
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-sm-4">
+                <h4>{{ _('Register works') }}</h4>
+                <p>{{ _('Send us your list of works in whatsoever form, we will edit it into beautiful metadata.') }}</p>
+                <p>
+                    <a class="btn btn-default" href="{{ url_for('login', next='homepage') }}">
+                        <i class="fa fa-sign-in"></i> {{ _('Sign In') }}
+                    </a>
+                </p>
+            </div>
+            <div class="col-sm-4">
+                <h4>{{ _('Integrate with ORCID') }}</span></h4>
+                <p>{{ _('With just a few clicks we will make you and your work individually recognisable on the web and in important data sources.') }}</p>
+                <p>
+                    {% if site == 'dortmund' %}
+                    {{ _('You can find further information on our ') }}<a href="https://www.ub.tu-dortmund.de/publikationsunterstuetzung/orcid.html" target="_blank">{{ _('ORCID Website') }}</a>
+                    {% elif site == 'bochum' %}
+                    {{ _('You can find further information on our ') }}<a href="http://www.ub.ruhr-uni-bochum.de/informationen/orcid.html" target="_blank">{{ _('ORCID Website') }}</a>
+                    {% endif %}
+                    {{ _('or learn more in this short <a href="https://vimeo.com/97150912">video clip</a>.') }}
+                </p>
+                <p>
+                    <a class="btn btn-default" href="{{ url_for('orcid_start') }}">
+                        <img id="orcid-id-logo" src="https://orcid.org/sites/default/files/images/orcid_24x24.png" width='24' height='24' alt="ORCID logo"/> Create or Connect your ORCID iD
+                    </a>
+                </p>
+            </div>
+            <div class="col-sm-4">
+                <h4><span style="color: #BDBDBD"> {{ _('Embed work list') }}</span></h4>
+                <p>{{ _('If you maintain your works in our research bibliography, you can embed this list on your own homepage and have it perpetually updated by registering new titles with us.') }}</p>
+                {% if site == 'rub' %}
+                    <p>
+                        If you are currently interested in using this service,
+                        please
+                        consult <a href="http://bibliographie-trac.ub.rub.de/wiki/Publikationslisten">our docs</a> or
+                        <a href="{{ url_for('contact') }}">contac us</a>.
+                    </p>
+                {% endif %}
+                <p class="alert alert-info">{{ _('This feature will be available soon!') }}</p>
+            </div>
+        </div>
+        <div class="row"><hr/></div>
+        <div class="row">
+            <div class="col-sm-4">
+                {% if site == 'bochum' %}
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <span class="glyphicon glyphicon-stats" aria-hidden="true"></span> {{ _('Registered works') }}<span class="badge">{{ works_rubi}}</span>
+                        </li>
+                    </ul>
+                {% elif site == 'dortmund' %}
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <span class="glyphicon glyphicon-stats" aria-hidden="true"></span> {{ _('Registered works') }}<span class="badge">{{ works_tudo}}</span>
+                        </li>
+                    </ul>
+                {% endif %}
+            </div>
+            <div class="col-sm-4">
+                {% if site == 'dortmund' %}
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <span class="glyphicon glyphicon-stats" aria-hidden="true"></span> {{ _('ORCID Members in TU') }}<span class="badge">{{ orcid_tudo}}</span>
+                        </li>
+                    </ul>
+                {% elif site == 'bochum' %}
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <span class="glyphicon glyphicon-stats" aria-hidden="true"></span> {{ _('ORCID Members in RUB') }}<span class="badge">{{ orcid_rubi}}</span>
+                        </li>
+                    </ul>
+                {% endif %}
+            </div>
+            <div class="col-sm-4"></div>
+        </div>
+    {% endif %}
+{% endblock %}

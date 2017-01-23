@@ -1,0 +1,152 @@
+body, .tabs-left > li.active > a {color: #003560;}
+body, .tabs-left > li > a {background-color: #f1f1f1;}
+header h1, a, footer hr {color: #8dae10;}
+.container {border-left: solid gray 1px; border-right: solid gray 1px; background-color: white;}
+.container h1 {margin-top: 72px;}
+img {max-width: 1024px;}
+.caption {font-variant: small-caps; color: white; opacity: 0.4; background-color: black; padding: 12px; max-width: 512px; margin-bottom: 36px; margin-top: 18px; border-radius: 10px;}
+header {
+    min-height: 1.5em;
+    margin: -14px;
+    background: #ffffff; /* Old browsers */
+    background: -moz-linear-gradient(top,  #ffffff 41%, #f6f6f6 70%, #ededed 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(41%,#ffffff), color-stop(70%,#f6f6f6), color-stop(100%,#ededed)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #ffffff 41%,#f6f6f6 70%,#ededed 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #ffffff 41%,#f6f6f6 70%,#ededed 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #ffffff 41%,#f6f6f6 70%,#ededed 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #ffffff 41%,#f6f6f6 70%,#ededed 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
+    padding-bottom: 2em;
+    /* beta */
+    background-image:url(https://www.ub.tu-dortmund.de/images/stempel-beta.jpg) !important;
+    background: no-repeat right;
+    background-position: 50% 1em;
+    /* beta Ende */
+}
+header p {
+    min-height: 1.5em;
+}
+header h1, header h2 {
+    margin-left: 14px;
+    vertical-align: text-top;
+    text-transform: uppercase;
+}
+header h1 {
+    font-size: 1.5em;
+}
+header h2 {
+    font-size: 1em;
+}
+.header-nav {padding-right: 14px;}
+.header-nav a {text-transform: uppercase; color: #5c5c5c; font-size: 0.689em;}
+main {padding-top: 2.5em;}
+footer {margin: 36px -14px 0px -14px; background-color: white;}
+footer hr {border-top: #8dae10 solid 1px;}
+footer p {margin-left: 14px;}
+#rub-wortmarke {min-height: 16px; margin-top: 56px; margin-left: 14px;}
+#rub-label {max-height: 136px; margin-right: -50px;}
+nav#header {min-height: 0px;}
+.navbar-right {vertical-align: middle;}
+.navbar-nav {vertical-align: bottom; margin-left:108px;}
+.tabs-left > li {margin-right: -2.2em;}
+.container .row {background-color: white; padding-top: 36px;}
+.dbpedia {text-transform: uppercase; margin-left: -24px;}
+.record {margin: 14px 0 14px 0;}
+.record_count {font-size: 28px;}
+nav {margin-left: -15px !important; margin-right: -15px !important;}
+.navbar-inverse {background-color: #8dae10; color: white; border-color: #8dae10;}
+.navbar-inverse .navbar-nav > li > a, .navbar-inverse .navbar-nav > li > a:hover {color: white; text-decoration: none;}
+.navbar-right {padding-right: 28px;}
+.navbar-inverse .navbar-nav > .active > a, .navbar-inverse .navbar-nav > .active > a:focus, .navbar-inverse .navbar-nav > .active > a:hover {background-color: #003560;}
+#facets h1 {text-transform: uppercase; font-size: 14px; margin-top: 15px;}
+#facets ul {padding: 0 0 15px 15px;}
+.search_form_active {background-color: #003560; margin-right: 0px; border-color: #003560;}
+label > input[type="file"] {display: none;}
+.required:after {content: ' *'; color: orangered;}
+.dl-horizontal dt {white-space: normal;}
+.navbar-inverse .navbar-nav > .open {background-color: #003560;}
+.dropdown-menu > li > a {color: #003560;}
+.dz-clickable {border-radius: 5px; border: 3px dashed; padding: 24px;}
+thead {background-color: #e8efcf; border-top: 2px solid #8dae10; text-transform: uppercase; font-weight: bold; font-size: 12px;}
+.btn-default {color: #003560;}
+/*.multi_enclosure {background-color: #e8efcf; padding-bottom: 2px;}*/
+.tab-pane {
+            padding-top: 18px;
+        }
+
+        .tab-container .col-xs-3 {
+            padding-right: 0px;
+        }
+
+        .tab-container .col-xs-9 {
+            padding-left: 0px;
+        }
+
+        /*.control-label {
+            margin-left: 15px;
+        }*/
+
+        /*.form-group:last-of-type {
+            padding-bottom: 18px;
+        }*/
+.select2-container--default, .select2-search--inline, .select2-search__field{width: 100% !important;}
+.multi_enclosure .control-label, .subfield_label {font-size: 14px; font-weight: 700;}
+.multi_enclosure .form-group {margin-bottom: 0;}
+
+
+.list-group-item {overflow:auto;}
+
+@media (min-width:768px){
+  #username {width:130%;margin-left:4em;}
+  #password {width:160%;margin-left:1.5em;}
+  .btn {white-space:normal;}
+}
+@media (min-width:992px){
+  #username, #password {width:120%;margin-left:3em;}
+}
+@media (min-width:1200px){
+  #username, #password {width:100%;margin-left:2em;}
+  .btn {white-space:nowrap;}
+}
+
+#connect-orcid-button{
+        border: 1px solid #D3D3D3;
+        padding: .3em;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 1px 1px 3px #999;
+        cursor: pointer;
+        color: #999;
+        font-weight: bold;
+        font-size: .8em;
+        line-height: 24px;
+        vertical-align: middle;
+}
+
+#connect-orcid-button:hover{
+        border: 1px solid #338caf;
+        color: #338caf;
+}
+
+#orcid-id-logo{
+        display: block;
+        margin: 0 .5em 0 0;
+        padding: 0;
+        float: left;
+}
+#feedback {
+position:fixed;
+top:50%;
+right:-.85em;
+font-weight:bold;
+font-size:1.2em;
+line-height:1.5em;
+padding:.5em;
+transform:rotate(90deg);
+-moz-transform:rotate(90deg);
+-o-transform:rotate(90deg);
+-webkit-transform:rotate(90deg);
+-ms-transform:rotate(90deg);
+border:1px solid #b2b3b6;
+background:#fff;
+}

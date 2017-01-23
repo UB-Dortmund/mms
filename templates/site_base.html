@@ -1,0 +1,34 @@
+{% extends 'bootstrap/base.html' %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block title %}{{ header }}{% endblock %}
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='font-awesome/css/font-awesome.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='octicons/octicons.css') }}">
+    {% if site == 'bochum' %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='site/bochum/css/rub.css') }}">
+    {% elif site == 'dortmund' %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='site/dortmund/css/tudo.css') }}">
+    {% endif %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='prism/prism.css') }}"/>
+{% endblock %}
+{% block content %}
+    {% block modal %}{% endblock %}
+    <div class="container">
+        {% if site == 'bochum' %}
+            {% include 'rub-header.html' %}
+        {% elif site == 'dortmund' %}
+            {% include 'tudo-header.html' %}
+        {% endif %}
+        {% include 'navbar.html' %}
+        <div id="feedback"><a href="{{ url_for('contact') }}">Feedback</a></div>
+        {% block site_content %}{% endblock %}
+        {% include 'footer.html' %}
+    </div>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    {% block site_scripts %}{% endblock %}
+{% endblock %}

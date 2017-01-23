@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--<request xmlns="http://www.isinet.com/xrpc42" src="app.id=PartnerApp,env.id=PartnerAppEnv,partner.email=EmailAddress">-->
+<request xmlns="http://www.isinet.com/xrpc42">
+    <fn name="LinksAMR.retrieve">
+        <list>
+            <map>
+                <val name="username">DORTAMR</val>
+                <val name="password">AMR4TUD!</val>
+            </map>
+            <map>
+                <list name="WOS">
+                    <val>timesCited</val>
+                    <val>ut</val>
+                    <val>doi</val>
+                    <val>sourceURL</val>
+                    <val>citingArticlesURL</val>
+                    <val>relatedRecordsURL</val>
+                </list>
+            </map>
+            <map></map>
+        </list>
+    </fn>
+</request>

@@ -1,0 +1,129 @@
+{% extends 'site_base.html' %}
+
+{% block site_content %}
+    {{ super() }}
+    <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+            {% if not is_linked or token_revoked %}
+                <h2>{{ _('Integrate with your ORCID record') }}</h2>
+                <p>{{ _('ORCID is an independent non-profit effort to provide an open registry of unique researcher identifiers and open services to link research activities and organizations to these identifiers. Learn more at <a href="http://orcid.org/">orcid.org</a>.') }}</p>
+                <p>
+                    {% if site == 'dortmund' %}{{ _('With just a few clicks TU Dortmund will make you and your work individually recognisable on the web and in important data sources.') }}
+                    {% elif site == 'bochum' %}{{ _('With just a few clicks RUB will make you and your work individually recognisable on the web and in important data sources.') }}
+                    {% else %}{{ _('With just a few clicks we will make you and your work individually recognisable on the web and in important data sources.') }}
+                    {% endif %}
+                </p>
+                <p>
+                    {% if site == 'dortmund' %}{{ _('Please grant TU Dortmund the following rights:') }}
+                    {% elif site == 'bochum' %}{{ _('Please grant RUB the following rights:') }}
+                    {% else %}{{ _('Please grant us the following rights:') }}
+                    {% endif %}
+                </p>
+                <form method="post" class="form-horizontal">
+                    {{ form.csrf_token }}
+                    <div class="form-group">
+                        {{ form.read_limited.label(class='col-sm-2 control-label') }}
+                        <div class="col-sm-6">
+                            {{ form.read_limited(class='checkbox') }}
+                        </div>
+                        <div class="clearfix"></div>
+                        <div class="col-sm-offset-2">
+                            <p class="help-block" style="margin-top: 8px;margin-left:15px;">
+                                {% if site == 'dortmund' %}{{ _('This scope is used to get access to read public and limited visibility items on an ORCID record.<br/>TU Dortmund will use this scope to read your work data.') }}
+                                {% elif site == 'bochum' %}{{ _('This scope is used to get access to read public and limited visibility items on an ORCID record.<br/>RUB will use this scope to read your work data.') }}
+                                {% else %}{{ _('This scope is used to get access to read public and limited visibility items on an ORCID record.<br/>We will use this scope to read your work data.') }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        {{ form.update_activities.label(class='col-sm-2 control-label') }}
+                        <div class="col-sm-6">
+                            {{ form.update_activities(class='checkbox') }}
+                        </div>
+                        <div class="clearfix"></div>
+                        <div class="col-sm-offset-2">
+                            <p class="help-block" style="margin-top: 8px;margin-left:15px;">
+                                {% if site == 'dortmund' %}{{ _('This scope is used to write, update and delete items in the education, employment, funding, works and peer-review sections of an ORCID record.<br/>TU Dortmund will use this scope to add new works and a normalized description of your affiliation (TU Dortmund) to your ORCID record.') }}
+                                {% elif site == 'bochum' %}{{ _('This scope is used to write, update and delete items in the education, employment, funding, works and peer-review sections of an ORCID record.<br/>RUB will use this scope to add new works and a normalized description of your affiliation (RUB) to your ORCID record.') }}
+                                {% else %}{{ _('This scope is used to write, update and delete items in the education, employment, funding, works and peer-review sections of an ORCID record.<br/>We will use this scope to add new works and a normalized description of your affiliation to your ORCID record.') }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        {{ form.update_person.label(class='col-sm-2 control-label') }}
+                        <div class="col-sm-6">
+                            {{ form.update_person(class='checkbox') }}
+                        </div>
+                        <div class="clearfix"></div>
+                        <div class="col-sm-offset-2">
+                            <p class="help-block" style="margin-top: 8px;margin-left:15px;">
+                                {% if site == 'dortmund' %}{{ _('This scope is used to write, update and delete items in the other-names, keywords, countries, researcher-urls, websites, and personal external identifiers sections of the record.<br/>TU Dortmund will use this scope only to add external identifiers such as the researcher id to your ORCID record.') }}
+                                {% elif site == 'bochum' %}{{ _('This scope is used to write, update and delete items in the other-names, keywords, countries, researcher-urls, websites, and personal external identifiers sections of the record.<br/>RUB will use this scope only to add external identifiers such as the researcher id to your ORCID record.') }}
+                                {% else %}{{ _('This scope is used to write, update and delete items in the other-names, keywords, countries, researcher-urls, websites, and personal external identifiers sections of the record.<br/>We will use this scope only to add external identifiers such as the researcher id to your ORCID record.') }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <p>{{ _('If you click on the button, you will be redirected to the ORCID login page for authentication or registration and authorization of the above scopes. We will only request this marked scopes. Please be sure to check "Allow this permission until I revoke it." on the following page.') }}</p>
+                    <div class="form-group">
+                        <div class="col-sm-6">
+                            <button id="connect-orcid-button" type="submit" class="submit">
+                                <img id="orcid-id-logo" src="https://orcid.org/sites/default/files/images/orcid_24x24.png" width='24' height='24' alt="ORCID logo"/>Create or Connect your ORCID iD
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            {% else %}
+                <h2>{{ _('Linked with your ORCID record') }}</h2>
+                <p>{{ _('You currently have linked your institutional account to your ORCID iD:') }}</p>
+                <p><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png"> <a href="http://orcid.org/{{ current_user.orcidid}}">http://orcid.org/{{ current_user.orcidid}}</a></p>
+                <p>
+                    {% if site == 'dortmund' %}{{ _('You currently have granted TU Dortmund rights to update your ORCID record as follows:') }}
+                    {% elif site == 'bochum' %}{{ _('You currently have granted RUB rights to update your ORCID record as follows:') }}
+                    {% else %}{{ _('You currently have granted us rights to update your ORCID record as follows:') }}
+                    {% endif %}
+                </p>
+                <br/>
+                <ul class="list-group">
+                {% for scope in orcid_scopes %}
+                    {% if scope == '/read-limited' %}
+                    <li class="list-group-item">
+                    <strong>read limited</strong><br/>
+                    {% if site == 'dortmund' %}{{ _('This scope is used to get access to read public and limited visibility items on an ORCID record.<br/>TU Dortmund will use this scope to read your work data.') }}
+                    {% elif site == 'bochum' %}{{ _('This scope is used to get access to read public and limited visibility items on an ORCID record.<br/>RUB will use this scope to read your work data.') }}
+                    {% else %}{{ _('This scope is used to get access to read public and limited visibility items on an ORCID record.<br/>We will use this scope to read your work data.') }}
+                    {% endif %}
+                    </li>
+                    {% endif %}
+                    {% if scope == '/activities/update' %}
+                    <li class="list-group-item">
+                        <strong>update activities</strong><br/>
+                        {% if site == 'dortmund' %}{{ _('This scope is used to write, update and delete items in the education, employment, funding, works and peer-review sections of an ORCID record.<br/>TU Dortmund will use this scope to add new works and a normalized description of your affiliation (TU Dortmund) to your ORCID record.') }}
+                        {% elif site == 'bochum' %}{{ _('This scope is used to write, update and delete items in the education, employment, funding, works and peer-review sections of an ORCID record.<br/>RUB will use this scope to add new works and a normalized description of your affiliation (RUB) to your ORCID record.') }}
+                        {% else %}{{ _('This scope is used to write, update and delete items in the education, employment, funding, works and peer-review sections of an ORCID record.<br/>We will use this scope to add new works and a normalized description of your affiliation to your ORCID record.') }}
+                        {% endif %}
+                    </li>
+                    {% endif %}
+                    {% if scope == '/person/update' %}
+                    <li class="list-group-item">
+                        <strong>update personal information</strong><br/>
+                        {% if site == 'dortmund' %}{{ _('This scope is used to write, update and delete items in the other-names, keywords, countries, researcher-urls, websites, and personal external identifiers sections of the record.<br/>TU Dortmund will use this scope only to add external identifiers such as the researcher id to your ORCID record.') }}
+                        {% elif site == 'bochum' %}{{ _('This scope is used to write, update and delete items in the other-names, keywords, countries, researcher-urls, websites, and personal external identifiers sections of the record.<br/>RUB will use this scope only to add external identifiers such as the researcher id to your ORCID record.') }}
+                        {% else %}{{ _('This scope is used to write, update and delete items in the other-names, keywords, countries, researcher-urls, websites, and personal external identifiers sections of the record.<br/>We will use this scope only to add external identifiers such as the researcher id to your ORCID record.') }}
+                        {% endif %}
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                </ul>
+                <br>
+                {% if site == 'dortmund' %}
+                {{ _('You can find further information on our ') }}<a href="https://www.ub.tu-dortmund.de/publikationsunterstuetzung/orcid.html" target="_blank">{{ _('ORCID Website') }}</a>.
+                {% elif site == 'bochum' %}
+                {{ _('You can find further information on our ') }}<a href="http://www.ub.ruhr-uni-bochum.de/informationen/orcid.html" target="_blank">{{ _('ORCID Website') }}</a>.
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

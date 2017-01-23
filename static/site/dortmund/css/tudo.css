@@ -1,0 +1,174 @@
+/*body, .tabs-left > li.active > a {color: #003560;}
+body, .tabs-left > li > a {background-color: #f1f1f1;}
+header h1, a, footer hr {color: #8dae10;}*/
+body {color:#000;}
+.tabs-left > li.active > a {color: #fff;}
+.container {border-left: solid #b2b3b6 1px; border-right: solid #b2b3b6 1px; background-color: white;}
+.container h1 {margin-top: 72px;}
+img {max-width: 1024px;}
+.caption {font-variant: small-caps; color: white; opacity: 0.4; background-color: black; padding: 12px; max-width: 512px; margin-bottom: 36px; margin-top: 18px; border-radius: 10px;}
+header {
+    min-height: 1.5em;
+    margin: -10px;
+    background: #ffffff; /* Old browsers */
+    padding-bottom: 1.5em;
+    /* beta */
+    background-image:url(https://www.ub.tu-dortmund.de/images/stempel-beta.jpg) !important;
+    background: no-repeat right;
+    background-position: 98% 1.25em;
+    /* beta Ende */
+}
+header p {
+    min-height: 1.5em;
+}
+header h1, header h2 {
+    margin-left: 14px;
+    vertical-align: text-top;
+    text-transform: uppercase;
+}
+header h1 {
+    font-size: 1.5em;
+    color:#7b7c7e;
+}
+header h1 a:link, header h1 a:visited {
+    color:#7b7c7e;
+    text-decoration: none;
+}
+header h2 {
+    font-size: 1.25em;
+    margin-top: .75em;
+    margin-bottom: 1.5em;
+}
+.header-nav {padding-right: 14px;}
+.header-nav a {text-transform: uppercase; color: #5c5c5c; font-size: 0.689em;}
+main {padding-top: 2.5em;}
+footer {margin: 36px -14px 0px -14px; background-color: white;}
+footer hr {border-top: #b2b3b6 solid 1px;}
+footer p {margin-left: 14px;}
+#rub-wortmarke {min-height: 16px; margin-top: 56px; margin-left: 14px;}
+#rub-label {max-height: 136px; margin-right: -50px;}
+nav#header {min-height: 0px;}
+.navbar-right {vertical-align: middle;}
+.navbar-nav {vertical-align: bottom; margin-left:108px;}
+.tabs-left > li {margin-right: -2.2em;}
+.container .row {background-color: white; padding-top: 36px;}
+.dbpedia {text-transform: uppercase; margin-left: -24px;}
+.record {margin: 14px 0 14px 0;}
+.record_count {font-size: 28px;}
+nav {margin-left: -15px !important; margin-right: -15px !important;}
+.navbar-inverse {background-color: #b2b3b6; color: black; border-color: #b2b3b6;}
+.navbar-inverse .navbar-nav > li > a, .navbar-inverse .navbar-nav > li > a:hover {color: black; text-decoration: none;}
+.navbar-right {padding-right: 28px;}
+/*.navbar-inverse .navbar-nav > .active > a, .navbar-inverse .navbar-nav > .active > a:focus, .navbar-inverse .navbar-nav > .active > a:hover {background-color: #003560;}*/
+#facets h1 {text-transform: uppercase; font-size: 14px; margin-top: 15px;}
+#facets ul {padding: 0 0 15px 15px;}
+#facets a {text-decoration: none;}
+.search_form_active {background-color: #003560; margin-right: 0px; border-color: #003560;}
+label > input[type="file"] {display: none;}
+.required:after {content: ' *'; color: orangered;}
+.dl-horizontal dt {white-space: normal;}
+.navbar-inverse .navbar-nav > .open {background-color: #003560;}
+.dropdown-menu > li > a {color: #000; background-color: #fff;}
+.dz-clickable {border-radius: 5px; border: 3px dashed; padding: 24px;}
+thead {background-color: #eee; border-top: 2px solid #b2b3b6; font-weight: bold; font-size: 1em;}
+/*.btn-default {color: #003560;}*/
+/*.multi_enclosure {background-color: #e8efcf; padding-bottom: 2px;}*/
+.tab-pane {padding-top: 18px;}
+.tab-container .col-xs-3 {padding-right: 0px;}
+.tab-container .col-xs-9 {padding-left: 0px;}
+/*.form-group:last-of-type {padding-bottom: 18px;}*/
+.select2-container--default, .select2-search--inline, .select2-search__field{width: 100% !important;}
+.multi_enclosure .control-label, .subfield_label {font-size: 14px; font-weight: 700;}
+.multi_enclosure .form-group {margin-bottom: 0;}
+
+#kopfgrafikbereich {
+        margin:1.5em .5em;
+        float:left;
+}
+#unido-logo {
+        margin-left:1em;
+        padding-left:0;
+        margin-bottom:21px;
+}
+#ebene2-logo {
+        position:relative;
+        left:60px;
+        width:200px;
+        font-size:1.3em;
+        margin-left:1em;
+}
+header.main {padding:0;background-image:none;}
+header.main span.pull-right {margin-top:7.5em;}
+h1{color:#000;clear:both;}
+h1.alert, h1.alert-danger {margin-top:2em;}
+h2.alert, h2.alert-danger {margin-bottom:2em;}
+h2 {color:#649600;}
+h3 {font-size:1.5em;margin-top:.5em;}
+a {
+        text-decoration:underline;
+        color:#000;
+}
+a:focus, a:hover, a:active {
+        color: #fff !important;
+        background: #649600 !important;
+}
+a.btn, .col-sm-3 a, .nav a {text-decoration:none;}
+#kopfgrafikbereich a:focus, #kopfgrafikbereich a:hover {background:#fff !important;}
+.alert-info {
+        background: #e0eacc;
+        color: #000;
+}
+.btn-primary, .btn-primary:active, .btn-primary:hover, .btn-primary:focus {background: #649600;}
+.btn-default:active, .btn-default:hover, .btn-default:focus {background: #649600;color:#fff;}
+.btn-danger, .btn-danger:active, .btn-danger:hover, .btn-danger:focus {background:#fff;color:#000;border-color:#000;}
+ul.pagination li a {color:#000;}
+ul.pagination li.active a, ul.nav li.active a {background:#649600 !important;}
+li.active > .dropdown-menu li a {color: #000; background-color: #fff !important; border: none;}
+li.active > .dropdown-menu li a:active, li.active > .dropdown-menu li a:hover, li.active > .dropdown-menu li a:focus {background:#649600 !important;}
+.control-label {
+        margin-left:1em;
+        margin-right:1.25em;
+        padding-left:.5em;
+}
+.navbar {margin-bottom:.5em;}
+.navbar a {
+        background: #fff;
+        /*margin:.6em .25em 0 .25em;*/
+        margin:.5em .25em;
+        height: 2.5em;
+        padding: .5em 1em !important;
+}
+.navbar li a {
+        border:1px solid #fff;
+        border-radius:.3em;
+}
+.navbar li.active a, .navbar li a:active, .navbar li a:focus, .navbar li a:hover {border-color: #649600;}
+.open {background:#beb3b6 !important;}
+.row {padding-top:.1em !important;}
+.label-success {background:#649600;}
+.list-group-item {overflow:auto;}
+hr {margin:.75em 0;}
+#feedback {
+position:fixed;
+top:50%;
+right:-.85em;
+font-weight:bold;
+font-size:1.2em;
+line-height:1.5em;
+padding:.5em;
+transform:rotate(90deg);
+-moz-transform:rotate(90deg);
+-o-transform:rotate(90deg);
+-webkit-transform:rotate(90deg);
+-ms-transform:rotate(90deg);
+border:1px solid #b2b3b6;
+color:#000;
+background:#e0eacc;
+}
+#feedback a {
+text-decoration:none;
+}
+#feedback a:hover, #feedback a:focus, #feedback a:active {
+color:#fff !important;
+background:#649600 !important;
+}

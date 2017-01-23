@@ -1,0 +1,33 @@
+<header class="main" xmlns="http://www.w3.org/1999/html">
+    <!--<p>
+        <span class="pull-right">
+            <br/>
+            <small><a href="//www.ub.tu-dortmund.de">Startseite</a> | <a href="/index.html/www.ub.tu-dortmund.de/index.html.en">English</a> <a href="/index.html/www.ub.tu-dortmund.de/index.html.en"><img src="//www.ub.tu-dortmund.de/images/flag-english.gif"></a> | <a href="//www.ub.tu-dortmund.de/a-z.html">A bis Z</a> | <a href="//www.ub.tu-dortmund.de/uebersicht.html">Übersicht über alle Seiten</a> | <a href="/index.html/www.ub.tu-dortmund.de/faq/index.html">FAQ</a> </small>
+        </span>
+
+        <span>
+            <p><img src="//www.ub.tu-dortmund.de/images/tu-logo.png" alt="TU Dortmund Logo" /></p>
+            <p><img src="//www.ub.tu-dortmund.de/images/ub-schriftzug.jpg" alt="UB Dortmund Logo" /></p>
+        </span>
+    </p>-->
+	
+	<div id="kopfgrafikbereich">
+		<a href="//www.tu-dortmund.de/"><img src="//www.ub.tu-dortmund.de/images/tu-logo.png" id="unido-logo" alt="Logo der TU Dortmund" height="41" width="255"></a>
+ 		<div id="ebene2-logo"><a href="//www.ub.tu-dortmund.de/"><img src="//www.ub.tu-dortmund.de/images/ub-schriftzug.jpg" alt="Universitätsbibliothek" height="14" width="190"></a></div>
+ 	</div>
+	
+    <span class="pull-right">
+        {% if current_user.is_authenticated %}<i class="fa fa-user"></i> {{ current_user.name }}
+         <a href="{{ url_for('logout', next='homepage') }}"><i class="fa fa-sign-out"></i></a>{% else %}{% if header != 'Sign In' %}<a href="{{ url_for('login', next=request.url_rule.endpoint) }}"><i class="fa fa-sign-in"></i> {{ _('Sign In') }}</a>{% endif %}{% endif %}
+        {% if current_user.is_authenticated and current_user.orcidid and current_user.orcidid != '' and current_user.orcidid != 'None' %}
+            <br/><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png"> <a href="http://orcid.org/{{ current_user.orcidid }}">http://orcid.org/{{ current_user.orcidid }}</a>
+        {% endif %}
+    </span>
+    <h1>{% if header != 'Home' and header != 'Startseite' %}<a href="{{ url_for('homepage') }}">{% endif %}{{ _('Research bibliography and repository') }}{% if header != 'Home' and header != 'Startseite' %}</a>{% endif %}</h1>
+    {{ current_user.orcid_id }}
+    <h2>{{ header }}</h2>
+    {#{% for field in current_user %}
+        {{ field }}
+    {% endfor %}
+#}
+</header>

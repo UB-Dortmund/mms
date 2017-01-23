@@ -1,0 +1,93 @@
+Getting a bibliography
+---
+tags:
+  - bibliography
+produces:
+  - text/html
+parameters:
+- name: agent
+  in: path
+  description: type of agent. Possible values are person, organisation, chair, research_group or working_group.
+  required: true
+  type: string
+- name: agent_id
+  in: path
+  description: ID of the agent.
+  required: true
+  type: string
+- name: style
+  in: path
+  description: citation style.
+  default: harvard1
+  required: true
+  type: string
+- name: format
+  in: query
+  description: format of the response. Currently only html is supported!
+  required: false
+  type: string
+- name: filter_by_year
+  in: query
+  description: Schränkt die Liste auf ein bestimmtes Jahr ein. Mögliche Werte sind Jahreszahlen mit dem Format 'JJJJ'.
+  required: false
+  type: string
+- name: filter_by_type
+  in: query
+  description: Schränkt die Liste auf einen Publikationstyp ein. Mögliche Werte finden sich in der Übersicht zu Publikationstypen.
+  required: false
+  type: string
+- name: filter_by_pr
+  in: query
+  description: Schränkt die Liste auf Publikationen ein, die im 'peer review'-Verfahren entstanden sind. Mögliche Werte sind 'true' oder 'false'.
+  required: false
+  default: false
+  type: boolean
+- name: filter_by_ger
+  in: query
+  description: Schränkt die Liste auf deutschsprachige Publikationen ein. Mögliche Werte sind 'true' oder 'false'.
+  required: false
+  default: false
+  type: boolean
+- name: filter_by_eng
+  in: query
+  description: Schränkt die Liste auf englischsprachige Publikationen ein. Mögliche Werte sind 'true' oder 'false'.
+  required: false
+  default: false
+  type: boolean
+- name: group_by_year
+  in: query
+  description: Gruppiert die Publikationen nach ihrem Erscheinungsjahr. Mögliche Werte sind 'true' oder 'false'.
+  required: false
+  default: false
+  type: boolean
+- name: group_by_type
+  in: query
+  description: Gruppiert die Publikationen nach ihrem Publikationstyp. Mögliche Werte sind 'true' oder 'false'.
+  required: false
+  default: false
+  type: boolean
+- name: group_by_type_year
+  in: query
+  description: Gruppiert die Publikationen zuerst nach ihrem Publikationstyp und bettet die jeweilige Gruppierung nach Erscheinungsjahr darin ein. Mögliche Werte sind 'true' oder 'false'.
+  required: false
+  default: false
+  type: boolean
+- name: pubsort
+  in: query
+  description: Sortiert eine nach Publikationstypen gruppierte Liste nach einer fachlichen Gewichtung, die sich an den Gepflogenheiten der STM-Fächer bzw. dem geisteswissenschaftlichen Bereich orientiert. Mögliche Werte sind 'stm' und 'anh'.
+  required: false
+  type: string
+- name: toc
+  in: query
+  description: Bei einer Liste mit Gruppierung wird ein Verzeichnis der verwendeten Publikationstypen bzw. Jahre als Linkliste angelegt. Mögliche Werte sind 'true' und 'false'.
+  required: false
+  default: false
+  type: boolean
+- name: locale
+  in: query
+  description: Bestimmt die Spracheinstellungen für die Publikationsliste (z.B., ob in Autorenlisten "und" oder "and" steht). Mögliche Werte sind ISO 639-1 Codes.
+  required: false
+  type: string
+responses:
+  200:
+    description: bibliography as html snippet
