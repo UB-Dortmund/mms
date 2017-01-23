@@ -1,0 +1,52 @@
+{
+    "properties": {
+        "affiliation_context": {
+            "mergeStrategy": "append"
+        },
+        "group_context": {
+            "mergeStrategy": "append"
+        },
+        "same_as": {
+            "mergeStrategy": "append"
+        },
+        "is_part_of": {
+            "mergeStrategy": "append"
+        },
+        "has_part": {
+            "mergeStrategy": "append"
+        },
+        "other_version": {
+            "mergeStrategy": "append"
+        },
+        "uri": {
+            "mergeStrategy": "append"
+        },
+        "DOI": {
+            "mergeStrategy": "append"
+        },
+        "ISBN": {
+            "mergeStrategy": "append"
+        },
+        "ISSN": {
+            "mergeStrategy": "append"
+        },
+        "ISMN": {
+            "mergeStrategy": "append"
+        },
+        "ZDB": {
+            "mergeStrategy": "append"
+        },
+        "hbz_id": {
+            "mergeStrategy": "append"
+        },
+        "language": {
+            "mergeStrategy": "append"
+        },
+        "catalog": {
+            "mergeStrategy": "append"
+        },
+        "owner": {
+            "mergeStrategy": "append"
+        }
+    }
+}

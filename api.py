@@ -38,7 +38,16 @@ from flask_redis import Redis
 from flask_swagger import swagger
 from flask_wtf.csrf import CsrfProtect
 
+from jsonmerge import Merger
+
+import wtforms_json
+
 import persistence
+
+from forms.forms import *
+
+from utils import display_vocabularies
+from utils.solr_handler import Solr
 
 try:
     import local_api_secrets as secrets
@@ -76,6 +85,8 @@ app.secret_key = secrets.DEBUG_KEY
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 csrf = CsrfProtect(app)
+
+wtforms_json.init()
 
 log_formatter = logging.Formatter("[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s")
 handler = RotatingFileHandler(secrets.LOGFILE, maxBytes=10000, backupCount=1)
@@ -381,13 +392,13 @@ def work_post():
 
             thedata = request.data
 
-            if show_record(record_id=json.loads(thedata).get('id'), format='raw'):
+            if persistence.get_work(json.loads(thedata).get('id')):
                 return make_response('Bad request: work already exist!', 400)
             else:
                 form = display_vocabularies.PUBTYPE2FORM.get(thedata.get('pubtype')).from_json(thedata)
                 form.created.data = timestamp()
                 form.changed.data = timestamp()
-                _record2solr(form, action='create')
+                persistence.record2solr(form, action='create')
                 return make_response(thedata, 201)
         else:
             return make_response('Unauthorized', 401)
@@ -408,30 +419,36 @@ def work_put(work_id=''):
 
         if is_token_valid(request.headers.get('Authorization')):
 
-            thedata = request.data
+            addition_work = json.loads(request.data.decode("utf-8"))
 
-            update_work_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                    application=secrets.SOLR_APP, core='hb2',
-                                    query='id:%s' % work_id)
-            update_work_solr.request()
+            result = persistence.get_work(work_id)
 
-            if update_work_solr.results:
+            if result:
 
-                form = display_vocabularies.PUBTYPE2FORM.get(thedata.get('pubtype')).from_json(thedata)
-                form.changed.data = timestamp()
-                _record2solr(form, action='update')
+                original_work = json.loads(result.get('wtf_json'))
 
-                return make_response(thedata, 201)
-            else:
-                update_work_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                        application=secrets.SOLR_APP, core='hb2',
-                                        query='same_as:%s' % work_id)
-                update_work_solr.request()
+                if addition_work.get('id') and addition_work.get('id') != original_work.get('id'):
 
-                if update_work_solr.results:
-                    return make_response('Conflict: The ID of the resource already exists as "same_as"! Please check your data!', 409)
+                    return make_response(
+                        'Conflict: The ID of the additional data already exists as "same_as"! Please check your data!', 409)
                 else:
-                    return make_response('work resource \'%s\' not found!' % work_id, 404)
+                    # init merger "work"
+                    with open('conf/works_merger.schema.json') as data_file:
+                        schema_works_merger = json.load(data_file)
+
+                    merger = Merger(schema_works_merger)
+
+                    # merge it!
+                    merged_work = merger.merge(original_work, addition_work)
+
+                    # load it!
+                    form = display_vocabularies.PUBTYPE2FORM.get(merged_work.get('pubtype')).from_json(merged_work)
+                    form.changed.data = timestamp()
+                    persistence.record2solr(form, action='update')
+
+                    return make_response(json.dumps(merged_work, indent=4), 201)
+            else:
+                return make_response('work resource \'%s\' not found!' % work_id, 404)
         else:
             return make_response('Unauthorized', 401)
     else:
@@ -937,6 +954,14 @@ def is_token_valid(token=''):
 
     else:
         return False
+
+
+def timestamp():
+    date_string = str(datetime.datetime.now())[:-3]
+    if date_string.endswith('0'):
+        date_string = '%s1' % date_string[:-1]
+
+    return date_string
 
 
 if __name__ == '__main__':
