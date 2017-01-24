@@ -1,52 +1,112 @@
 {
-    "properties": {
-        "affiliation_context": {
-            "mergeStrategy": "append"
-        },
-        "group_context": {
-            "mergeStrategy": "append"
-        },
-        "same_as": {
-            "mergeStrategy": "append"
-        },
-        "is_part_of": {
-            "mergeStrategy": "append"
-        },
-        "has_part": {
-            "mergeStrategy": "append"
-        },
-        "other_version": {
-            "mergeStrategy": "append"
-        },
-        "uri": {
-            "mergeStrategy": "append"
-        },
-        "DOI": {
-            "mergeStrategy": "append"
-        },
-        "ISBN": {
-            "mergeStrategy": "append"
-        },
-        "ISSN": {
-            "mergeStrategy": "append"
-        },
-        "ISMN": {
-            "mergeStrategy": "append"
-        },
-        "ZDB": {
-            "mergeStrategy": "append"
-        },
-        "hbz_id": {
-            "mergeStrategy": "append"
-        },
-        "language": {
-            "mergeStrategy": "append"
-        },
-        "catalog": {
-            "mergeStrategy": "append"
-        },
-        "owner": {
-            "mergeStrategy": "append"
-        }
+  "properties": {
+    "affiliation_context": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "group_context": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "same_as": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "orcid_sync": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "orcid_id"
+      }
+    },
+    "is_part_of": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "is_part_of"
+      }
+    },
+    "has_part": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "has_part"
+      }
+    },
+    "other_version": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "other_version"
+      }
+    },
+    "event": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "event_name"
+      }
+    },
+    "uri": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "DOI": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "ISBN": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "ISSN": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "ISMN": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "ZDBID": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "hbz_id": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "language": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "catalog": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "owner": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
     }
+  }
 }

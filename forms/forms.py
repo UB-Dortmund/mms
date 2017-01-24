@@ -602,6 +602,12 @@ class OtherTitleForm(Form):
     language = SelectField(lazy_gettext('Language'), validators=[Optional()], choices=forms_vocabularies.LANGUAGES)
 
 
+class OrcidSyncForm(Form):
+
+    orcid_put_code = StringField(lazy_gettext('ORCiD PutCode'), widget=CustomTextInput(readonly='readonly', placeholder=(lazy_gettext('ID of a work in ORCID record - automatically managed'))))
+    orcid_id = StringField(lazy_gettext('for ORCiD ID'), widget=CustomTextInput(readonly='readonly', placeholder=(lazy_gettext('related ORCiD ID - automatically managed'))))
+
+
 class WorkForm(Form):
     pubtype = SelectField(lazy_gettext('Type'), validators=[Optional()])
     DOI = FieldList(StringField(lazy_gettext('DOI'),
@@ -635,7 +641,10 @@ class WorkForm(Form):
                                 validators=[URL(message=lazy_gettext('Invalid value! The URI has to start with http:// or https:// or another schema?')), Optional()]), min_entries=1,
                     widget=CustomTextInput(placeholder=lazy_gettext('A URI, URL, or URN')))
     PMID = StringField(lazy_gettext('PubMed ID'), widget=CustomTextInput(placeholder=(lazy_gettext('e.g. 15894097'))))
-    orcid_put_code = StringField(lazy_gettext('ORCID PutCode'), widget=CustomTextInput(readonly='readonly', placeholder=(lazy_gettext('Automatically managed ID of a work in ORCID record.'))))
+
+    #orcid_put_code = StringField(lazy_gettext('ORCID PutCode'), widget=CustomTextInput(readonly='readonly', placeholder=(lazy_gettext('Automatically managed ID of a work in ORCID record.'))))
+    orcid_sync = FieldList(FormField(OrcidSyncForm), min_entries=1)
+
     WOSID = StringField(lazy_gettext('Web of Science ID'), widget=CustomTextInput(
         placeholder=(lazy_gettext('e.g. 000229082300022'))))
     accessed = StringField(lazy_gettext('Last Seen'),
@@ -815,7 +824,7 @@ class ArticleJournalForm(ArticleForm):
                        self.title_supplement, self.other_title, self.issued, self.number_of_pages, self.medium,
                        self.accessed, self.additions, self.note, self.license, self.license_text, self.peer_reviewed],
              'label': lazy_gettext('Basic')},
-            {'group': [self.uri, self.DOI, self.PMID, self.WOSID, self.orcid_put_code],
+            {'group': [self.uri, self.DOI, self.PMID, self.WOSID],
              'label': lazy_gettext('IDs')},
             {'group': [self.person],
              'label': lazy_gettext('Person')},
@@ -836,7 +845,7 @@ class ArticleJournalForm(ArticleForm):
              'label': lazy_gettext('Open Access')},
             {'group': [self.id, self.affiliation_context, self.group_context, self.apparent_dup, self.editorial_status,
                        self.created, self.changed, self.catalog, self.owner, self.deskman,
-                       self.same_as],
+                       self.same_as, self.orcid_sync],
              'label': lazy_gettext('Administrative')},
         ]
 
@@ -1459,7 +1468,7 @@ class MonographForm(PrintedWorkForm):
                        self.publisher, self.publisher_place, self.number_of_pages, self.medium, self.accessed,
                        self.additions, self.note, self.license, self.license_text, self.peer_reviewed],
              'label': lazy_gettext('Basic')},
-            {'group': [self.uri, self.DOI, self.PMID, self.WOSID, self.ISBN, self.ISMN, self.hbz_id, self.orcid_put_code],
+            {'group': [self.uri, self.DOI, self.PMID, self.WOSID, self.ISBN, self.ISMN, self.hbz_id],
              'label': lazy_gettext('IDs')},
             {'group': [self.person],
              'label': lazy_gettext('Person')},
@@ -1480,7 +1489,7 @@ class MonographForm(PrintedWorkForm):
              'label': lazy_gettext('Open Access')},
             {'group': [self.id, self.affiliation_context, self.group_context, self.apparent_dup, self.editorial_status,
                        self.created, self.changed, self.catalog, self.owner, self.deskman,
-                       self.same_as],
+                       self.same_as, self.orcid_sync],
              'label': lazy_gettext('Administrative')},
         ]
 

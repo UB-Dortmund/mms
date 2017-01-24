@@ -480,7 +480,7 @@ def work_delete(work_id=''):
             form.changed.data = timestamp()
             form.note.data = 'Deleted via REST API'
             # save work
-            _record2solr(form, action='delete')
+            persistence.record2solr(form, action='delete')
 
             return make_response('work deleted!', 204)
         else:
@@ -555,13 +555,13 @@ def person_post():
 
             thedata = request.data
 
-            if show_person(person_id=json.loads(thedata).get('id'), format='raw'):
+            if persistence.get_person(json.loads(thedata).get('id')):
                 return make_response('Bad request: person already exist!', 400)
             else:
                 form = PersonAdminForm.from_json(json.loads(thedata))
                 form.created.data = timestamp()
                 form.changed.data = timestamp()
-                _person2solr(form, action='create')
+                persistence.person2solr(form, action='create')
                 return make_response(thedata, 201)
         else:
             return make_response('Unauthorized', 401)
@@ -582,30 +582,38 @@ def person_put(person_id=''):
 
         if is_token_valid(request.headers.get('Authorization')):
 
-            thedata = request.data
+            addition_person = json.loads(request.data.decode("utf-8"))
 
-            update_person_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                      application=secrets.SOLR_APP, core='person',
-                                      query='id:%s' % person_id)
-            update_person_solr.request()
+            result = persistence.get_person(person_id)
 
-            if update_person_solr.results:
+            if result:
 
-                form = PersonAdminForm.from_json(json.loads(thedata))
-                form.changed.data = timestamp()
-                _person2solr(form, action='update')
+                original_person = json.loads(result.get('wtf_json'))
 
-                return make_response(thedata, 201)
-            else:
-                update_person_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                          application=secrets.SOLR_APP, core='person',
-                                          query='same_as:%s' % person_id)
-                update_person_solr.request()
+                if addition_person.get('id') and addition_person.get('id') != original_person.get('id'):
 
-                if update_person_solr.results:
-                    return make_response('Conflict: The ID of the resource already exists as "same_as"! Please check your data!', 409)
+                    return make_response(
+                        'Conflict: The ID of the additional data already exists as "same_as"! Please check your data!', 409)
                 else:
-                    return make_response('person resource \'%s\' not found!' % person_id, 404)
+                    # init merger "person"
+                    with open('conf/person_merger.schema.json') as data_file:
+                        schema_person_merger = json.load(data_file)
+
+                    merger = Merger(schema_person_merger)
+
+                    # merge it!
+                    merged_person = merger.merge(original_person, addition_person)
+
+                    # load it!
+                    form = PersonAdminForm.from_json(merged_person)
+                    form.changed.data = timestamp()
+                    doit, new_id, message = persistence.person2solr(form, action='update')
+
+                    response_json = { "message": message, "person": merged_person}
+
+                    return make_response(json.dumps(response_json, indent=4), 201)
+            else:
+                return make_response('person resource \'%s\' not found!' % person_id, 404)
         else:
             return make_response('Unauthorized', 401)
     else:

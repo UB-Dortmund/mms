@@ -1,0 +1,52 @@
+{
+  "properties": {
+    "same_as": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "also_known_as": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "status": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "affiliation": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "organisation_id"
+      }
+    },
+    "group": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "group_id"
+      }
+    },
+    "url": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "url"
+      }
+    },
+    "catalog": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "owner": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    }
+  }
+}

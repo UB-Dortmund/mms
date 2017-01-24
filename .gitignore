@@ -136,6 +136,7 @@ local_api_secrets.py
 local_app_secrets.py
 local_bibliography_secrets.py
 local_p_secrets.py
+local_orcid_secrets.py
 test.py
 /processors/site_secrets.py
 /.python-version
