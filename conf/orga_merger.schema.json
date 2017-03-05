@@ -1,0 +1,52 @@
+{
+  "properties": {
+    "same_as": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "also_known_as": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "dwid": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "parent": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "parent_id"
+      }
+    },
+    "children": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "child_id"
+      }
+    },
+    "projects": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "project_id"
+      }
+    },
+    "url": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "url"
+      }
+    },
+    "catalog": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    }
+  }
+}

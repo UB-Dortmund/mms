@@ -1,6 +1,5 @@
 {% import 'bootstrap/utils.html' as utils %}
 <nav class="collapse navbar-collapse navbar navbar-inverse">
-    {# if current_user.role == 'admin' or current_user.role == 'superadmin' #}
     <ul class="nav navbar-nav">
         <li{% if header == 'Home' %} class="active"{% endif %}>
             <a href="{{ url_for('homepage') }}"><i class="fa fa-home"></i> {{ _('Home') }}</a>
@@ -44,11 +43,7 @@
                 </div>
                 <button type="submit" class="btn btn-default">{{ _('Go') }}</button>
             </div>
-            {#<div class="form-group">
-                <a class="btn btn-default btn-sm" href="{{ url_for('search') }}?ext=1">{{ _('Extended Search') }}</a>
-            </div>#}
         </form>
     </div>
-    {# endif #}
 </nav>
 {{ utils.flashed_messages(container=false) }}

@@ -1,4 +1,3 @@
-from flask.ext.babel import lazy_gettext
 from forms.forms import *
 
 PUBTYPE_GER = {
@@ -24,12 +23,43 @@ PUBTYPE_GER = {
     'PressRelease': 'Pressemitteilung',
     'RadioTVProgram': 'Radio- oder TV-Programm',
     'Report': 'Report',
-    'ResearchData': 'Forschungsdaten',
+    'ResearchData': 'Forschungsdaten / Software',
     'Series': 'Reihe',
     'Software': 'Software',
     'SpecialIssue': 'Sonderheft',
     'Standard': 'Norm',
     'Thesis': 'Hochschulschrift',
+}
+
+PUBTYPE_ENG = {
+    'ArticleJournal': 'Journal article',
+    'ArticleNewspaper': 'Newspaper article',
+    'AudioBook': 'Audio Book',
+    'AudioVideoDocument': 'Audio or video document',
+    'Chapter': 'Chapter',
+    'ChapterInLegalCommentary': 'Chapter in legal commentary',
+    'ChapterInMonograph': 'Chapter in monograph',
+    'Collection': 'Collection',
+    'Conference': 'Conference',
+    'Edition': 'Edition',
+    'InternetDocument': 'Internet document',
+    'Journal': 'Journal',
+    'Lecture': 'Lecture',
+    'LegalCommentary': 'Legal commentary',
+    'Monograph': 'Monograph',
+    'MultivolumeWork': 'Multivolume work',
+    'Newspaper': 'Newspaper',
+    'Other': 'Other',
+    'Patent': 'Patent',
+    'PressRelease': 'Press release',
+    'RadioTVProgram': 'Radio or TV Program',
+    'Report': 'Report',
+    'ResearchData': 'Research data / Software',
+    'Series': 'Series',
+    'Software': 'Software',
+    'SpecialIssue': 'Special issue',
+    'Standard': 'Standard',
+    'Thesis': 'Thesis',
 }
 
 PUBTYPE2TEXT = {
@@ -300,7 +330,11 @@ LANGUAGES = {
 PUB_STATUS = {
     'published': lazy_gettext('Published'),
     'unpublished': lazy_gettext('Unpublished'),
-    'granted': lazy_gettext('Granted')
+    'granted': lazy_gettext('Granted'),
+    'forthcoming': lazy_gettext('Forthcoming'),
+    'submitted': lazy_gettext('Submitted'),
+    'accepted': lazy_gettext('Accepted')
+
 }
 
 EDT_STATUS = {

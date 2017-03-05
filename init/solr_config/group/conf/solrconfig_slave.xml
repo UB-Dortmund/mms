@@ -1242,8 +1242,8 @@
 <!--  </requestHandler>-->
   <requestHandler name="/replication" class="solr.ReplicationHandler" >
     <lst name="slave">
-        <str name="masterUrl">http://pc017.ub.tu-dortmund.de:5200/solr/group</str>
-		<!--<str name="pollInterval">00:00:10</str>-->
+        <str name="masterUrl">http://129.217.132.18:5200/solr/group</str>
+		<str name="pollInterval">00:00:60</str>
     </lst>
   </requestHandler>
 

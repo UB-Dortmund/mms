@@ -1,0 +1,19 @@
+OAI-PMH Data Provider
+---
+tags:
+  - OAI-PMH
+produces:
+  - text/xml
+consumes:
+  - application/x-www-form-urlencoded
+parameters:
+- name: Keyword arguments including the verb argument
+  in: body
+  type: application/x-www-form-urlencoded
+  description: Keyword arguments of the defined [OAI-PMH requests](http://www.openarchives.org/OAI/openarchivesprotocol.html#ProtocolMessages) are carried in the message body of the HTTP POST. The Content-Type of the request must be application/x-www-form-urlencoded.
+  required: true
+responses:
+  200:
+    description: Either an element with the same name as the verb of the respective OAI-PMH request or an [OAI-PMH error](http://www.openarchives.org/OAI/openarchivesprotocol.html#ErrorConditions)
+  400:
+    description: Not well formed Header! Content-Type must be application/x-www-form-urlencoded

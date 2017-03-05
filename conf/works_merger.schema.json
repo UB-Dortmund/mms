@@ -101,12 +101,6 @@
       "mergeOptions": {
         "idRef": "/"
       }
-    },
-    "owner": {
-      "mergeStrategy": "arrayMergeById",
-      "mergeOptions": {
-        "idRef": "/"
-      }
     }
   }
 }

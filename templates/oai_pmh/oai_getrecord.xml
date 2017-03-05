@@ -1,0 +1,17 @@
+{% extends 'oai_base.xml' %}
+        {% block contents %}
+	<record>
+		<header>
+			<identifier>{{ id_prefix }}{{ oai_id }}</identifier>
+			<datestamp>{{ record.recordChangeDate|slice:"-10" }}</datestamp>
+			<setSpec>doc-type:{{ record.oai_type }}</setSpec>
+            {% for ddc in record.ddc %}
+            <setSpec>ddc:{{ ddc }}</setSpec>
+            {% endfor %}
+		</header>
+		<metadata>
+                    {% if format == 'mods' %}<{{ record.mods|safe }}{% endif %}
+                    {% if format == 'dc' %}{{ record.dc|safe }}{% endif %}
+		</metadata>
+	</record>
+        {% endblock contents %}

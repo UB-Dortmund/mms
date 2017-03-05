@@ -20,6 +20,7 @@ parameters:
     $ref: "#/definitions/Work"
 responses:
   201:
+    description: The work resource is created
     schema:
         $ref: "#/definitions/Work"
   400:

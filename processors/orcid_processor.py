@@ -21,9 +21,11 @@
 #  THE SOFTWARE.
 
 import logging
+import uuid
 
 import babelfish
 import bibtexparser
+import datetime
 import simplejson as json
 from bibtexparser.bibdatabase import BibDatabase
 
@@ -66,6 +68,14 @@ ORCID_PUBTYPES = {
     'Standard': 'STANDARDS_AND_POLICY'
 }
 
+WTF_PUBTYPES = {
+    'OTHER': 'Other',
+    'REPORT': 'Report',
+    'JOURNAL_ARTICLE': 'ArticleJournal',
+    'DATA_SET': 'ResearchData',
+    'DISSERTATION': 'Thesis'
+}
+
 BIBTEX_PUBTYPES = {
     'Monograph': 'book',
     'AudioBook': 'book',
@@ -91,6 +101,54 @@ affiliation_url = {
     'tudo': 'https://hochschulbibliographie.tu-dortmund.de/beta/retrieve/',
     'rub': 'https://bibliographie.ub.rub.de/beta/retrieve/'
 }
+
+
+def orcid_wtf(orcid_id='', orcid_work_record=None):
+
+    wtf_record = {}
+
+    if orcid_work_record and (orcid_work_record.get('visibility') == 'PUBLIC' or orcid_work_record.get('visibility') == 'LIMITED'):
+        wtf_record['id'] = str(uuid.uuid4())
+
+        orcid_sync = {'orcid_id': orcid_id, 'orcid_put_code': str(orcid_work_record.get('put-code'))}
+        wtf_record['orcid_sync'] = [orcid_sync]
+        for extid in orcid_work_record.get('external-ids').get('external-id'):
+            if extid.get('external-id-type') == 'doi':
+                # print('\tadd scopus_id "%s"' % extid.get('external-id-value'))
+                wtf_record['DOI'] = [extid.get('external-id-value')]
+            if extid.get('external-id-type') == 'eid':
+                # print('\tadd scopus_id "%s"' % extid.get('external-id-value'))
+                wtf_record['scopus_id'] = extid.get('external-id-value')
+            if extid.get('external-id-type') == 'wosuid':
+                # print('\tadd wosuid "%s"' % extid.get('external-id-value'))
+                wtf_record['WOSID'] = extid.get('external-id-value')
+            if extid.get('external-id-type') == 'pmid':
+                # print('\tadd pmid "%s"' % extid.get('external-id-value'))
+                wtf_record['PMID'] = extid.get('external-id-value')
+            if extid.get('external-id-type') == 'urn':
+                # print('\tadd pmid "%s"' % extid.get('external-id-value'))
+                wtf_record['uri'] = [extid.get('external-id-value')]
+
+        wtf_record['title'] = orcid_work_record.get('title').get('title').get('value')
+        if orcid_work_record.get('title').get('subtitle'):
+            wtf_record['subtitle'] = orcid_work_record.get('title').get('subtitle').get('value')
+
+        wtf_record['pubtype'] = WTF_PUBTYPES.get(orcid_work_record.get('type'))
+
+        issued = orcid_work_record.get('publication-date').get('year').get('value')
+        if orcid_work_record.get('publication-date').get('month'):
+            issued += '-%s' % orcid_work_record.get('publication-date').get('month').get('value')
+            if orcid_work_record.get('publication-date').get('day'):
+                issued += '-%s' % orcid_work_record.get('publication-date').get('day').get('value')
+        wtf_record['issued'] = issued
+
+        wtf_record['editorial_status'] = 'new'
+        wtf_record['note'] = 'added by ORCID synchronization'
+        wtf_record['created'] = timestamp()
+        wtf_record['changed'] = timestamp()
+        wtf_record['owner'] = ['daten.ub@tu-dortmund.de']
+
+    return wtf_record
 
 
 def wtf_orcid(affiliation='', wtf_records=None):
@@ -125,6 +183,7 @@ def wtf_orcid(affiliation='', wtf_records=None):
             ext_id = {}
             ext_id.setdefault('external-id-type', 'source-work-id')
             ext_id.setdefault('external-id-value', record.get('id'))
+            ext_id.setdefault('external-id-relationship', 'SELF')
             if affiliation and affiliation in affiliation_url:
                 ext_id.setdefault('external-id-url', '%s%s/%s' % (affiliation_url.get(affiliation), record.get('pubtype'), record.get('id')))
             external_id.append(ext_id)
@@ -137,6 +196,7 @@ def wtf_orcid(affiliation='', wtf_records=None):
                         ext_id = {}
                         ext_id.setdefault('external-id-type', 'isbn')
                         ext_id.setdefault('external-id-value', isbn)
+                        ext_id.setdefault('external-id-relationship', 'SELF')
                         external_id.append(ext_id)
 
             # ids - ISSN (issn)
@@ -146,6 +206,7 @@ def wtf_orcid(affiliation='', wtf_records=None):
                         ext_id = {}
                         ext_id.setdefault('external-id-type', 'issn')
                         ext_id.setdefault('external-id-value', issn)
+                        ext_id.setdefault('external-id-relationship', 'SELF')
                         external_id.append(ext_id)
 
             # ids - ZDB (other-id)
@@ -156,14 +217,16 @@ def wtf_orcid(affiliation='', wtf_records=None):
                         ext_id.setdefault('external-id-type', 'other-id')
                         ext_id.setdefault('external-id-value', zdbid)
                         ext_id.setdefault('external-id-url', 'http://ld.zdb-services.de/resource/%s' % zdbid)
+                        ext_id.setdefault('external-id-relationship', 'SELF')
                         external_id.append(ext_id)
 
             # ids - PMID (pmc)
             if record.get('PMID'):
                 ext_id = {}
-                ext_id.setdefault('external-id-type', 'doi')
+                ext_id.setdefault('external-id-type', 'pmid')
                 ext_id.setdefault('external-id-value', record.get('PMID'))
                 ext_id.setdefault('external-id-url', 'http://www.ncbi.nlm.nih.gov/pubmed/%s' % record.get('PMID'))
+                ext_id.setdefault('external-id-relationship', 'SELF')
                 external_id.append(ext_id)
 
             # ids - WOS-ID (wosuid)
@@ -172,6 +235,7 @@ def wtf_orcid(affiliation='', wtf_records=None):
                 ext_id.setdefault('external-id-type', 'doi')
                 ext_id.setdefault('external-id-value', record.get('WOSID'))
                 ext_id.setdefault('external-id-url', 'http://ws.isiknowledge.com/cps/openurl/service?url_ver=Z39.88-2004&rft_id=info:ut/%s' % record.get('WOSID'))
+                ext_id.setdefault('external-id-relationship', 'SELF')
                 external_id.append(ext_id)
 
             # ids - doi
@@ -182,11 +246,13 @@ def wtf_orcid(affiliation='', wtf_records=None):
                         ext_id.setdefault('external-id-type', 'doi')
                         ext_id.setdefault('external-id-value', doi)
                         ext_id.setdefault('external-id-url', 'http://dx.doi.org/%s' % doi)
+                        ext_id.setdefault('external-id-relationship', 'SELF')
                         external_id.append(ext_id)
 
-                external_ids.setdefault('external-id', external_id)
+                if external_id:
+                    external_ids.setdefault('external-id', external_id)
 
-                bibtex_entry.setdefault('crossref', record.get('DOI')[0])
+                bibtex_entry.setdefault('doi', record.get('DOI')[0])
 
             orcid_record.setdefault('external-ids', external_ids)
 
@@ -241,7 +307,8 @@ def wtf_orcid(affiliation='', wtf_records=None):
             bibtex_entry.setdefault('author', author_str)
 
             # language
-            orcid_record.setdefault('language-code', str(babelfish.Language.fromalpha3b(record.get('language')[0])))
+            if record.get('language')[0] and record.get('language')[0] != 'None':
+                orcid_record.setdefault('language-code', str(babelfish.Language.fromalpha3b(record.get('language')[0])))
 
             # is_part_of
             hosts = []
@@ -291,3 +358,9 @@ def wtf_orcid(affiliation='', wtf_records=None):
     return orcid_records
 
 
+def timestamp():
+    date_string = str(datetime.datetime.now())[:-3]
+    if date_string.endswith('0'):
+        date_string = '%s1' % date_string[:-1]
+
+    return date_string

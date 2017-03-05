@@ -103,13 +103,18 @@
             $('html, body').animate({scrollTop: $(element).offset().top}, 'slow');
         }
         $(document).on('click', '.add', function (event) {
-            $('.typeahead_orga').typeahead('destroy');
+            // reset suggester
             $('.typeahead_pers').typeahead('destroy');
+            $('.typeahead_orga').typeahead('destroy');
             $('.typeahead_group').typeahead('destroy');
+            $('.typeahead_orga_context').typeahead('destroy');
+            $('.typeahead_group_context').typeahead('destroy');
             $('.typeahead_title').typeahead('destroy');
             $('.typeahead_part_of').typeahead('destroy');
             $('.typeahead_has_part').typeahead('destroy');
             $('.typeahead_other_version').typeahead('destroy');
+
+            // add field(s)
             event.preventDefault();
             var container = $(this).closest('[id$="_container"]');
             var fieldnameparts = container.attr('id').split('-');
@@ -129,7 +134,11 @@
             });
             $(this).replaceWith('<a class="btn btn-sm btn-danger remove" href="#"><i class="fa fa-trash"></i> {{_("Remove this")}}</a></div>');
             container.after(cpy);
+
+            // add suggester
             doTypeahead();
+
+            // scroll to new field(s)
             scrollto('#' + container_id);
         });
         $(document).on('click', '.remove', function (event) {
@@ -141,13 +150,19 @@
             $(this).html("<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate'></span> {{ _('Loading ...') }}");
         });
         $(document).on('click', '.add-atomic', function(event){
-            $('.typeahead_orga').typeahead('destroy');
+
+            // reset suggester
             $('.typeahead_pers').typeahead('destroy');
+            $('.typeahead_orga').typeahead('destroy');
             $('.typeahead_group').typeahead('destroy');
+            $('.typeahead_orga_context').typeahead('destroy');
+            $('.typeahead_group_context').typeahead('destroy');
             $('.typeahead_title').typeahead('destroy');
             $('.typeahead_part_of').typeahead('destroy');
             $('.typeahead_has_part').typeahead('destroy');
             $('.typeahead_other_version').typeahead('destroy');
+
+            // add field(s)
             event.preventDefault();
             var container = $(this).closest('[id$="_container"]');
             var fieldnameparts = container.attr('id').split('-');
@@ -173,6 +188,8 @@
             });
             $(this).replaceWith('<a class="btn btn-sm btn-danger remove" href="#"><i class="fa fa-trash"></i> {{_("Remove this")}}</a></div>');
             container.after(cpy);
+
+            // add suggester
             doTypeahead();
         });
         function dedupe(idtype, thenode){
@@ -237,6 +254,8 @@
     </script>
     <script>
         function doTypeahead() {
+
+            // init data
             var titles = new Bloodhound({
                 datumTokenizer: function(d){
                     console.log(d);
@@ -306,6 +325,7 @@
             groups.initialize();
             persons.initialize();
 
+            // suggester
             $('.typeahead_title').typeahead({
                 hint: true,
                 highlight: true,
@@ -316,7 +336,7 @@
                 source: titles.ttAdapter(),
                 templates: {
                     empty: 'Nothing',
-                    suggestion: Handlebars.compile('{% raw %}<div>{{title}} / {{ fperson }}. <small>{{date}} (id:{{id}})</small></div>{% endraw %}')
+                    suggestion: Handlebars.compile('{% raw %}<div>{{#if fsubseries}}{{ fsubseries }}{{else}}{{title}}{{/if}}{{#if fperson}} / {{ fperson }}{{/if}}. <small>{{date}} (id:{{id}})</small></div>{% endraw %}')
                 }
             });
 
@@ -330,7 +350,7 @@
                 source: titles.ttAdapter(),
                 templates: {
                     empty: 'Nothing',
-                    suggestion: Handlebars.compile('{% raw %}<div>{{title}} / {{ fperson }}. <small>{{date}} (id:{{id}})</small></div>{% endraw %}')
+                    suggestion: Handlebars.compile('{% raw %}<div>{{#if fsubseries}}{{ fsubseries }}{{else}}{{title}}{{/if}}{{#if fperson}} / {{ fperson }}{{/if}}. <small>{{date}} (id:{{id}})</small></div>{% endraw %}')
                 }
             });
 
@@ -344,7 +364,7 @@
                 source: titles.ttAdapter(),
                 templates: {
                     empty: 'Nothing',
-                    suggestion: Handlebars.compile('{% raw %}<div>{{title}} / {{ fperson }}. <small>{{date}} (id:{{id}})</small></div>{% endraw %}')
+                    suggestion: Handlebars.compile('{% raw %}<div>{{#if fsubseries}}{{ fsubseries }}{{else}}{{title}}{{/if}}{{#if fperson}} / {{ fperson }}{{/if}}. <small>{{date}} (id:{{id}})</small></div>{% endraw %}')
                 }
             });
 
@@ -358,7 +378,7 @@
                 source: titles.ttAdapter(),
                 templates: {
                     empty: 'Nothing',
-                    suggestion: Handlebars.compile('{% raw %}<div>{{title}} / {{ fperson }}. <small>{{date}} (id:{{id}})</small></div>{% endraw %}')
+                    suggestion: Handlebars.compile('{% raw %}<div>{{#if fsubseries}}{{ fsubseries }}{{else}}{{title}}{{/if}}{{#if fperson}} / {{ fperson }}{{/if}}. <small>{{date}} (id:{{id}})</small></div>{% endraw %}')
                 }
             });
 
@@ -376,6 +396,20 @@
                 }
             });
 
+            $('.typeahead_orga_context').typeahead({
+                hint: true,
+                highlight: true,
+                minLength: 2,
+            }, {
+                name: 'orga_context',
+                display: 'id',
+                source: organisations.ttAdapter(),
+                templates: {
+                    empty: 'Nothing',
+                    suggestion: Handlebars.compile('{% raw %}<div>{{pref_label}} <small>(id:{{id}}, gnd:{{gnd}})</small></div>{% endraw %}')
+                }
+            });
+
             $('.typeahead_group').typeahead({
                 hint: true,
                 highlight: true,
@@ -383,6 +417,20 @@
             }, {
                 name: 'group',
                 display: 'pref_label',
+                source: groups.ttAdapter(),
+                templates: {
+                    empty: 'Nothing',
+                    suggestion: Handlebars.compile('{% raw %}<div>{{pref_label}} <small>(id:{{id}}, gnd:{{gnd}})</small></div>{% endraw %}')
+                }
+            });
+
+            $('.typeahead_group_context').typeahead({
+                hint: true,
+                highlight: true,
+                minLength: 2,
+            }, {
+                name: 'group_context',
+                display: 'id',
                 source: groups.ttAdapter(),
                 templates: {
                     empty: 'Nothing',
@@ -407,6 +455,7 @@
 
         doTypeahead();
 
+        // fill data in other fields
         $('.typeahead_pers').on('typeahead:selected', function(evt, item) {
             if (item.gnd) {
                 $(this).closest('[id$="_container"]').find(':input').each(function(){

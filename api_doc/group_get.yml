@@ -107,6 +107,7 @@ parameters:
   type: string
 responses:
   200:
+    description: The group resource exists and is returned
     schema:
         $ref: "#/definitions/Group"
   401:

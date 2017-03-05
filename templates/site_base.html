@@ -22,7 +22,9 @@
         {% elif site == 'dortmund' %}
             {% include 'tudo-header.html' %}
         {% endif %}
-        {% include 'navbar.html' %}
+        {% if not maintenance %}
+            {% include 'navbar.html' %}
+        {% endif %}
         <div id="feedback"><a href="{{ url_for('contact') }}">Feedback</a></div>
         {% block site_content %}{% endblock %}
         {% include 'footer.html' %}

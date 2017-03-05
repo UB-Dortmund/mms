@@ -19,6 +19,7 @@
                 {% endif %}
                 {{ drill_down.facets(facet_data.pubtype, 'pubtype', heading='Publication type', vocabulary=pubtype_map, target=target) }}
                 {{ drill_down.facets(facet_data.fdate, 'fdate', heading='Publication Date', target=target) }}
+                {{ drill_down.boolean_filter('oa_funds', heading='OA funded', target=target) }}
                 {{ drill_down.boolean_filter('dfg', heading='DFG funded', target=target) }}
                 {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
                     {{ drill_down.facets(facet_data.editorial_status, 'editorial_status', heading='Editorial Status', vocabulary=edt_status_map, target=target) }}

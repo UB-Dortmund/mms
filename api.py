@@ -36,7 +36,7 @@ from flask import make_response
 from flask_cors import CORS
 from flask_redis import Redis
 from flask_swagger import swagger
-from flask_wtf.csrf import CsrfProtect
+from flask_wtf.csrf import CSRFProtect
 
 from jsonmerge import Merger
 
@@ -84,7 +84,7 @@ app.secret_key = secrets.DEBUG_KEY
 
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
-csrf = CsrfProtect(app)
+csrf = CSRFProtect(app)
 
 wtforms_json.init()
 
@@ -108,9 +108,9 @@ Redis(app, 'REDIS_PUBLIST_CACHE')
 # ---------- REST ----------
 
 
-@app.route("/spec")
+@app.route("/api/spec")
 def spec():
-    swag = swagger(app, from_file_keyword='swagger_from_file')
+    swag = swagger(app, from_file_keyword='swagger_from_file', )
     swag['info']['version'] = '2016-12-09'
     swag['info']['title'] = 'hb2_flask'
     swag['info']['description'] = secrets.SWAGGER_DESCRIPTION
@@ -142,7 +142,7 @@ def spec():
     return jsonify(swag)
 
 
-@app.route('/_ping')
+@app.route('/api/_ping')
 @csrf.exempt
 def _ping():
     """
@@ -159,7 +159,7 @@ def _ping():
         return make_response('One or more dependencies unavailable!', 500)
 
 
-@app.route('/_health')
+@app.route('/api/_health')
 @csrf.exempt
 def _health():
     """
@@ -355,7 +355,7 @@ def dependencies_health():
     return dependencies
 
 
-@app.route('/work/<work_id>', methods=['GET'])
+@app.route('/api/work/<work_id>', methods=['GET'])
 @csrf.exempt
 def work_get(work_id=''):
     """
@@ -377,7 +377,7 @@ def work_get(work_id=''):
         return resp
 
 
-@app.route('/work', methods=['POST'])
+@app.route('/api/work', methods=['POST'])
 @csrf.exempt
 def work_post():
     """
@@ -386,27 +386,66 @@ def work_post():
         swagger_from_file: api_doc/work_post.yml
     """
 
-    if request.headers.get('Accept') == 'application/json':
+    if request.headers.get('Content-Type') == 'application/json':
 
-        if is_token_valid(request.headers.get('Authorization')):
+        if request.headers.get('Authorization'):
 
-            thedata = request.data
+            if is_token_valid(request.headers.get('Authorization')):
 
-            if persistence.get_work(json.loads(thedata).get('id')):
-                return make_response('Bad request: work already exist!', 400)
+                thedata = request.data.decode("utf-8")
+
+                result = persistence.get_work(json.loads(thedata).get('id'))
+
+                rel = str2bool(request.args.get('rel', 'true'))
+
+                if result:
+
+                    # TODO if force=true and existing id not equals posted id: add data
+                    force = str2bool(request.args.get('force', 'false'))
+                    rewrite = str2bool(request.args.get('rewrite', 'false'))
+
+                    if (force and json.loads(thedata).get('id') != json.loads(result.get('wtf_json')).get('id')) or rewrite:
+                        form = display_vocabularies.PUBTYPE2FORM.get(json.loads(thedata).get('pubtype')).from_json(json.loads(thedata))
+                        form.created.data = timestamp()
+                        form.changed.data = timestamp()
+                        new_id, message = persistence.record2solr(form, action='create', relitems=rel)
+                        message.append('record forced: %s' % json.loads(thedata).get('id'))
+
+                        result = persistence.get_work(new_id)
+
+                        if result:
+                            response_json = {"message": message, "work": json.loads(result.get('wtf_json'))}
+                            return make_response(json.dumps(response_json, indent=4), 201)
+                        else:
+                            response_json = {"message": "failed! record not indexed!", "work": json.loads(thedata)}
+                            return make_response(json.dumps(response_json, indent=4), 500)
+                    else:
+                        return make_response('Bad request: work already exist!', 400)
+
+                else:
+                    form = display_vocabularies.PUBTYPE2FORM.get(json.loads(thedata).get('pubtype')).from_json(json.loads(thedata))
+                    form.created.data = timestamp()
+                    form.changed.data = timestamp()
+                    new_id, message = persistence.record2solr(form, action='create', relitems=rel)
+
+                    result = persistence.get_work(new_id)
+
+                    if result:
+                        response_json = {"message": message, "work": json.loads(result.get('wtf_json'))}
+                        return make_response(json.dumps(response_json, indent=4), 201)
+                    else:
+                        response_json = {"message": "failed! record not indexed!", "work": json.loads(thedata)}
+                        return make_response(json.dumps(response_json, indent=4), 500)
             else:
-                form = display_vocabularies.PUBTYPE2FORM.get(thedata.get('pubtype')).from_json(thedata)
-                form.created.data = timestamp()
-                form.changed.data = timestamp()
-                persistence.record2solr(form, action='create')
-                return make_response(thedata, 201)
+                return make_response('Unauthorized', 401)
         else:
             return make_response('Unauthorized', 401)
+
     else:
         return make_response('Bad request: invalid accept header!', 400)
 
 
-@app.route('/work/<work_id>', methods=['PUT'])
+@app.route('/api/work/<work_id>', methods=['PUT'])
 @csrf.exempt
 def work_put(work_id=''):
     """
@@ -415,11 +454,9 @@ def work_put(work_id=''):
         swagger_from_file: api_doc/work_put.yml
     """
 
-    if request.headers.get('Accept') == 'application/json':
+    if request.headers.get('Content-Type') == 'application/json':
 
         if is_token_valid(request.headers.get('Authorization')):
-
-            addition_work = json.loads(request.data.decode("utf-8"))
 
             result = persistence.get_work(work_id)
 
@@ -427,26 +464,51 @@ def work_put(work_id=''):
 
                 original_work = json.loads(result.get('wtf_json'))
 
-                if addition_work.get('id') and addition_work.get('id') != original_work.get('id'):
+                addition_work = ''
+                try:
+                    addition_work = json.loads(request.data.decode("utf-8"))
+                    # print(addition_work)
+                except:
+                    pass
 
-                    return make_response(
-                        'Conflict: The ID of the additional data already exists as "same_as"! Please check your data!', 409)
+                if addition_work:
+                    if addition_work.get('id') and addition_work.get('id') != original_work.get('id'):
+
+                        return make_response(
+                            'Conflict: The ID of the additional data already exists as "same_as"! Please check your data!', 409)
+                    else:
+                        # init merger "work"
+                        with open('conf/works_merger.schema.json') as data_file:
+                            schema_works_merger = json.load(data_file)
+
+                        merger = Merger(schema_works_merger)
+
+                        # merge it!
+                        merged_work = merger.merge(original_work, addition_work)
+                        # print(json.dumps(merged_work, indent=4))
+
+                        # load it!
+                        form = display_vocabularies.PUBTYPE2FORM.get(merged_work.get('pubtype')).from_json(merged_work)
+                        form.changed.data = timestamp()
+
+                        # store it
+                        rel = str2bool(request.args.get('rel', 'true'))
+                        new_id, message = persistence.record2solr(form, action='update', relitems=rel)
+
+                        response_json = {"message": message, "work": merged_work}
+
+                        return make_response(json.dumps(response_json, indent=4), 200)
                 else:
-                    # init merger "work"
-                    with open('conf/works_merger.schema.json') as data_file:
-                        schema_works_merger = json.load(data_file)
-
-                    merger = Merger(schema_works_merger)
-
-                    # merge it!
-                    merged_work = merger.merge(original_work, addition_work)
-
                     # load it!
-                    form = display_vocabularies.PUBTYPE2FORM.get(merged_work.get('pubtype')).from_json(merged_work)
+                    form = display_vocabularies.PUBTYPE2FORM.get(original_work.get('pubtype')).from_json(original_work)
                     form.changed.data = timestamp()
-                    persistence.record2solr(form, action='update')
 
-                    return make_response(json.dumps(merged_work, indent=4), 201)
+                    # store it
+                    new_id, message = persistence.record2solr(form, action='update', relitems=False)
+
+                    response_json = {"message": message, "work": original_work}
+
+                    return make_response(json.dumps(response_json, indent=4), 200)
             else:
                 return make_response('work resource \'%s\' not found!' % work_id, 404)
         else:
@@ -455,7 +517,7 @@ def work_put(work_id=''):
         return make_response('Bad request: invalid accept header!', 400)
 
 
-@app.route('/work/<work_id>', methods=['DELETE'])
+@app.route('/api/work/<work_id>', methods=['DELETE'])
 @csrf.exempt
 def work_delete(work_id=''):
     """
@@ -540,7 +602,7 @@ def person_get(person_id=''):
         return resp
 
 
-@app.route('/person', methods=['POST'])
+@app.route('/api/person', methods=['POST'])
 @csrf.exempt
 def person_post():
     """
@@ -549,27 +611,60 @@ def person_post():
         swagger_from_file: api_doc/person_post.yml
     """
 
-    if request.headers.get('Accept') == 'application/json':
+    if request.headers.get('Content-Type') == 'application/json':
 
-        if is_token_valid(request.headers.get('Authorization')):
+        if request.headers.get('Authorization'):
 
-            thedata = request.data
+            if is_token_valid(request.headers.get('Authorization')):
 
-            if persistence.get_person(json.loads(thedata).get('id')):
-                return make_response('Bad request: person already exist!', 400)
+                thedata = request.data
+
+                result = persistence.get_person(json.loads(thedata).get('id'))
+
+                if result:
+
+                    # TODO if force=true and existing id not equals posted id: add data
+                    force = str2bool(request.args.get('force', 'false'))
+                    rewrite = str2bool(request.args.get('rewrite', 'false'))
+
+                    if (force and json.loads(thedata).get('id') != json.loads(result.get('wtf_json')).get('id')) or rewrite:
+                        form = PersonAdminForm.from_json(json.loads(thedata))
+                        form.created.data = timestamp()
+                        form.changed.data = timestamp()
+                        doit, new_id, message = persistence.person2solr(form, action='create')
+                        message.append('record forced: %s' % json.loads(thedata).get('id'))
+
+                        result = persistence.get_person(new_id)
+                        if result:
+                            response_json = {"message": message, "person": json.loads(result.get('wtf_json'))}
+                            return make_response(json.dumps(response_json, indent=4), 201)
+                        else:
+                            response_json = {"message": "failed! record not indexed!", "person": json.loads(thedata)}
+                            return make_response(json.dumps(response_json, indent=4), 500)
+                    else:
+                        return make_response('Bad request: person already exist!', 400)
+                else:
+                    form = PersonAdminForm.from_json(json.loads(thedata))
+                    form.created.data = timestamp()
+                    form.changed.data = timestamp()
+                    doit, new_id, message = persistence.person2solr(form, action='create')
+
+                    result = persistence.get_person(new_id)
+                    if result:
+                        response_json = {"message": message, "person": json.loads(result.get('wtf_json'))}
+                        return make_response(json.dumps(response_json, indent=4), 201)
+                    else:
+                        response_json = {"message": "failed! record not indexed!", "person": json.loads(thedata)}
+                        return make_response(json.dumps(response_json, indent=4), 500)
             else:
-                form = PersonAdminForm.from_json(json.loads(thedata))
-                form.created.data = timestamp()
-                form.changed.data = timestamp()
-                persistence.person2solr(form, action='create')
-                return make_response(thedata, 201)
+                return make_response('Unauthorized', 401)
         else:
             return make_response('Unauthorized', 401)
     else:
         return make_response('Bad request: invalid accept header!', 400)
 
 
-@app.route('/person/<person_id>', methods=['PUT'])
+@app.route('/api/person/<person_id>', methods=['PUT'])
 @csrf.exempt
 def person_put(person_id=''):
     """
@@ -578,7 +673,7 @@ def person_put(person_id=''):
         swagger_from_file: api_doc/person_put.yml
     """
 
-    if request.headers.get('Accept') == 'application/json':
+    if request.headers.get('Content-Type') == 'application/json':
 
         if is_token_valid(request.headers.get('Authorization')):
 
@@ -609,7 +704,7 @@ def person_put(person_id=''):
                     form.changed.data = timestamp()
                     doit, new_id, message = persistence.person2solr(form, action='update')
 
-                    response_json = { "message": message, "person": merged_person}
+                    response_json = {"message": message, "person": merged_person}
 
                     return make_response(json.dumps(response_json, indent=4), 201)
             else:
@@ -620,7 +715,7 @@ def person_put(person_id=''):
         return make_response('Bad request: invalid accept header!', 400)
 
 
-@app.route('/person/<person_id>', methods=['DELETE'])
+@app.route('/api/person/<person_id>', methods=['DELETE'])
 @csrf.exempt
 def person_delete(person_id=''):
     """
@@ -645,7 +740,7 @@ def person_delete(person_id=''):
             form.changed.data = timestamp()
             form.note.data = 'Deleted via REST API'
             # save group
-            _person2solr(form, action='delete')
+            persistence.person2solr(form, action='delete')
 
             return make_response('person deleted!', 204)
         else:
@@ -655,7 +750,7 @@ def person_delete(person_id=''):
         return make_response('Unauthorized', 401)
 
 
-@app.route('/organisation/<orga_id>', methods=['GET'])
+@app.route('/api/organisation/<orga_id>', methods=['GET'])
 @csrf.exempt
 def orga_get(orga_id=''):
     """
@@ -696,7 +791,7 @@ def orga_get(orga_id=''):
         return resp
 
 
-@app.route('/organisation', methods=['POST'])
+@app.route('/api/organisation', methods=['POST'])
 @csrf.exempt
 def orga_post():
     """
@@ -705,27 +800,62 @@ def orga_post():
         swagger_from_file: api_doc/orga_post.yml
     """
 
-    if request.headers.get('Accept') == 'application/json':
+    if request.headers.get('Content-Type') == 'application/json':
 
-        if is_token_valid(request.headers.get('Authorization')):
+        if request.headers.get('Authorization'):
 
-            thedata = request.data
+            if is_token_valid(request.headers.get('Authorization')):
 
-            if show_orga(orga_id=json.loads(thedata).get('id'), format='raw'):
-                return make_response('Bad request: organisation already exist!', 400)
+                thedata = request.data
+
+                result = persistence.get_orga(json.loads(thedata).get('id'))
+
+                rel = str2bool(request.args.get('rel', 'true'))
+
+                if result:
+
+                    # TODO if force=true and existing id not equals posted id: add data
+                    force = str2bool(request.args.get('force', 'false'))
+                    rewrite = str2bool(request.args.get('rewrite', 'false'))
+
+                    if (force and json.loads(thedata).get('id') != json.loads(result.get('wtf_json')).get('id')) or rewrite:
+                        form = OrgaAdminForm.from_json(json.loads(thedata))
+                        form.created.data = timestamp()
+                        form.changed.data = timestamp()
+                        new_id, message = persistence.orga2solr(form, action='create', relitems=rel)
+                        message.append('record forced: %s' % json.loads(thedata).get('id'))
+
+                        result = persistence.get_orga(new_id)
+                        if result:
+                            response_json = {"message": message, "orga": json.loads(result.get('wtf_json'))}
+                            return make_response(json.dumps(response_json, indent=4), 201)
+                        else:
+                            response_json = {"message": "failed! record not indexed!", "orga": json.loads(thedata)}
+                            return make_response(json.dumps(response_json, indent=4), 500)
+                    else:
+                        return make_response('Bad request: organisation already exist!', 400)
+                else:
+                    form = OrgaAdminForm.from_json(json.loads(thedata))
+                    form.created.data = timestamp()
+                    form.changed.data = timestamp()
+                    new_id, message = persistence.orga2solr(form, action='create', relitems=rel)
+
+                    result = persistence.get_orga(new_id)
+                    if result:
+                        response_json = {"message": message, "orga": json.loads(result.get('wtf_json'))}
+                        return make_response(json.dumps(response_json, indent=4), 201)
+                    else:
+                        response_json = {"message": "failed! record not indexed!", "orga": json.loads(thedata)}
+                        return make_response(json.dumps(response_json, indent=4), 500)
             else:
-                form = OrgaAdminForm.from_json(json.loads(thedata))
-                form.created.data = timestamp()
-                form.changed.data = timestamp()
-                _orga2solr(form, action='create')
-                return make_response(thedata, 201)
+                return make_response('Unauthorized', 401)
         else:
             return make_response('Unauthorized', 401)
     else:
-        return make_response('Bad request: invalid accept header!', 400)
+        return make_response('Bad request: invalid Content-Type header!', 400)
 
 
-@app.route('/organisation/<orga_id>', methods=['PUT'])
+@app.route('/api/organisation/<orga_id>', methods=['PUT'])
 @csrf.exempt
 def orga_put(orga_id=''):
     """
@@ -734,43 +864,50 @@ def orga_put(orga_id=''):
         swagger_from_file: api_doc/orga_put.yml
     """
 
-    if request.headers.get('Accept') == 'application/json':
+    if request.headers.get('Content-Type') == 'application/json':
 
         if is_token_valid(request.headers.get('Authorization')):
 
-            thedata = request.data
+            addition_orga = json.loads(request.data.decode("utf-8"))
 
-            update_orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                    application=secrets.SOLR_APP, core='organisation',
-                                    query='id:%s' % orga_id)
-            update_orga_solr.request()
+            result = persistence.get_orga(orga_id)
 
-            if update_orga_solr.results:
+            if result:
 
-                # TODO update each field
-                form = OrgaAdminForm.from_json(json.loads(thedata))
-                form.changed.data = timestamp()
-                logging.info(form.data)
-                _orga2solr(form, action='update')
+                original_orga = json.loads(result.get('wtf_json'))
 
-                return make_response(thedata, 200)
-            else:
-                update_orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                        application=secrets.SOLR_APP, core='organisation',
-                                        query='same_as:%s' % orga_id)
-                update_orga_solr.request()
+                if addition_orga.get('id') and addition_orga.get('id') != original_orga.get('id'):
 
-                if update_orga_solr.results:
-                    return make_response('Conflict: The ID of the resource already exists as "same_as"! Please check your data!', 409)
+                    return make_response(
+                        'Conflict: The ID of the additional data already exists as "same_as"! Please check your data!', 409)
                 else:
-                    return make_response('organisation resource \'%s\' not found!' % orga_id, 404)
+                    # init merger "person"
+                    with open('conf/orga_merger.schema.json') as data_file:
+                        schema_orga_merger = json.load(data_file)
+
+                    merger = Merger(schema_orga_merger)
+
+                    # merge it!
+                    merged_orga = merger.merge(original_orga, addition_orga)
+
+                    # load it!
+                    form = OrgaAdminForm.from_json(merged_orga)
+                    form.changed.data = timestamp()
+                    logging.info(form.data)
+                    new_id, message = persistence.orga2solr(form, action='update')
+
+                    response_json = {"message": message, "organisation": merged_orga}
+
+                    return make_response(json.dumps(response_json, indent=4), 201)
+            else:
+                return make_response('organisation resource \'%s\' not found!' % orga_id, 404)
         else:
             return make_response('Unauthorized', 401)
     else:
-        return make_response('Bad request: invalid accept header!', 400)
+        return make_response('Bad request: invalid Content-Type header!', 400)
 
 
-@app.route('/organisation/<orga_id>', methods=['DELETE'])
+@app.route('/api/organisation/<orga_id>', methods=['DELETE'])
 @csrf.exempt
 def orga_delete(orga_id=''):
     """
@@ -795,7 +932,7 @@ def orga_delete(orga_id=''):
             form.changed.data = timestamp()
             form.note.data = 'Deleted via REST API'
             # save group
-            _orga2solr(form, action='delete')
+            persistence.orga2solr(form, action='delete')
 
             return make_response('organisation deleted!', 204)
         else:
@@ -805,7 +942,7 @@ def orga_delete(orga_id=''):
         return make_response('Unauthorized', 401)
 
 
-@app.route('/group/<group_id>', methods=['GET'])
+@app.route('/api/group/<group_id>', methods=['GET'])
 @csrf.exempt
 def group_get(group_id=''):
     """
@@ -843,7 +980,7 @@ def group_get(group_id=''):
         return resp
 
 
-@app.route('/group', methods=['POST'])
+@app.route('/api/group', methods=['POST'])
 @csrf.exempt
 def group_post():
     """
@@ -852,27 +989,62 @@ def group_post():
         swagger_from_file: api_doc/group_post.yml
     """
 
-    if request.headers.get('Accept') == 'application/json':
+    if request.headers.get('Content-Type') == 'application/json':
 
-        if is_token_valid(request.headers.get('Authorization')):
+        if request.headers.get('Authorization'):
 
-            thedata = request.data
+            if is_token_valid(request.headers.get('Authorization')):
 
-            if show_group(group_id=json.loads(thedata).get('id'), format='raw'):
-                return make_response('Bad request: group already exist!', 400)
+                thedata = request.data
+
+                result = persistence.get_group(json.loads(thedata).get('id'))
+
+                rel = str2bool(request.args.get('rel', 'true'))
+
+                if result:
+                    # TODO if force=true and existing id not equals posted id: add data
+                    force = str2bool(request.args.get('force', 'false'))
+                    rewrite = str2bool(request.args.get('rewrite', 'false'))
+
+                    if (force and json.loads(thedata).get('id') != json.loads(result.get('wtf_json')).get('id')) or rewrite:
+                        form = GroupAdminForm.from_json(json.loads(thedata))
+                        form.created.data = timestamp()
+                        form.changed.data = timestamp()
+                        new_id, message = persistence.group2solr(form, action='create', relitems=rel)
+                        message.append('record forced: %s' % json.loads(thedata).get('id'))
+
+                        result = persistence.get_group(new_id)
+                        if result:
+                            response_json = {"message": message, "group": json.loads(result.get('wtf_json'))}
+                            return make_response(json.dumps(response_json, indent=4), 201)
+                        else:
+                            response_json = {"message": "failed! record not indexed!", "group": json.loads(thedata)}
+                            return make_response(json.dumps(response_json, indent=4), 500)
+                    else:
+                        return make_response('Bad request: group "%s" already exist!' % json.loads(thedata).get('id'), 400)
+                else:
+                    form = GroupAdminForm.from_json(json.loads(thedata))
+                    form.created.data = timestamp()
+                    form.changed.data = timestamp()
+                    new_id, message = persistence.group2solr(form, action='create', relitems=rel)
+
+                    result = persistence.get_group(new_id)
+
+                    if result:
+                        response_json = {"message": message, "group": json.loads(result.get('wtf_json'))}
+                        return make_response(json.dumps(response_json, indent=4), 201)
+                    else:
+                        response_json = {"message": "failed! record not indexed!", "group": json.loads(thedata)}
+                        return make_response(json.dumps(response_json, indent=4), 500)
             else:
-                form = GroupAdminForm.from_json(json.loads(thedata))
-                form.created.data = timestamp()
-                form.changed.data = timestamp()
-                _group2solr(form, action='create')
-                return make_response(thedata, 201)
+                return make_response('Unauthorized', 401)
         else:
             return make_response('Unauthorized', 401)
     else:
         return make_response('Bad request: invalid accept header!', 400)
 
 
-@app.route('/group/<group_id>', methods=['PUT'])
+@app.route('/api/group/<group_id>', methods=['PUT'])
 @csrf.exempt
 def group_put(group_id=''):
     """
@@ -885,37 +1057,45 @@ def group_put(group_id=''):
 
         if is_token_valid(request.headers.get('Authorization')):
 
-            thedata = request.data
+            addition_group = json.loads(request.data.decode("utf-8"))
 
-            update_group_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                     application=secrets.SOLR_APP, core='group',
-                                     query='id:%s' % group_id)
-            update_group_solr.request()
+            result = persistence.get_group(group_id)
 
-            if update_group_solr.results:
+            if result:
 
-                form = GroupAdminForm.from_json(json.loads(thedata))
-                form.changed.data = timestamp()
-                _group2solr(form, action='update')
+                original_group = json.loads(result.get('wtf_json'))
 
-                return make_response(thedata, 201)
-            else:
-                update_group_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                         application=secrets.SOLR_APP, core='group',
-                                         query='same_as:%s' % group_id)
-                update_group_solr.request()
+                if addition_group.get('id') and addition_group.get('id') != original_group.get('id'):
 
-                if update_group_solr.results:
-                    return make_response('Conflict: The ID of the resource already exists as "same_as"! Please check your data!', 409)
+                    return make_response(
+                        'Conflict: The ID of the additional data already exists as "same_as"! Please check your data!', 409)
                 else:
-                    return make_response('group resource \'%s\' not found!' % group_id, 404)
+                    # init merger "group"
+                    with open('conf/group_merger.schema.json') as data_file:
+                        schema_group_merger = json.load(data_file)
+
+                    merger = Merger(schema_group_merger)
+
+                    # merge it!
+                    merged_group = merger.merge(original_group, addition_group)
+
+                    # load it!
+                    form = GroupAdminForm.from_json(merged_group)
+                    form.changed.data = timestamp()
+                    new_id, message = persistence.group2solr(form, action='update')
+
+                    response_json = {"message": message, "group": merged_group}
+
+                    return make_response(json.dumps(response_json, indent=4), 201)
+            else:
+                return make_response('group resource \'%s\' not found!' % group_id, 404)
         else:
             return make_response('Unauthorized', 401)
     else:
         return make_response('Bad request: invalid accept header!', 400)
 
 
-@app.route('/group/<group_id>', methods=['DELETE'])
+@app.route('/api/group/<group_id>', methods=['DELETE'])
 @csrf.exempt
 def group_delete(group_id=''):
     """
@@ -939,7 +1119,7 @@ def group_delete(group_id=''):
             form.changed.data = timestamp()
             form.note.data = 'Deleted via REST API'
             # save group
-            _group2solr(form, action='delete')
+            persistence.group2solr(form, action='delete')
 
             return make_response('group deleted!', 204)
         else:
@@ -970,6 +1150,13 @@ def timestamp():
         date_string = '%s1' % date_string[:-1]
 
     return date_string
+
+
+def str2bool(v):
+    if str(v).lower() in ("yes", "true",  "True", "t", "1"):
+        return True
+    else:
+        return False
 
 
 if __name__ == '__main__':

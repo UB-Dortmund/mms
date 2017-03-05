@@ -25,6 +25,7 @@ parameters:
     $ref: "#/definitions/PersonEntity"
 responses:
   200:
+    description: The person resource is updated
     schema:
         $ref: "#/definitions/PersonEntity"
   400:

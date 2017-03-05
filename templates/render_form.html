@@ -10,17 +10,8 @@
     {% for enclosure in multifield %}
     {% if enclosure.name|rem_form_count not in form.admin_only %}
     <div id="{{ enclosure.name }}_container" class="multi_enclosure">
-    <div class="col-sm-2 control-label">{{ enclosure.name|capitalize|rem_form_count|replace('_', ' ') }}</div>
-    {% if not multifield.max_entries or (multifield.max_entries and multifield.max_entries > 1) %}
-    <div class="col-sm-6" style="margin: 0 0 12px -10px;;">
-        {% if multifield|length > 1 %}
-            <a class="btn btn-sm btn-danger remove" href="#"><i class="fa fa-trash"></i> {{_('Remove this')}}</a>
-        {% endif %}
-        <a class="btn btn-sm btn-default add" href="#"><i class="fa fa-plus"></i> {{_('Add another')}}</a>
-    </div>
-    <div class="col-sm-4">&nbsp;</div>
-    {% endif %}
-    <div class="clearfix"></div>
+        <div class="col-sm-2 control-label">{{ enclosure.name|capitalize|rem_form_count|replace('_', ' ') }}</div>
+        <div class="clearfix"></div>
         {% for subfield in enclosure %}
             {% if subfield.type != 'CSRFTokenField' %}
                 <div class="form-group">
@@ -49,9 +40,9 @@
                                 {% elif 'group-' in subfield.name and '-label' in subfield.name %}
                                     {{ subfield(class='form-control typeahead_group') }}
                                 {% elif 'affiliation_context' in subfield.name %}
-                                    {{ subfield(class='form-control typeahead_orga') }}
+                                    {{ subfield(class='form-control typeahead_orga_context') }}
                                 {% elif 'group_context' in subfield.name %}
-                                    {{ subfield(class='form-control typeahead_group') }}
+                                    {{ subfield(class='form-control typeahead_group_context') }}
                                 {% else %}
                                     {{ subfield(class='form-control') }}
                                 {% endif %}
@@ -86,10 +77,10 @@
                                     {{ subfield(class='form-control typeahead_orga') }}
                                 {% elif 'group-' in subfield.name and '-label' in subfield.name %}
                                     {{ subfield(class='form-control typeahead_group') }}
-                                {% elif '-affiliation_context' in subfield.name %}
-                                    {{ subfield(class='form-control typeahead_orga') }}
-                                {% elif '-group_context' in subfield.name %}
-                                    {{ subfield(class='form-control typeahead_group') }}
+                                {% elif 'affiliation_context' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_orga_context') }}
+                                {% elif 'group_context' in subfield.name %}
+                                    {{ subfield(class='form-control typeahead_group_context') }}
                                 {% else %}
                                     {{ subfield(class='form-control') }}
                                 {% endif %}
@@ -104,8 +95,17 @@
                 </div>
             {% endif %}
         {% endfor %}
-        {#<span style="margin-left:15px;text-transform:uppercase;"><a class="btn btn-sm btn-default" href="#" data-field="{{ multifield[0].name }}"><i class="fa fa-plus"></i> {{_('Add another')}}</a></span>#}
+        {% if not multifield.max_entries or (multifield.max_entries and multifield.max_entries > 1) %}
+            <div class="col-sm-2">&nbsp;</div>
+            <div class="col-sm-6" style="margin: 0 0 12px -10px;;">
+            {% if multifield|length > 1 %}
+                <a class="btn btn-sm btn-danger remove" href="#"><i class="fa fa-trash"></i> {{_('Remove this')}}</a>
+            {% endif %}
+            <a class="btn btn-sm btn-default add" href="#"><i class="fa fa-plus"></i> {{_('Add another')}}</a>
         </div>
+        <div class="clearfix"></div>
+        {% endif %}
+    </div>
     {% endif %}
     {% endfor %}
     {% else %}
@@ -123,10 +123,10 @@
                             {{ entry(class='form-control typeahead_pers',required='required') }}
                         {% elif 'corporation-' in entry.name %}
                             {{ entry(class='form-control typeahead_orga',required='required') }}
-                        {% elif '-affiliation_context' in entry.name %}
-                            {{ entry(class='form-control typeahead_orga',required='required') }}
-                        {% elif '-group_context' in entry.name %}
-                            {{ entry(class='form-control typeahead_group',required='required') }}
+                        {% elif 'affiliation_context' in entry.name %}
+                            {{ entry(class='form-control typeahead_orga_context',required='required') }}
+                        {% elif 'group_context' in entry.name %}
+                            {{ entry(class='form-control typeahead_group_context',required='required') }}
                         {% else %}
                             {{ entry(class='form-control',required='required') }}
                         {% endif %}
@@ -137,10 +137,10 @@
                             {{ entry(class='form-control typeahead_pers') }}
                         {% elif 'corporation-' in entry.name %}
                             {{ entry(class='form-control typeahead_orga') }}
-                        {% elif '-affiliation_context' in entry.name %}
-                            {{ entry(class='form-control typeahead_orga') }}
-                        {% elif '-group_context' in entry.name %}
-                            {{ entry(class='form-control typeahead_group') }}
+                        {% elif 'affiliation_context' in entry.name %}
+                            {{ entry(class='form-control typeahead_orga_context') }}
+                        {% elif 'group_context' in entry.name %}
+                            {{ entry(class='form-control typeahead_group_context') }}
                         {% else %}
                             {{ entry(class='form-control') }}
                         {% endif %}

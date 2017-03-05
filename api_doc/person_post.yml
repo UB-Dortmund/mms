@@ -20,6 +20,7 @@ parameters:
     $ref: "#/definitions/PersonEntity"
 responses:
   201:
+    description: The person resource is created
     schema:
         $ref: "#/definitions/PersonEntity"
   400:

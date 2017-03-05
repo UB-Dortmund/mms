@@ -19,7 +19,7 @@
                 <p>{{ _('With just a few clicks we will make you and your work individually recognisable on the web and in important data sources.') }}</p>
                 <p>
                     {% if site == 'dortmund' %}
-                    {{ _('You can find further information on our ') }}<a href="https://www.ub.tu-dortmund.de/publikationsunterstuetzung/orcid.html" target="_blank">{{ _('ORCID Website') }}</a>
+                    {{ _('You can find further information on our ') }}<a href="https://www.ub.tu-dortmund.de/orcid/index.html" target="_blank">{{ _('ORCID Website') }}</a>
                     {% elif site == 'bochum' %}
                     {{ _('You can find further information on our ') }}<a href="http://www.ub.ruhr-uni-bochum.de/informationen/orcid.html" target="_blank">{{ _('ORCID Website') }}</a>
                     {% endif %}
@@ -61,7 +61,11 @@
             <div class="col-sm-offset-1 col-sm-10">
                 <h3>{{ _('My Titles') }}</h3>
                 <div class="col-sm-3">
+                    {% if site == 'dortmund' %}
                     <a class="btn btn-default btn-lg" {% if gnd_id == '' %}disabled="disabled"{% endif %} href="{{ url_for('search') }}?q=*:*&core=hb2&filter=ftudo_pers:&quot;{{ gnd_id }}%23{{ current_user.name }}&quot;">{{ _('Show works') }}</a>
+                    {% elif site == 'bochum' %}
+                    <a class="btn btn-default btn-lg" {% if gnd_id == '' %}disabled="disabled"{% endif %} href="{{ url_for('search') }}?q=*:*&core=hb2&filter=frubi_pers:&quot;{{ gnd_id }}%23{{ current_user.name }}&quot;">{{ _('Show works') }}</a>
+                    {% endif %}
                     <span class="help-block">{{ _('Show my works.') }}</span>
                 </div>
                 <div class="col-sm-3">
@@ -117,7 +121,7 @@
                 <p>{{ _('With just a few clicks we will make you and your work individually recognisable on the web and in important data sources.') }}</p>
                 <p>
                     {% if site == 'dortmund' %}
-                    {{ _('You can find further information on our ') }}<a href="https://www.ub.tu-dortmund.de/publikationsunterstuetzung/orcid.html" target="_blank">{{ _('ORCID Website') }}</a>
+                    {{ _('You can find further information on our ') }}<a href="https://www.ub.tu-dortmund.de/orcid/index.html" target="_blank">{{ _('ORCID Website') }}</a>
                     {% elif site == 'bochum' %}
                     {{ _('You can find further information on our ') }}<a href="http://www.ub.ruhr-uni-bochum.de/informationen/orcid.html" target="_blank">{{ _('ORCID Website') }}</a>
                     {% endif %}

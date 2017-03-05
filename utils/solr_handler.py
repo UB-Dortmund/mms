@@ -31,15 +31,14 @@ import simplejson as json
 from werkzeug import iri_to_uri
 
 try:
-    import app_secrets
     import local_app_secrets as secrets
 except ImportError:
-    import app_secrets
+    import app_secrets as secrets
 
-logging.basicConfig (level=logging.ERROR,
-    format='%(asctime)s %(levelname)-4s %(message)s',
-    datefmt='%a, %d %b %Y %H:%M:%S',
-)
+logging.basicConfig(level=logging.ERROR,
+                    format='%(asctime)s %(levelname)-4s %(message)s',
+                    datefmt='%a, %d %b %Y %H:%M:%S')
+
 
 class Solr(object):
     def __init__(self, host=secrets.SOLR_HOST, port=secrets.SOLR_PORT, application='solr', handler='select',
@@ -157,7 +156,7 @@ class Solr(object):
             for fq in (self.fquery):
                 try:
                     # params += '&fq=%s' % urllib.parse.unquote(fq.encode('utf8'))
-                    val = urllib.parse.unquote(fq).replace('#', '\%23')
+                    val = urllib.parse.unquote(fq).replace('#', '%23')
                     # logging.info('%s >> %s' % (fq,val))
                     params += '&fq=%s' % val
                 except UnicodeDecodeError:
@@ -206,6 +205,7 @@ class Solr(object):
         self.request_url = '%s%s' % (url, params)
         # logging.fatal(iri_to_uri(self.request_url))
         # logging.info('REQUEST: %s' % self.request_url)
+        # print('REQUEST: %s' % self.request_url)
         if self.compress:
             import urllib2
             import StringIO
@@ -232,6 +232,7 @@ class Solr(object):
                 self.response = requests.get(iri_to_uri(self.request_url)).text
             # self.response = eval(urllib.request.urlopen(self.request_url).read())
         # logging.error(self.response)
+        # print(self.response)
         try:
             self.results = self.response.get('response').get('docs')
         except AttributeError: # Grouped results...
@@ -298,7 +299,6 @@ class Solr(object):
     def update(self):
         url = 'http://%s:%s/%s/%s/update/?commit=true&versions=true' % (self.host, self.port, self.application,
                                                                         self.core)
-        #logging.info(json.dumps(self.data))
         resp = requests.post(url, headers={'Content-type': 'application/json'}, data=json.dumps(self.data))
         return resp
 

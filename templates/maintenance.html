@@ -1,0 +1,23 @@
+{% extends 'site_base.html' %}
+
+{% block site_content %}
+    {{ super() }}
+    <div class="row">
+        <div class="col-sm-12">
+        <div class="alert alert-danger" role="alert">
+            <h4>Wartungsarbeiten</h4>
+            <p>
+                Vom 29. bis voraussichtlich 31.01.2017 finden am System Wartungs- und Entwicklungsarbeiten statt.
+                In dieser Zeit kann auch der Service zur Verknüpfung Ihrer ORCID iD mit Ihrer Universitätskennung nicht angeboten werden.
+            </p>
+            <p>
+                Wir bitten um Ihr Verständnis!
+            </p>
+            <p>
+                Für Fragen stehen wir weiterhin unter <a href="{{ url_for('contact') }}"><i class="fa fa-envelope-o"></i> {{ _('Contact') }}</a> zur Verfügung.
+            </p>
+        </div>
+        </div>
+    </div>
+    <div class="row"><hr/></div>
+{% endblock %}

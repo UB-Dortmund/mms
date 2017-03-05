@@ -60,7 +60,7 @@
                         <a href="{{ url_for('show_orga', orga_id=record.data.parent.0.parent_id) }}">{% if record.data.parent.0.parent_label %}{{ record.data.parent.0.parent_label }}{% else %}{{ record.data.parent.0.parent_id }}{% endif %}</a><br/>
                     </dd>
                 {% endif %}
-                {% if record.data.children and record.data.children.1 and (record.data.children.1.child_id != '' or record.data.children.1.child_label != '') %}
+                {% if record.data.children and ((record.data.children|length == 1 and record.data.children.0 and record.data.children.0.child_id) or record.data.children|length > 1)  %}
                     <dt>
                         {{ _('Children') }}
                     </dt>
@@ -72,7 +72,7 @@
                         {% endfor %}
                     </dd>
                 {% endif %}
-                {% if record.data.projects and record.data.projects.0 and (record.data.projects.0.project_id != '' or record.data.projects.0.project_label != '') %}
+                {% if record.data.projects and ((record.data.projects|length == 1 and record.data.projects.0 and record.data.projects.0.project_id) or record.data.projects|length > 1)  %}
                     <dt>
                         {{ _('Projects / Working Groups') }}
                     </dt>
@@ -100,7 +100,9 @@
                         {{ _('Links') }}
                     </dt>
                     <dd>
-                        <a href="{{ url_for('search') }}?q=*:*&core=person&filter=faffiliation:&quot;{{ record.data.pref_label }}&quot;">{{ _('Show Members') }}</a><br/>
+                        <a href="{{ url_for('search') }}?q=*:*&core=person&filter=affiliation_id:&quot;{{ record.data.id }}&quot;">{{ _('Show Members') }}</a>
+                        <br/>
+                        <a href="{{ url_for('search') }}?q=*:*&core=hb2&filter=affiliation_id:&quot;{{ record.data.id }}&quot;">{{ _('Show Works') }}</a>
                     </dd>
                 {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
                     <hr/>

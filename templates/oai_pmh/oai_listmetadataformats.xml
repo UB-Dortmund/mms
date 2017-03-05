@@ -1,0 +1,10 @@
+{% extends 'oai_pmh/oai_base.xml' %}
+        {% block contents %}
+        {% for format in data.formats.keys() %}
+<metadataFormat>
+    <metadataPrefix>{{ format }}</metadataPrefix>
+    <schema>{{ data.formats[format].schema }}</schema>
+    <metadataNamespace>{{ data.formats[format].namespace }}</metadataNamespace>
+</metadataFormat>
+        {% endfor %}
+        {% endblock contents %}

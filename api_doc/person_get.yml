@@ -118,6 +118,7 @@ parameters:
   type: string
 responses:
   200:
+    description: The person resource exists and is returned
     schema:
         $ref: "#/definitions/PersonEntity"
   401:

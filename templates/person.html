@@ -128,7 +128,6 @@
                         {% if record.data.tudo or record.data.rubi%}<br/>{% endif %}
                         {% for affiliation in record.data.affiliation %}
                             <a href="{{ url_for('show_orga', orga_id=affiliation.organisation_id) }}">{% if affiliation.pref_label %}{{ affiliation.pref_label }}{% else %}{{ affiliation.organisation_id }}{% endif %}</a>
-                            {% if not loop.last %}<br/>{% endif %}
                         {% endfor %}
                         <hr/>
                     </dd>
@@ -187,6 +186,18 @@
                         </dt>
                         <dd>
                             {{ record.data.id }}
+                        </dd>
+                    {% endif %}
+                    {% if record.data.same_as %}
+                        <dt>{{ _('Same as') }}</dt>
+                        <dd>
+                            <ul class="list-unstyled">
+                                {% for pers in record.data.same_as %}
+                                    {% if pers %}
+                                    <li><a href="{{ url_for('show_person', person_id=pers) }}">{{ pers }}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
                         </dd>
                     {% endif %}
                     {% if record.data.status %}

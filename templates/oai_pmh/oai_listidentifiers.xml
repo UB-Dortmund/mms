@@ -1,0 +1,14 @@
+{% extends 'oai_pmh/oai_base.xml' %}
+        {% block contents %}
+{% for record in data.docs %}
+    <header{% if record.deleted == 'true' %} status="deleted"{% endif %}>
+        <identifier>{{ data.id_prefix }}{{ record.id }}</identifier>
+        <datestamp>{{ record.recordChangeDate[:10] }}</datestamp>
+        <setSpec>doc-type:{{ record.oai_type }}</setSpec>
+        {% for ddc in record.ddc %}
+        <setSpec>ddc:{{ ddc }}</setSpec>
+        {% endfor %}
+    </header>
+{% endfor %}
+{% if data.resumption_token %}<resumptionToken cursor="{{ data.cursor }}" completeListSize="{{ data.complete_list_size }}"{% if not data.last_batch %} data.expirationDate="{{ data.expiration_date }}"{% endif %}>{% if not data.last_batch %}{{ data.resumption_token }}{% endif %}</resumptionToken>{% endif %}
+        {% endblock contents %}

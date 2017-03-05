@@ -10,7 +10,7 @@
     {{ super() }}
     <div class="row">
         <div class="col-sm-10">
-        <h3>{% if (current_user.role == 'admin' or current_user.role == 'superadmin') and record.data.same_as and record.data.same_as[0] != '' %}<span class="glyphicon glyphicon-paperclip" aria-hidden="true"></span> {% endif %}{{ record.data.title }}</h3>
+        <h3>{% if (current_user.role == 'admin' or current_user.role == 'superadmin') and record.data.same_as and record.data.same_as[0] != '' %}<span class="glyphicon glyphicon-paperclip" aria-hidden="true"></span> {% endif %}{% if record.data.subseries %}{{ record.data.title }}{% else %}{{ header }}{% endif %}</h3>
         <dl class="dl-horizontal">
             {% if record.data.key_publication == True %}
                 <dt>
@@ -85,26 +85,33 @@
                 </dt>
                 <dd>
                     {% for person in record.data.person %}
-                        {{ person.name }}
-                        {% if person.tudo %} | <img src="http://www.tu-dortmund.de/favicon.ico">{% endif %}
-                        {% if person.rubi %} | <img src="http://www.rub.de/favicon.ico">{% endif %}
-                        {% if person.gnd %}<br/><img src="https://portal.dnb.de/static/bilder/icon_gnd.gif"> <a href="http://d-nb.info/gnd/{{ person.gnd }}">{{ person.gnd }}</a>{% endif %}
-                        {% if person.orcid %}<br/><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png"> <a href="http://orcid.org/{{ person.orcid }}">http://orcid.org/{{ person.orcid }}</a>{% endif %}
-                        {% if person.viaf %}<br/><a href="http://viaf.org/{{ person.viaf }}">{{ _('VIAF') }}</a>{% endif %}
-                        {% if person.isni %}<br/><a href="http://isni.org/isni/{{ person.isni|replace(' ', '') }}">{{ _('ISNI') }}</a>{% endif %}
-                        <br/>
-                        {% for role in person.role %}
-                            {{ role_map.get(role) }}
-                            {% if role == 'edt' and person.start_year %}
-                                ({{ person.start_year }}{% if person.start_volume %}, {{ _('Vol.') }} {{ person.start_volume }}{% endif %}{% if person.start_issue %}, {{ _('Issue') }} {{ person.start_issue }}{% endif %}{% if person.start_year != person.end_year and person.start_volume != person.end_volume and person.start_issue != person.end_issue %} - {{ person.end_year }}{% if person.end_volume %}, {{ _('Vol.') }} {{ person.end_volume }}{% if person.end_issue %}, {{ _('Issue') }} {{ person.end_issue }}{% endif %}{% endif %}{% endif %})
-                            {% endif %}
-                            {% if not loop.last %}, {% endif %}
-                        {% endfor %}
-                        <br/>
-                        {% if person.corresponding_author %}Corresponding {{ role_map.get('aut') }}{% endif %}
-                        {% if not loop.last %}<hr/>{% endif %}
-                        {% if loop.last and record.data.corporation.0.name %}<hr/>{% endif %}
+                        {% if person.name and record.data.person|length < 4 or (record.data.person|length > 3 and (person.tudo or person.rubi))%}
+                            {% if person.gnd %}<a href="{{ url_for('show_person', person_id=person.gnd) }}">{% endif %}{{ person.name }}{% if person.gnd %}</a>{% endif %}
+                            {% if person.tudo %} | <img src="http://www.tu-dortmund.de/favicon.ico">{% endif %}
+                            {% if person.rubi %} | <img src="http://www.rub.de/favicon.ico">{% endif %}
+                            {% if person.gnd %}<br/><img src="https://portal.dnb.de/static/bilder/icon_gnd.gif"> <a href="http://d-nb.info/gnd/{{ person.gnd }}">{{ person.gnd }}</a>{% endif %}
+                            {% if person.orcid %}<br/><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png"> <a href="http://orcid.org/{{ person.orcid }}">http://orcid.org/{{ person.orcid }}</a>{% endif %}
+                            {% if person.viaf %}<br/><a href="http://viaf.org/{{ person.viaf }}">{{ _('VIAF') }}</a>{% endif %}
+                            {% if person.isni %}<br/><a href="http://isni.org/isni/{{ person.isni|replace(' ', '') }}">{{ _('ISNI') }}</a>{% endif %}
+                            <br/>
+                            {% for role in person.role %}
+                                {{ role_map.get(role) }}{% if role == 'edt' and person.start_year %}({{ person.start_year }}{% if person.start_volume %}, {{ _('Vol.') }} {{ person.start_volume }}{% endif %}{% if person.start_issue %}, {{ _('Issue') }} {{ person.start_issue }}{% endif %}{% if person.start_year != person.end_year and person.start_volume != person.end_volume and person.start_issue != person.end_issue %} - {{ person.end_year }}{% if person.end_volume %}, {{ _('Vol.') }} {{ person.end_volume }}{% if person.end_issue %}, {{ _('Issue') }} {{ person.end_issue }}{% endif %}{% endif %}{% endif %}){% endif %}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                            <br/>
+                            {% if person.corresponding_author %}Corresponding {{ role_map.get('aut') }}{% endif %}
+                            {% if not loop.last %}<br/>{% endif %}
+                            {% if loop.last and record.data.corporation.0.name %}<hr/>{% endif %}
+                        {% endif %}
                     {% endfor %}
+                    {% if record.data.person|length > 3 %}
+                        Weitere Personen:<br/>
+                        {% for person in record.data.person %}
+                            {% if not person.tudo and not person.rubi%}
+                                {{ person.name }} ({% for role in person.role %}{{ role_map.get(role) }}{% if role == 'edt' and person.start_year %}({{ person.start_year }}{% if person.start_volume %}, {{ _('Vol.') }} {{ person.start_volume }}{% endif %}{% if person.start_issue %}, {{ _('Issue') }} {{ person.start_issue }}{% endif %}{% if person.start_year != person.end_year and person.start_volume != person.end_volume and person.start_issue != person.end_issue %} - {{ person.end_year }}{% if person.end_volume %}, {{ _('Vol.') }} {{ person.end_volume }}{% if person.end_issue %}, {{ _('Issue') }} {{ person.end_issue }}{% endif %}{% endif %}{% endif %}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}){% if not loop.last %}; {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+
                 </dd>
             {% endif %}
             {% if record.data.corporation.0.name %}
@@ -555,8 +562,7 @@
                                     <a href="{{ url_for('show_record', pubtype=mypart.pubtype, record_id=mypart.id) }}">{{ mypart.title }}</a>
                                     {% if mypart.volume or (mypart.page_first and mypart.page_last) %}:{% endif %}
                                     {% if mypart.volume %}
-                                        {% if mypart.pubtype != 'Series' %}{{ _('Vol.') }}: {% endif %}{{ mypart.volume }}
-                                        {% if mypart.issue %}, {{ _('Issue') }}: {{ mypart.issue }}{% endif %}
+                                        {% if mypart.pubtype != 'Series' %}{{ _('Vol.') }}: {% endif %}{{ mypart.volume }}{% if mypart.issue %}, {{ _('Issue') }}: {{ mypart.issue }}{% endif %}
                                     {% endif %}
                                     {% if not mypart.volume and mypart.issue %}
                                         {{ _('Issue') }}: {{ mypart.issue }}
@@ -708,7 +714,7 @@
                 </dt>
                 <dd>
                     {% for DOI in record.data.DOI %}
-                        <a href="https://dx.doi.org/{{ DOI }}" target="_blank">http://dx.doi.org/{{ DOI }}</a>{% if not loop.last %}<br/>{% endif %}
+                        <a href="https://doi.org/{{ DOI }}" target="_blank">https://doi.org/{{ DOI }}</a>{% if not loop.last %}<br/>{% endif %}
                     {% endfor %}
                 </dd>
             {% endif %}
@@ -766,12 +772,12 @@
                     {{ record.data.note }}
                 </dd>
             {% endif %}
-            {% if record.data.DFG %}
+            {% if record.data.oa_funded %}
                 <dt>
                     {{ _('Funding') }}
                 </dt>
                 <dd>
-                    {{ _('Article Processing Charge funded by the Deutsche Forschungsgemeinschaft (DFG) and the Open Access Publication Fund of') }} {{ record.data.catalog[0] }}
+                    {{ _('Article Processing Charge funded by the Open Access Publication Fund of') }} {{ record.data.corresponding_affiliation }}{% if record.data.DFG %} {{ _('and the Deutsche Forschungsgemeinschaft (DFG)') }}{% endif %}
                 </dd>
             {% endif %}
             {% if record.data.medium and record.data.medium != 'None' %}
@@ -859,6 +865,12 @@
                         {% endfor %}
                     </dd>
                 {% endif %}
+            {% else %}
+                <hr/>
+                <dt>{{ _('Editorial Status') }}</dt>
+                <dd>
+                    <span class="label label-{% if record.data.editorial_status == 'new' %}info{% elif record.data.editorial_status == 'in_process' %}default{% elif record.data.editorial_status == 'processed' %}primary{% elif record.data.editorial_status == 'final_editing' %}warning{% elif record.data.editorial_status == 'deleted' %}danger{% elif record.data.editorial_status == 'finalized' or record.data.editorial_status == 'imported' %}success{% endif %}">{{ record.data.editorial_status|capitalize }}</span> {% if record.data.created != record.data.changed %}{{ _('Last changed %(changed)s.', changed=record.data.changed|mk_time|humanize()) }}{% else %}{{ _('Last changed %(changed)s.', changed=record.data.created|mk_time|humanize()) }}{% endif %}
+                </dd>
             {% endif %}
         </dl>
         {% if config.DEBUG and current_user.role == 'superadmin' %}
@@ -876,12 +888,10 @@
         </div>
         <div class="col-sm-2">
             {% if not locked %}
-                {% if (current_user.role == 'admin' and not record.data.editorial_status == 'deleted') or current_user.role == 'superadmin' or current_user.email in record.data.owner %}
+                {% if editable %}
                 <div class="btn-group" role="group" aria-label="action-group">
                     <a href="{{ url_for('edit_record', pubtype=pubtype, record_id=record_id) }}" class="btn btn-default"><i class="fa fa-pencil"></i> {{ _('Edit') }}</a>
                     <a href="#" data-href="{{ url_for('delete_record', record_id=record.data.id) }}" class="btn btn-danger" data-toggle="modal" data-target="#confirm-delete"><i class="fa fa-trash"></i> {{ _('Delete') }}</a>
-                    {#<label for="apparent_dup">{{ _('Apparent Duplicate') }}</label>
-                    <input type="checkbox" id="apparent_dup" name="apparent_dup">#}
                 </div>
                 {% elif record.data.editorial_status == 'deleted' %}
                     <div class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> This record is marked for deletion!</div>
@@ -897,7 +907,7 @@
 {% endblock %}
 {% block site_scripts %}
     {% if config.DEBUG and current_user.role == 'superadmin' %}
-    <script src="{{ url_for('static', filename='prism/prism.js') }}"></script>
+    {# <script src="{{ url_for('static', filename='prism/prism.js') }}"></script> #}
     {% endif %}
     <script type="application/ld+json">
         {
@@ -936,7 +946,7 @@
         })
     </script>
     <!-- http://www.codecogs.com/latex/integration/htmlequations.php -->
-    <script type="text/javascript" src="https://latex.codecogs.com/latexit.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='latexit.js') }}"></script>
     <script type="text/javascript">
         LatexIT.add('h2',true);
         LatexIT.add('h3',true);

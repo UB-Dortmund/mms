@@ -27,10 +27,9 @@ import simplejson as json
 from utils.solr_handler import Solr
 
 try:
-    import app_secrets
-    import local_app_secrets as secrets
+    import local_p_secrets as secrets
 except ImportError:
-    import app_secrets
+    import p_secrets as secrets
 
 days_of_week = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
 

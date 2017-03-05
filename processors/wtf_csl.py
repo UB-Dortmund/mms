@@ -28,10 +28,9 @@ import simplejson as json
 from utils.solr_handler import Solr
 
 try:
-    import app_secrets
-    import local_app_secrets as secrets
+    import local_p_secrets as secrets
 except ImportError:
-    import app_secrets
+    import p_secrets as secrets
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)-4s %(message)s',
@@ -44,7 +43,7 @@ CSL_PUBTYPES = {
     'AudioBook': 'book',
     'AudioVideoDocument': 'broadcast',
     # 'Chapter': 'book-chapter',
-    'Chapter': 'article-journal',
+    'Chapter': 'chapter',
     'ChapterInLegalCommentary': 'legal_case',
     'Collection': 'book',
     'Conference': 'book',
@@ -156,7 +155,7 @@ def wtf_csl(wtf_records=None):
                         csl_record.setdefault('author', author)
                     if len(editor) > 0:
                         csl_record.setdefault('editor', editor)
-                    if len(contributor) > 0:
+                    if len(contributor) > 0 and record.get('pubtype') == 'Lecture':
                         csl_record.setdefault('author', contributor)
 
                 # container
@@ -173,8 +172,33 @@ def wtf_csl(wtf_records=None):
                                 if myjson.get('subtitle'):
                                     title += ': %s' % myjson.get('subtitle')
                                 csl_record.setdefault('container-title', title)
+                                author = []
+                                editor = []
+                                for person in myjson.get('person'):
+                                    # logging.info(person.get('name'))
+                                    family = person.get('name').split(', ')[0]
+                                    given = ''
+                                    if len(person.get('name').split(', ')) > 1:
+                                        given = person.get('name').split(', ')[1]
+                                    # logging.info('%s, %s' % (family, given))
+                                    if person.get('role'):
+                                        if 'aut' in person.get('role'):
+                                            author.append({'family': family, 'given': given})
+                                        elif 'edt' in person.get('role'):
+                                            editor.append({'family': family, 'given': given})
+
+                                if len(author) > 0:
+                                    csl_record.setdefault('author', author)
+                                if len(editor) > 0:
+                                    csl_record.setdefault('editor', editor)
+                            else:
+                                if myjson.get('subseries'):
+                                    title = myjson.get('title')
+                                    title += '/ %s' % myjson.get('subtitle')
+                                    csl_record.setdefault('container-title', title)
                         else:
                             csl_record.setdefault('container-title', host.get('is_part_of'))
+
                     except AttributeError as e:
                         logging.error(e)
 

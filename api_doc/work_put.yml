@@ -20,11 +20,11 @@ parameters:
 - name: work resource
   in: body
   description: JSON structure representing the new person resource.
-  required: true
   schema:
     $ref: "#/definitions/Work"
 responses:
   200:
+    description: The work resource is updated
     schema:
         $ref: "#/definitions/Work"
   400:

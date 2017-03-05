@@ -25,6 +25,7 @@ parameters:
         $ref: "#/definitions/Organisation"
 responses:
     200:
+        description: The organisation resource is updated
         schema:
             $ref: "#/definitions/Organisation"
     400:

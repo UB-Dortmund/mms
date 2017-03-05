@@ -1,0 +1,58 @@
+{
+  "properties": {
+    "same_as": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "also_known_as": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "status": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    },
+    "funds": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "organisation_id"
+      }
+    },
+    "parents": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "parent_id"
+      }
+    },
+    "children": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "child_id"
+      }
+    },
+    "partners": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "partner_id"
+      }
+    },
+    "url": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "url"
+      }
+    },
+    "catalog": {
+      "mergeStrategy": "arrayMergeById",
+      "mergeOptions": {
+        "idRef": "/"
+      }
+    }
+  }
+}

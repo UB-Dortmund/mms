@@ -1,0 +1,20 @@
+{% extends "oai_pmh/oai_base.xml" %}
+{% block contents %}
+	<repositoryName>{{ data.info.repositoryName }}</repositoryName>
+	<baseURL>{{ data.info.baseURL }}</baseURL>
+	<protocolVersion>{{ data.info.protocolVersion }}</protocolVersion>
+	{% for email in data.info.adminEmail %}
+		<adminEmail>{{ email }}</adminEmail>
+	{% endfor %}
+	<earliestDatestamp>{{ data.info.earliestDatestamp }}</earliestDatestamp>
+	<deletedRecord>{{ data.info.deletedRecord }}</deletedRecord>
+        <granularity>{{ data.info.granularity }}</granularity>
+	<description>
+		<oai-identifier xmlns="http://www.openarchives.org/OAI/2.0/oai-identifier" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai-identifier http://www.openarchives.org/OAI/2.0/oai-identifier.xsd">
+			<scheme>oai</scheme>
+			<repositoryIdentifier>{{ data.info.repositoryIdentifier }}</repositoryIdentifier>
+			<delimiter>{{ data.info.delimiter }}</delimiter>
+			<sampleIdentifier>{{ data.info.sampleIdentifier }}</sampleIdentifier>
+		</oai-identifier>
+	</description>
+{% endblock %}

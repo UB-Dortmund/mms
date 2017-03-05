@@ -1,0 +1,8 @@
+LOGFILE = '../log/import.log'
+API = 'http://localhost:5007'
+TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6InRydWUiLCJhdWQiOiJkZXYudWJAdHUtZG9ydG11bmQuZGUiLCJzdWIiOiJNTVMgUkVTVCBBUEkiLCJpc3MiOiJhcGkudWJAdHUtZG9ydG11bmQuZGUiLCJuYW1lIjoiU2FuZGJveCBBY2Nlc3MifQ.s-4fx9Izc4o7JYyPU42PkqurMunwq43cePi9MvmvFQE'
+
+# ---- PERSISTENCE ---- #
+SOLR_HOST = '129.217.132.18'
+SOLR_PORT = '5200'
+SOLR_APP = 'solr'

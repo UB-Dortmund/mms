@@ -1,0 +1,9 @@
+{% extends 'oai_pmh/oai_base.xml' %}
+        {% block contents %}
+		{% for key in data.info.keys() %}
+			<set>
+				<setSpec>{{ key }}</setSpec>
+				<setName>{{ data.info[key] }}</setName>
+			</set>
+		{% endfor %}
+        {% endblock contents %}

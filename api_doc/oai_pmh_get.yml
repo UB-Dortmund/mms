@@ -1,0 +1,45 @@
+OAI-PMH Data Provider
+---
+tags:
+  - OAI-PMH
+produces:
+  - text/xml
+parameters:
+- name: verb
+  in: query
+  description: one of the defined [OAI-PMH requests](http://www.openarchives.org/OAI/openarchivesprotocol.html#ProtocolMessages).
+  required: true
+  type: string
+- name: identifier
+  in: query
+  description: specifies the unique identifier of the item in the repository from which the record must be disseminated (may be required parameter)
+  required: false
+  type: string
+- name: metadataPrefix
+  in: query
+  description: specifies the metadataPrefix of the format that should be included in the metadata part of the returned record (may be required parameter)
+  required: false
+  type: string
+- name: from
+  in: query
+  description: argument with a UTCdatetime value, which specifies a lower bound for datestamp-based selective harvesting
+  required: false
+  type: string
+- name: until
+  in: query
+  description: argument with a UTCdatetime value, which specifies a lower bound for datestamp-based selective harvesting.
+  required: false
+  type: string
+- name: set
+  in: query
+  description: argument with a setSpec value, which specifies set criteria for selective harvesting
+  required: false
+  type: string
+- name: resumptionToken
+  in: query
+  description: an exclusive argument with a value that is the flow control token returned by a previous request that issued an incomplete list
+  required: false
+  type: string
+responses:
+  200:
+    description: Either an element with the same name as the verb of the respective OAI-PMH request or an [OAI-PMH error](http://www.openarchives.org/OAI/openarchivesprotocol.html#ErrorConditions)

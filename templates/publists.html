@@ -42,26 +42,60 @@
             Dabei sind:
 
             <ul>
-                <li><i>Einheit oder Person</i>: Hier sind zur Zeit die Werte "person" und "research_group" möglich. Weitere Organisationseinheiten werden in Kürze ergänzt.</li>
+                <li><i>Einheit oder Person</i>: Hier sind die Werte "person", "research_group", "chair", "organisation", "working_group" und "project" möglich.</li>
                 <li><i>GND-ID</i>: Die ID der Person oder Organisationseinheit in der  Gemeinsamen Normdatei der Deutschen Nationalbibliothek.</li>
-                <li><i>Stil</i>: Ein Zitationsstil aus der Liste der  CSL Styles. </li>
+                <li><i>Stil</i>: Ein Zitationsstil aus der Liste der  CSL Styles (siehe oben). </li>
             </ul>
 
             Darüber hinaus gibt es noch einige URL-Parameter:<br/><br/>
             <ul>
-                <li><code>agent</code>: Mögliche Werte sind "person", "research_group" und "chair".</li>
+                <li><code>agent</code>: Mögliche Werte sind "person", "research_group", "chair", "organisation", "working_group" und "project".</li>
                 <!-- TODO <li><code>format</code>: Mögliche Werte sind "js", "html" und "pdf".</li>-->
                 <li><code>filter_by_year</code>: Schränkt die Liste auf ein bestimmtes Jahr ein. Mögliche Werte sind Jahreszahlen mit dem Format 'JJJJ'.</li>
-                <li><code>filter_by_type</code>: Schränkt die Liste auf einen Publikationstyp ein. Mögliche Werte finden sich in der Übersicht zu Publikationstypen.</li>
-                <li><code>filter_by_pr</code>: Schränkt die Liste auf Publikationen ein, die im 'peer review'-Verfahren entstanden sind. Mögliche Werte sind 'true' oder 'false'.</li>
-                <li><code>filter_by_ger</code>: Schränkt die Liste auf deutschsprachige Publikationen ein. Mögliche Werte sind 'true' oder 'false'.</li>
-                <li><code>filter_by_eng</code>: Schränkt die Liste auf englischsprachige Publikationen ein. Mögliche Werte sind 'true' oder 'false'.</li>
-                <li><code>group_by_year</code>: Gruppiert die Publikationen nach ihrem Erscheinungsjahr. Mögliche Werte sind 'true' oder 'false'.</li>
-                <li><code>group_by_type</code>: Gruppiert die Publikationen nach ihrem Publikationstyp. Mögliche Werte sind 'true' oder 'false'.</li>
+                <li><code>filter_by_type</code>: Schränkt die Liste auf einen oder mehrere Publikationstypen ein (Trennzeichen: |). Mögliche Werte finden sich in der Übersicht zu Publikationstypen.</li>
+                <li><code>exclude_by_type</code>: Schränkt die Liste um einen oder mehrere Publikationstypen ein (Trennzeichen: |). Mögliche Werte finden sich in der Übersicht zu Publikationstypen.</li>
+                <li><code>filter_by_current_members</code>: Schränkt die Liste einer Organisation oder Arbeitsgruppe auf Publikationen ein, die aktiven Personen der Einrichtung gehören. Mögliche Werte sind 'true' oder 'false'. Default-Wert: 'false'</li>
+                <li><code>filter_by_former_members</code>: Schränkt die Liste einer Organisation oder Arbeitsgruppe auf Publikationen ein, die zu ehemaligen Personen der Einrichtung gehören. Mögliche Werte sind 'true' oder 'false'. Default-Wert: 'false'</li>
+                <li><code>filter_by_pr</code>: Schränkt die Liste auf Publikationen ein, die im 'peer review'-Verfahren entstanden sind. Mögliche Werte sind 'true' oder 'false'. Default-Wert: 'false'</li>
+                <li><code>filter_by_ger</code>: Schränkt die Liste auf deutschsprachige Publikationen ein. Mögliche Werte sind 'true' oder 'false'. Default-Wert: 'false'</li>
+                <li><code>filter_by_eng</code>: Schränkt die Liste auf englischsprachige Publikationen ein. Mögliche Werte sind 'true' oder 'false'. Default-Wert: 'false'</li>
+                <li><code>group_by_year</code>: Gruppiert die Publikationen nach ihrem Erscheinungsjahr. Mögliche Werte sind 'true' oder 'false'. Default-Wert: 'false'</li>
+                <li><code>group_by_type</code>: Gruppiert die Publikationen nach ihrem Publikationstyp. Mögliche Werte sind 'true' oder 'false'. Default-Wert: 'false'</li>
                 <li><code>group_by_type_year</code>: Gruppiert die Publikationen zuerst nach ihrem Publikationstyp und bettet die jeweilige Gruppierung nach Erscheinungsjahr darin ein. Mögliche Werte sind 'true' oder 'false'.</li>
                 <li><code>pubsort</code>: Sortiert eine nach Publikationstypen gruppierte Liste nach einer fachlichen Gewichtung, die sich an den Gepflogenheiten der STM-Fächer bzw. dem geisteswissenschaftlichen Bereich orientiert. Mögliche Werte sind 'stm' und 'anh'.</li>
                 <li><code>toc</code>: Bei einer Liste mit Gruppierung wird ein Verzeichnis der verwendeten Publikationstypen bzw. Jahre als Linkliste angelegt. Mögliche Werte sind 'true' und 'false'.</li>
                 <li><code>locale</code>: Bestimmt die Spracheinstellungen für die Publikationsliste (z.B., ob in Autorenlisten "und" oder "and" steht). Mögliche Werte sind  ISO 639-1 Codes. </li>
+                <li><code>reasoning</code>: Ermöglicht es, die Publikationsliste einer Organisationseinheit oder Arbeitsgruppe anhand der in ihr enthaltenen Organisationseinheiten, Arbeitsgruppen und Personen zu berechnen. Mögliche Werte sind 'true' oder 'false'. Default-Wert: 'false'</li>
+            </ul>
+
+            Übersicht zu Publikationstypen:<br/><br/>
+            <ul>
+                <li>articlejournal</li>
+                <li>articlenewspaper</li>
+                <li>audiobook</li>
+                <li>audiovideodocument</li>
+                <li>chapter</li>
+                <li>chapterinlegalcommentary</li>
+                <li>collection</li>
+                <li>conference</li>
+                <li>edition</li>
+                <li>internetdocument</li>
+                <li>journal</li>
+                <li>lecture</li>
+                <li>legalcommentary</li>
+                <li>monograph</li>
+                <li>multivolumework</li>
+                <li>newspaper</li>
+                <li>other</li>
+                <li>patent</li>
+                <li>pressrelease</li>
+                <li>radiotvprogram</li>
+                <li>report</li>
+                <li>researchdata</li>
+                <li>series</li>
+                <li>specialissue</li>
+                <li>standard</li>
+                <li>thesis</li>
             </ul>
 
             <h3>{{ _('Embed your work list') }}</h3>

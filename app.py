@@ -44,17 +44,16 @@ from citeproc.source.json import CiteProcJSON
 from datadiff import diff_dict
 from flask import Flask, render_template, redirect, request, jsonify, flash, url_for, send_file
 from flask import make_response
-from flask.ext.babel import Babel, lazy_gettext, gettext
-from flask.ext.bootstrap import Bootstrap
-from flask.ext.login import LoginManager, UserMixin, current_user, login_user, logout_user, login_required, \
+from flask_babel import Babel, gettext
+from flask_bootstrap import Bootstrap
+from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user, login_required, \
     make_secure_token
-from flask.ext.paginate import Pagination
-from flask.ext.socketio import SocketIO, emit
+from flask_paginate import Pagination
+from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 from flask_humanize import Humanize
 from flask_redis import Redis
-from flask_swagger import swagger
-from flask_wtf.csrf import CsrfProtect
+from flask_wtf.csrf import CSRFProtect
 from lxml import etree
 from requests import RequestException
 
@@ -77,10 +76,6 @@ try:
     import local_app_secrets as secrets
 except ImportError:
     import app_secrets as secrets
-
-# logging.basicConfig(level=logging.INFO,
-#                    format='%(asctime)s %(levelname)-4s %(message)s',
-#                    datefmt='%a, %d %b %Y %H:%M:%S')
 
 
 class ReverseProxied(object):
@@ -129,7 +124,7 @@ humanize_filter = Humanize(app)
 bootstrap = Bootstrap(app)
 app.config['BOOTSTRAP_SERVE_LOCAL'] = secrets.BOOTSTRAP_SERVE_LOCAL
 
-csrf = CsrfProtect(app)
+csrf = CSRFProtect(app)
 
 wtforms_json.init()
 
@@ -393,21 +388,21 @@ def search():
             sorting = 'changed desc'
         # logging.info('SORT: %s' % sorting)
         search_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT, application=secrets.SOLR_APP,
-                           core=core, start=(page - 1) * rows, rows=rows, query=query.replace('#', '\%23'),
+                           core=core, handler=handler,  start=(page - 1) * rows, rows=rows, query=query.replace('#', '\%23'),
                            fquery=filterquery, sort=sorting, json_facet=secrets.SOLR_PERSON_FACETS)
     if core == 'organisation':
         if sorting == '' or sorting == 'fdate desc':
             sorting = 'changed desc'
         # logging.info('SORT: %s' % sorting)
         search_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT, application=secrets.SOLR_APP,
-                           core=core, start=(page - 1) * rows, rows=rows, query=query.replace('#', '\%23'),
+                           core=core, handler=handler,  start=(page - 1) * rows, rows=rows, query=query.replace('#', '\%23'),
                            fquery=filterquery, sort=sorting, json_facet=secrets.SOLR_ORGA_FACETS)
     if core == 'group':
         if sorting == '' or sorting == 'fdate desc':
             sorting = 'changed desc'
         # logging.info('SORT: %s' % sorting)
         search_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT, application=secrets.SOLR_APP,
-                           core=core, start=(page - 1) * rows, rows=rows, query=query.replace('#', '\%23'),
+                           core=core, handler=handler,  start=(page - 1) * rows, rows=rows, query=query.replace('#', '\%23'),
                            fquery=filterquery, sort=sorting, json_facet=secrets.SOLR_GROUP_FACETS)
     search_solr.request()
     num_found = search_solr.count()
@@ -430,6 +425,16 @@ def search():
                                 record_name=lazy_gettext('titles'), per_page=rows,
                                 search_msg=lazy_gettext('Showing {start} to {end} of {found} {record_name}'))
         mystart = 1 + (pagination.page - 1) * pagination.per_page
+
+        if not current_user.is_authenticated or current_user.role == 'user':
+
+            if 'tudo:true' in filterquery:
+                del filterquery[filterquery.index('tudo:true')]
+            if 'rubi:true' in filterquery:
+                del filterquery[filterquery.index('rubi:true')]
+            if '-editorial_status:deleted' in filterquery:
+                del filterquery[filterquery.index('-editorial_status:deleted')]
+
         if core == 'hb2':
             return render_template('resultlist.html', records=search_solr.results, pagination=pagination,
                                    facet_data=search_solr.facets, header=lazy_gettext('Resultlist'), target='search',
@@ -442,22 +447,26 @@ def search():
                                    license_map=display_vocabularies.LICENSE_MAP,
                                    frequency_map=display_vocabularies.FREQUENCY_MAP,
                                    pubstatus_map=display_vocabularies.PUB_STATUS,
-                                   edt_status_map=display_vocabularies.EDT_STATUS)
+                                   edt_status_map=display_vocabularies.EDT_STATUS,
+                                   list=list)
         if core == 'person':
             return render_template('personlist.html', records=search_solr.results, pagination=pagination,
                                    facet_data=search_solr.facets, header=lazy_gettext('Resultlist'), target='search',
                                    core=core, site=theme(request.access_route), offset=mystart - 1, query=query,
-                                   filterquery=filterquery)
+                                   filterquery=filterquery,
+                                   list=list)
         if core == 'organisation':
             return render_template('orgalist.html', records=search_solr.results, pagination=pagination,
                                    facet_data=search_solr.facets, header=lazy_gettext('Resultlist'), target='search',
                                    core=core, site=theme(request.access_route), offset=mystart - 1, query=query,
-                                   filterquery=filterquery)
+                                   filterquery=filterquery,
+                                   list=list)
         if core == 'group':
             return render_template('grouplist.html', records=search_solr.results, pagination=pagination,
                                    facet_data=search_solr.facets, header=lazy_gettext('Resultlist'), target='search',
                                    core=core, site=theme(request.access_route), offset=mystart - 1, query=query,
-                                   filterquery=filterquery)
+                                   filterquery=filterquery,
+                                   list=list)
 
 
 @app.route('/search/external/gbv', methods=['GET'])
@@ -2801,17 +2810,16 @@ def new_record(pubtype='ArticleJournal'):
                                application=secrets.SOLR_APP, core='hb2', data=[solr_data])
             record_solr.update()
         else:
-            _record2solr(form, action='create')
+            persistence.record2solr(form, action='create')
         return jsonify({'status': 200})
 
-    if current_user.role == 'admin' or current_user.role == 'superadmin':
-        for person in form.person:
-            if current_user.role == 'admin' or current_user.role == 'superadmin':
-                if pubtype != 'Patent':
-                    person.role.choices = forms_vocabularies.ADMIN_ROLES
-            else:
-                if pubtype != 'Patent':
-                    person.role.choices = forms_vocabularies.USER_ROLES
+    for person in form.person:
+        if current_user.role == 'admin' or current_user.role == 'superadmin':
+            if pubtype != 'Patent':
+                person.role.choices = forms_vocabularies.ADMIN_ROLES
+        else:
+            if pubtype != 'Patent':
+                person.role.choices = forms_vocabularies.USER_ROLES
 
     if current_user.role == 'admin' or current_user.role == 'superadmin':
         form.pubtype.choices = forms_vocabularies.ADMIN_PUBTYPES
@@ -2845,7 +2853,7 @@ def new_record(pubtype='ArticleJournal'):
             pass
         # logging.info(form)
         # logging.info(form.person.name)
-        _record2solr(form, action='create')
+        persistence.record2solr(form, action='create')
         # return redirect(url_for('dashboard'))
         # logging.info(form.data)
         # logging.info(form.data.get('id').strip())
@@ -3095,7 +3103,7 @@ def new_person():
             if form.data.get('editorial_status') == 'new':
                 form.editorial_status.data = 'in_process'
         # logging.info(form.data)
-        doit, new_id = _person2solr(form, action='create')
+        doit, new_id, message = persistence.person2solr(form, action='create')
         if doit:
 
             return show_person(form.data.get('id').strip())
@@ -3253,8 +3261,18 @@ def new_orga():
         if current_user.role == 'admin' or current_user.role == 'superadmin':
             if form.data.get('editorial_status') == 'new':
                 form.editorial_status.data = 'in_process'
+        if len(form.data.get('owner')) == 0 or form.data.get('owner')[0] == '':
+            form.owner[0].data = current_user.email
+        if len(form.data.get('catalog')) == 0 or form.data.get('catalog')[0] == '':
+            # TODO use config data
+            if current_user.affiliation == 'tudo':
+                form.catalog.data = ['Technische Universität Dortmund']
+            if current_user.affiliation == 'rub':
+                form.catalog.data = ['Ruhr-Universität Bochum']
         # logging.info(form.data)
-        _orga2solr(form, action='create')
+        redirect_id, message = persistence.orga2solr(form, action='create')
+        for msg in message:
+            flash(msg, category='warning')
 
         return show_orga(form.data.get('id').strip())
         # return redirect(url_for('orgas'))
@@ -3290,13 +3308,16 @@ def new_group():
         if len(form.data.get('owner')) == 0 or form.data.get('owner')[0] == '':
             form.owner[0].data = current_user.email
         if len(form.data.get('catalog')) == 0 or form.data.get('catalog')[0] == '':
+            # TODO use config data
             if current_user.affiliation == 'tudo':
                 form.catalog.data = ['Technische Universität Dortmund']
             if current_user.affiliation == 'rub':
                 form.catalog.data = ['Ruhr-Universität Bochum']
 
         # logging.info(form.data)
-        _group2solr(form, action='create')
+        redirect_id, message = persistence.group2solr(form, action='create')
+        for msg in message:
+            flash(msg, category='warning')
 
         return show_group(form.data.get('id').strip())
         # return redirect(url_for('groups'))
@@ -3349,8 +3370,38 @@ def show_record(pubtype, record_id=''):
         thedata = json.loads(result.get('wtf_json'))
         locked = result.get('locked')
 
+        editable = False
+        user_eq_actor = False
+        if current_user.is_authenticated:
+            for person in thedata.get('person'):
+                if person.get('gnd'):
+                    get_request = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                       application=secrets.SOLR_APP, query='gnd:%s' % person.get('gnd'),
+                                       core='person', fields=['email'], facet='false')
+                    get_request.request()
+
+                    if len(get_request.results) > 0:
+                        if get_request.results[0].get('email') == current_user.email:
+                            user_eq_actor = True
+                            break
+
+            if (current_user.role == 'admin' and thedata.get('editorial_status') != 'deleted') \
+                    or current_user.role == 'superadmin' or current_user.email in thedata.get('owner') \
+                    or (user_eq_actor and thedata.get('editorial_status') == 'new'):
+                editable = True
+
+        title = thedata.get('title')
+        if is_part_of:
+            for host in is_part_of:
+                host_data = json.loads(host)
+                if thedata.get('title') == host_data.get('volume'):
+                    title = '%s / %s' % (host_data.get('title'), host_data.get('volume'))
+                    break
+        if thedata.get('subseries_sort'):
+            title = '%s / %s' % (thedata.get('title'), thedata.get('subseries_sort'))
+
         form = display_vocabularies.PUBTYPE2FORM.get(pubtype).from_json(thedata)
-        return render_template('record.html', record=form, header=form.data.get('title'),
+        return render_template('record.html', record=form, header=title,
                                site=theme(request.access_route), action='retrieve', record_id=record_id,
                                del_redirect=url_for('dashboard'), pubtype=pubtype,
                                role_map=display_vocabularies.ROLE_MAP,
@@ -3365,7 +3416,8 @@ def show_record(pubtype, record_id=''):
                                affiliation=affiliation, group=group, openurl=openurl,
                                core='hb2', csl_json=json.dumps(csl_json, indent=4),
                                wtf_json=json.dumps(thedata, indent=4),
-                               orcid_json=json.dumps(orcid_json, indent=4))
+                               orcid_json=json.dumps(orcid_json, indent=4),
+                               editable=editable, user_eq_actor=user_eq_actor)
 
     else:
         flash('The requested record %s was not found!' % record_id, category='warning')
@@ -3380,12 +3432,14 @@ def show_person(person_id=''):
     if result:
         thedata = json.loads(result.get('wtf_json'))
         form = PersonAdminForm.from_json(thedata)
+        locked = result.get('locked')
 
         return render_template('person.html', record=form, header=form.data.get('name'),
                                site=theme(request.access_route), action='retrieve', record_id=person_id,
                                pubtype='person', del_redirect=url_for('persons'),
                                url_map=display_vocabularies.URL_TYPE_MAP,
                                pers_status_map=display_vocabularies.PERS_STATUS_MAP,
+                               locked=locked,
                                core='person', wtf_json=json.dumps(thedata, indent=4))
     else:
         flash('The requested person %s was not found!' % person_id, category='warning')
@@ -3401,10 +3455,12 @@ def show_orga(orga_id=''):
         thedata = json.loads(result.get('wtf_json'))
         parent_type = result.get('parent_type')
         form = OrgaAdminForm.from_json(thedata)
+        locked = result.get('locked')
 
         return render_template('orga.html', record=form, header=form.data.get('pref_label'),
                                site=theme(request.access_route), action='retrieve', record_id=orga_id,
-                               pubtype='organisation', del_redirect=url_for('orgas'), core='organisation',
+                               pubtype='organisation', del_redirect=url_for('orgas'),
+                               locked=locked, core='organisation',
                                parent_type=parent_type, wtf_json=json.dumps(thedata, indent=4))
     else:
         flash('The requested organisation %s was not found!' % orga_id, category='warning')
@@ -3478,10 +3534,12 @@ def show_group(group_id=''):
         thedata = json.loads(result.get('wtf_json'))
         parent_type = result.get('parent_type')
         form = GroupAdminForm.from_json(thedata)
+        locked = result.get('locked')
 
         return render_template('group.html', record=form, header=form.data.get('pref_label'),
                                site=theme(request.access_route), action='retrieve', record_id=group_id,
-                               pubtype='group', del_redirect=url_for('groups'), core='group',
+                               pubtype='group', del_redirect=url_for('groups'),
+                               locked=locked, core='group',
                                url_map=display_vocabularies.URL_TYPE_MAP, parent_type=parent_type,
                                wtf_json=json.dumps(thedata, indent=4))
     else:
@@ -3494,6 +3552,8 @@ def show_group(group_id=''):
 def edit_record(record_id='', pubtype=''):
     cptask = request.args.get('cptask', False)
     logging.info('cptask = %s' % cptask)
+    user_is_actor = request.args.get('user_is_actor', False)
+    logging.info('user_is_actor = %s' % cptask)
 
     lock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
                             application=secrets.SOLR_APP, core='hb2',
@@ -3559,18 +3619,22 @@ def edit_record(record_id='', pubtype=''):
         try:
             if current_user.role == 'user':
                 form.owner[0].data = current_user.email
-            if form.data.get('editorial_status') == 'new':
-                form.editorial_status.data = 'in_process'
-            if form.data.get('editorial_status') == 'edited' and current_user.role == 'superadmin':
-                form.editorial_status.data = 'final_editing'
+            else:
+                if form.data.get('editorial_status') == 'new':
+                    form.editorial_status.data = 'in_process'
+                if form.data.get('editorial_status') == 'edited' and current_user.role == 'superadmin':
+                    form.editorial_status.data = 'final_editing'
         except AttributeError:
             pass
-        _record2solr(form, action='update')
-        unlock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                  application=secrets.SOLR_APP, core='hb2',
-                                  data=[{'id': record_id, 'locked': {'set': 'false'}}])
-        unlock_record_solr.update()
-        # return redirect(url_for('dashboard'))
+
+        new_id, message = persistence.record2solr(form, action='update')
+        for msg in message:
+            flash(msg, category='warning')
+        if new_id == record_id:
+            unlock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                      application=secrets.SOLR_APP, core='hb2',
+                                      data=[{'id': record_id, 'locked': {'set': 'false'}}])
+            unlock_record_solr.update()
 
         # if cptask: delete redis record for record_id
         if cptask:
@@ -3625,23 +3689,17 @@ def edit_person(person_id=''):
                             data=[{'id': person_id, 'locked': {'set': 'true'}}])
     lock_record_solr.update()
 
-    idfield = 'id'
-    if GND_RE.match(person_id):
-        idfield = 'gnd'
-    edit_person_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                            application=secrets.SOLR_APP, query='%s:%s' % (idfield, person_id), core='person',
-                            facet='false')
-    edit_person_solr.request()
+    person = persistence.get_person(person_id)
 
     if request.method == 'POST':
         form = PersonAdminForm()
     else:
-        if len(edit_person_solr.results) == 0:
+        if person:
+            thedata = json.loads(person.get('wtf_json'))
+            form = PersonAdminForm.from_json(thedata)
+        else:
             flash('The requested person %s was not found!' % person_id, category='warning')
             return redirect(url_for('persons'))
-        else:
-            thedata = json.loads(edit_person_solr.results[0].get('wtf_json'))
-            form = PersonAdminForm.from_json(thedata)
 
     valid = form.validate_on_submit()
     # logging.info('form.errors: %s' % valid)
@@ -3660,11 +3718,14 @@ def edit_person(person_id=''):
         if form.data.get('editorial_status') == 'edited' and current_user.role == 'superadmin':
             form.editorial_status.data = 'final_editing'
 
-        _person2solr(form, action='update')
-        unlock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                  application=secrets.SOLR_APP, core='person',
-                                  data=[{'id': person_id, 'locked': {'set': 'false'}}])
-        unlock_record_solr.update()
+        doit, redirect_id, message = persistence.person2solr(form, action='update')
+        for msg in message:
+            flash(msg, category='warning')
+        if redirect_id == person_id:
+            unlock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                      application=secrets.SOLR_APP, core='person',
+                                      data=[{'id': redirect_id, 'locked': {'set': 'false'}}])
+            unlock_record_solr.update()
 
         return show_person(form.data.get('id').strip())
         # return redirect(url_for('persons'))
@@ -3683,24 +3744,23 @@ def edit_orga(orga_id=''):
     if current_user.role != 'admin' and current_user.role != 'superadmin':
         flash(gettext('For Admins ONLY!!!'))
         return redirect(url_for('homepage'))
-    lock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT, 
+
+    lock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
                             application=secrets.SOLR_APP, core='organisation',
                             data=[{'id': orga_id, 'locked': {'set': 'true'}}])
     lock_record_solr.update()
 
-    edit_orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT, 
-                          application=secrets.SOLR_APP, query='id:%s' % orga_id, core='organisation')
-    edit_orga_solr.request()
+    orga = persistence.get_orga(orga_id)
 
     if request.method == 'POST':
         form = OrgaAdminForm()
     else:
-        if len(edit_orga_solr.results) == 0:
+        if orga:
+            thedata = json.loads(orga.get('wtf_json'))
+            form = OrgaAdminForm.from_json(thedata)
+        else:
             flash('The requested organisation %s was not found!' % orga_id, category='warning')
             return redirect(url_for('orgas'))
-        else:
-            thedata = json.loads(edit_orga_solr.results[0].get('wtf_json'))
-            form = OrgaAdminForm.from_json(thedata)
 
     valid = form.validate_on_submit()
     # logging.info('form.errors: %s' % valid)
@@ -3719,11 +3779,15 @@ def edit_orga(orga_id=''):
         if form.data.get('editorial_status') == 'edited' and current_user.role == 'superadmin':
             form.editorial_status.data = 'final_editing'
 
-        redirect_id = _orga2solr(form, action='update')
-        unlock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT, 
-                                  application=secrets.SOLR_APP, core='organisation',
-                                  data=[{'id': redirect_id, 'locked': {'set': 'false'}}])
-        unlock_record_solr.update()
+        # redirect_id, message = persistence.orga2solr(form, action='update', getchildren=True, relitems=False)
+        redirect_id, message = persistence.orga2solr(form, action='update')
+        for msg in message:
+            flash(msg, category='warning')
+        if redirect_id == orga_id:
+            unlock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                      application=secrets.SOLR_APP, core='organisation',
+                                      data=[{'id': redirect_id, 'locked': {'set': 'false'}}])
+            unlock_record_solr.update()
 
         return show_orga(redirect_id)
         # return redirect(url_for('orgas'))
@@ -3742,24 +3806,23 @@ def edit_group(group_id=''):
     if current_user.role != 'admin' and current_user.role != 'superadmin':
         flash(gettext('For Admins ONLY!!!'))
         return redirect(url_for('homepage'))
-    lock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT, 
+
+    lock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
                             application=secrets.SOLR_APP, core='group',
                             data=[{'id': group_id, 'locked': {'set': 'true'}}])
     lock_record_solr.update()
 
-    edit_group_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT, 
-                           application=secrets.SOLR_APP, query='id:%s' % group_id, core='group')
-    edit_group_solr.request()
+    group = persistence.get_group(group_id)
 
     if request.method == 'POST':
         form = GroupAdminForm()
     else:
-        if len(edit_group_solr.results) == 0:
-            flash('The requested working group %s was not found!' % group_id, category='warning')
-            return redirect(url_for('groups'))
-        else:
-            thedata = json.loads(edit_group_solr.results[0].get('wtf_json'))
+        if group:
+            thedata = json.loads(group.get('wtf_json'))
             form = GroupAdminForm.from_json(thedata)
+        else:
+            flash('The requested group %s was not found!' % group_id, category='warning')
+            return redirect(url_for('groups'))
 
     valid = form.validate_on_submit()
     # logging.info('form.errors: %s' % valid)
@@ -3776,11 +3839,14 @@ def edit_group(group_id=''):
             form.editorial_status.data = 'final_editing'
 
         # logging.info('FORM: %s' % form.data)
-        redirect_id = _group2solr(form, action='update')
-        unlock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT, 
-                                  application=secrets.SOLR_APP, core='group',
-                                  data=[{'id': redirect_id, 'locked': {'set': 'false'}}])
-        unlock_record_solr.update()
+        redirect_id, message = persistence.group2solr(form, action='update')
+        for msg in message:
+            flash(msg, category='warning')
+        if redirect_id == group_id:
+            unlock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                      application=secrets.SOLR_APP, core='group',
+                                      data=[{'id': redirect_id, 'locked': {'set': 'false'}}])
+            unlock_record_solr.update()
 
         return show_group(redirect_id)
         # return redirect(url_for('groups'))
@@ -3999,10 +4065,9 @@ def duplicates():
 @app.route('/consolidate/persons')
 @login_required
 def consolidate_persons():
-    if secrets.APP_SECURITY:
-        if current_user.role != 'admin' and current_user.role != 'superadmin':
-            flash(gettext('For Admins ONLY!!!'))
-            return redirect(url_for('homepage'))
+    if current_user.role != 'admin' and current_user.role != 'superadmin':
+        flash(gettext('For Admins ONLY!!!'))
+        return redirect(url_for('homepage'))
     # Die ursprünglich hier definierte Funktion ist aus Gründen der Perfomance in ein separates Skript ausgelagert
     # worden. Diese kann nun zb. einmal täglich ausgeführt werden. Die Ergebnisse landen in einer Redis-Instanz.
     # Hier werden nun die Ergebnisse aus dieser Redis-Instanz geholt und angezeigt.
@@ -4054,623 +4119,112 @@ def show_related_item(relation='', record_ids=''):
     return jsonify({'relation': relation, 'docs': relation_solr.results})
 
 
+@app.route('/show_members/organisation/<orga_id>')
+def show_members_of_orga(orga_id=''):
+    # get orga doc
+    orga = persistence.get_orga(orga_id)
+
+    if not orga:
+        return redirect(url_for('show_orga', orga_id=orga_id))
+    else:
+        thedata = json.loads(orga.get('wtf_json'))
+        name = thedata.get('pref_label')
+
+        orgas = {}
+        orgas.setdefault(orga_id, name)
+        # get all children
+        if orga.get('children'):
+            children = thedata.get('children')
+            for child in children:
+                # child = json.loads(child_json)
+                if child.get('child_id'):
+                    orgas.setdefault(child.get('child_id'), child.get('child_label'))
+        # for each orga get all persons
+
+        query = ''
+        idx_p = 0
+        for oid in orgas.keys():
+            query += 'affiliation_id:%s' % oid
+            idx_p += 1
+            if idx_p < len(orgas) and query != '':
+                query += ' OR '
+
+        return redirect('%s?q=%s&core=person&list=1' % (url_for('search'), query))
+
+
+@app.route('/show_works/organisation/<orga_id>')
+def show_works_of_orga(orga_id=''):
+    # get orga doc
+    orga = persistence.get_orga(orga_id)
+
+    if not orga:
+        return redirect(url_for('show_orga', orga_id=orga_id))
+    else:
+        thedata = json.loads(orga.get('wtf_json'))
+        name = thedata.get('pref_label')
+
+        orgas = {}
+        orgas.setdefault(orga_id, name)
+        # get all children
+        if orga.get('children'):
+            children = thedata.get('children')
+            for child in children:
+                # child = json.loads(child_json)
+                if child.get('child_id'):
+                    orgas.setdefault(child.get('child_id'), child.get('child_label'))
+        # for each orga get all persons
+
+        query = ''
+        idx_o = 0
+        for oid in orgas.keys():
+            member_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                               application=secrets.SOLR_APP,
+                               query='affiliation_id:"%s"' % oid,
+                               fquery=['gnd:[\'\' TO *]'], fields=['gnd', 'name'], rows=100000,
+                               core='person')
+            member_solr.request()
+
+            query_part = ''
+
+            if member_solr.results and len(member_solr.results) > 0:
+                # logging.debug('members: %s' % len(member_solr.results))
+                idx_p = 0
+                for member in member_solr.results:
+                    # TODO später nur pndid
+                    query_part += 'pnd:"%s%s%s"' % (member.get('gnd'), '%23', member.get('name'))
+                    idx_p += 1
+                    if idx_p < len(member_solr.results) and query_part != '' and not query_part.endswith(' OR '):
+                        query_part += ' OR '
+
+                if query_part != '':
+                    query += query_part
+
+            idx_o += 1
+            if idx_o < len(orgas) and query != '' and not query.endswith(' OR '):
+                query += ' OR '
+
+        while query.endswith(' OR '):
+            query = query[:-4]
+
+        url = '%s?q=%s&list=1' % (url_for('search'), query)
+        return redirect(url.replace('//', '/'))
+        # return 'poop'
+
+
+@app.route('/show_members/group/<group_id>')
+def show_members_of_group(group_id=''):
+    return 'poop'
+
+
+@app.route('/show_works/group/<group_id>')
+def show_works_of_group(group_id=''):
+    return 'poop'
+
+
 @app.route('/embed_works')
 def embed_works():
     return render_template('publists.html', header=lazy_gettext('Embed your work list'),
                            site=theme(request.access_route))
-
-
-@app.route('/<agent>/<agent_id>/bibliography/<style>')
-def bibliography(agent='', agent_id='', style='harvard1'):
-    format = request.args.get('format', 'html')
-
-    filter_by_year = request.args.get('filter_by_year', '')
-    filter_by_type = request.args.get('filter_by_type', '')
-    filter_by_pr = request.args.get('filter_by_pr', False)
-    filter_by_ger = request.args.get('filter_by_ger', False)
-    filter_by_eng = request.args.get('filter_by_eng', False)
-    group_by_year = request.args.get('group_by_year', False)
-    # logging.info('group_by_year = %s' % group_by_year)
-    group_by_type = request.args.get('group_by_type', False)
-    group_by_type_year = request.args.get('group_by_type_year', False)
-    pubsort = request.args.get('pubsort', '')
-    toc = request.args.get('toc', False)
-    locale = request.args.get('locale', '')
-
-    reasoning = request.args.get('reasoning', True)
-    refresh = request.args.get('refresh', False)
-
-    formats = ['html', 'js', 'csl', 'pdf']
-    agent_types = {
-        'person': 'person',
-        'research_group': 'organisation',
-        'chair': 'organisation',
-        'organisation': 'organisation',
-        'working_group': 'organisation',
-    }
-    pubsorts = ['stm', 'anh']
-    STM_SORT = ['ArticleJournal', 'Chapter', 'Monograph', 'Journal', 'Series', 'Conference', 'Collection',
-                'SpecialIssue', 'Patent', 'Standard', 'Thesis', 'InternetDocument', 'Report', 'Lecture', 'Sonstiges',
-                'ArticleNewspaper', 'PressRelease', 'RadioTVProgram', 'AudioVideoDocument',
-                'ResearchData']
-    STM_LIST = {
-        'ArticleJournal': '',
-        'Chapter': '',
-        'Monograph': '',
-        'Journal': '',
-        'Series': '',
-        'Conference': '',
-        'Collection': '',
-        'SpecialIssue': '',
-        'Patent': '',
-        'Standard': '',
-        'Thesis': '',
-        'InternetDocument': '',
-        'Report': '',
-        'Lecture': '',
-        'ArticleNewspaper': '',
-        'PressRelease': '',
-        'RadioTVProgram': '',
-        'AudioVideoDocument': '',
-        'ResearchData': '',
-    }
-    ANH_SORT = ['Monograph', 'ArticleJournal', 'ChapterInLegalCommentary', 'Chapter', 'LegalCommentary', 'Collection',
-                'Conference', 'Edition', 'SpecialIssue', 'Journal', 'Series', 'Newspaper', 'Thesis',
-                'ArticleNewspaper',
-                'Lecture', 'Report', 'InternetDocument', 'RadioTVProgram', 'AudioVideoDocument',
-                'PressRelease', 'ResearchData']
-    ANH_LIST = {
-        'Monograph': '',
-        'ArticleJournal': '',
-        'ChapterInLegalCommentary': '',
-        'Chapter': '',
-        'LegalCommentary': '',
-        'Collection': '',
-        'Conference': '',
-        'Edition': '',
-        'SpecialIssue': '',
-        'Journal': '',
-        'Series': '',
-        'Newspaper': '',
-        'Thesis': '',
-        'ArticleNewspaper': '',
-        'Lecture': '',
-        'Report': '',
-        'InternetDocument': '',
-        'RadioTVProgram': '',
-        'AudioVideoDocument': '',
-        'PressRelease': '',
-        'ResearchData': '',
-    }
-
-    if format not in formats:
-        return make_response('Bad request: format!', 400)
-    elif agent not in agent_types.keys():
-        return make_response('Bad request: agent!', 400)
-    elif pubsort and pubsort not in pubsorts:
-        return make_response('Bad request: pubsort!', 400)
-
-    key = request.full_path.replace('&refresh=true', '').replace('?refresh=true', '?')
-    # logging.debug('KEY: %s' % key)
-    response = ''
-    if not refresh:
-        # request in cache?
-        try:
-
-            storage_publists_cache = app.extensions['redis']['REDIS_PUBLIST_CACHE']
-
-            if storage_publists_cache.exists(key):
-                response = storage_publists_cache.get(key)
-
-        except Exception as e:
-            logging.info('REDIS ERROR: %s' % e)
-
-    if response == '':
-
-        group = False
-        group_field = ''
-        group_limit = 100000
-        if str2bool(group_by_year):
-            group = True
-            group_field = 'fdate'
-        elif str2bool(group_by_type):
-            group = True
-            group_field = 'pubtype'
-
-        filterquery = []
-        if str2bool(filter_by_eng):
-            filterquery.append('language:eng')
-        elif str2bool(filter_by_ger):
-            filterquery.append('language:ger')
-        elif str2bool(filter_by_pr):
-            filterquery.append('peer_reviewed:true')
-
-        if filter_by_type != '':
-            filterquery.append('pubtype:"%s"' % filter_by_type)
-        if filter_by_year != '':
-            filterquery.append('fdate:"%s"' % filter_by_year)
-
-        query = ''
-        results = []
-        if agent_types.get(agent) == 'person':
-
-            # get facet value
-            actor_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                              application=secrets.SOLR_APP, query='gnd:%s' % agent_id, export_field='wtf_json',
-                              core=agent_types.get(agent))
-            actor_solr.request()
-
-            if len(actor_solr.results) == 0:
-                return make_response('Not Found: Unknown Agent!', 404)
-            else:
-                name = actor_solr.results[0].get('name')
-
-                query = 'pnd:"%s%s%s"' % (agent_id, '%23', name)
-                # logging.info('query=%s' % query)
-
-        elif agent_types.get(agent) == 'organisation':
-            # get orga doc
-            actor_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                              application=secrets.SOLR_APP, query='gnd:%s' % agent_id, export_field='wtf_json',
-                              core=agent_types.get(agent))
-            actor_solr.request()
-
-            if len(actor_solr.results) == 0:
-                return make_response('Not Found: Unknown Agent!', 404)
-            else:
-                name = actor_solr.results[0].get('pref_label')
-                # logging.debug('name = %s' % name)
-
-                if reasoning:
-                    # logging.debug('reasoning: %s' % reasoning)
-                    orgas = {}
-                    orgas.setdefault(agent_id, name)
-                    # get all children
-                    if actor_solr.results[0].get('children'):
-                        children = actor_solr.results[0].get('children')
-                        for child_json in children:
-                            child = json.loads(child_json)
-                            orgas.setdefault(child.get('id'), child.get('label'))
-                    # for each orga get all persons
-                    # logging.info('orgas: %s' % orgas)
-                    query = ''
-                    idx_o = 0
-                    for orga_id in orgas.keys():
-                        member_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                           application=secrets.SOLR_APP, query='faffiliation:"%s"' % orgas.get(orga_id),
-                                           fquery=['gnd:[\'\' TO *]'], fields=['gnd', 'name'], rows=100000,
-                                           core='person')
-                        member_solr.request()
-
-                        query_part = ''
-
-                        if member_solr.results and len(member_solr.results) > 0:
-                            # logging.debug('members: %s' % len(member_solr.results))
-                            idx_p = 0
-                            for member in member_solr.results:
-                                query_part += 'pnd:"%s%s%s"' % (member.get('gnd'), '%23', member.get('name'))
-                                idx_p += 1
-                                if idx_p < len(member_solr.results) and query_part != '':
-                                    query_part += ' OR '
-
-                            if query_part != '':
-                                query += query_part
-
-                        idx_o += 1
-                        if idx_o < len(orgas) and query != '':
-                            query += ' OR '
-
-                    while query.endswith(' OR '):
-                        query = query[:-4]
-
-                    # logging.info('query=%s' % query)
-
-                else:
-                    logging.debug('reasoning: %s' % reasoning)
-                    # TODO werte die Felder affiliation_context und group_context aus
-
-        if group_by_type_year and not filter_by_year and not filter_by_type:
-
-            facet_tree = ('pubtype', 'fdate')
-
-            publist_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                application=secrets.SOLR_APP, handler='query',
-                                query=query, fields=['wtf_json'], rows=0,
-                                facet='true', facet_tree=facet_tree, facet_sort=False, facet_limit=-1,
-                                sort='fdate asc', core='hb2')
-            publist_solr.request()
-            # logging.info('publist_solr.tree: %s' % json.dumps(publist_solr.tree, indent=4))
-
-            biblist_id = str(uuid.uuid4())
-            biblist = ''
-            biblist_toc = ''
-            biblist_coins = ''
-
-            STM_TOC = {
-                'ArticleJournal': '',
-                'Chapter': '',
-                'Monograph': '',
-                'Journal': '',
-                'Series': '',
-                'Conference': '',
-                'Collection': '',
-                'SpecialIssue': '',
-                'Patent': '',
-                'Standard': '',
-                'Thesis': '',
-                'InternetDocument': '',
-                'Report': '',
-                'Lecture': '',
-                'ArticleNewspaper': '',
-                'PressRelease': '',
-                'RadioTVProgram': '',
-                'AudioVideoDocument': '',
-                'ResearchData': '',
-            }
-            ANH_TOC = {
-                'Monograph': '',
-                'ArticleJournal': '',
-                'ChapterInLegalCommentary': '',
-                'Chapter': '',
-                'LegalCommentary': '',
-                'Collection': '',
-                'Conference': '',
-                'Edition': '',
-                'SpecialIssue': '',
-                'Journal': '',
-                'Series': '',
-                'Newspaper': '',
-                'Thesis': '',
-                'ArticleNewspaper': '',
-                'Lecture': '',
-                'Report': '',
-                'InternetDocument': '',
-                'RadioTVProgram': '',
-                'AudioVideoDocument': '',
-                'PressRelease': '',
-                'ResearchData': '',
-            }
-
-            STM_COINS = {
-                'ArticleJournal': '',
-                'Chapter': '',
-                'Monograph': '',
-                'Journal': '',
-                'Series': '',
-                'Conference': '',
-                'Collection': '',
-                'SpecialIssue': '',
-                'Patent': '',
-                'Standard': '',
-                'Thesis': '',
-                'InternetDocument': '',
-                'Report': '',
-                'Lecture': '',
-                'ArticleNewspaper': '',
-                'PressRelease': '',
-                'RadioTVProgram': '',
-                'AudioVideoDocument': '',
-                'ResearchData': '',
-            }
-            ANH_COINS = {
-                'Monograph': '',
-                'ArticleJournal': '',
-                'ChapterInLegalCommentary': '',
-                'Chapter': '',
-                'LegalCommentary': '',
-                'Collection': '',
-                'Conference': '',
-                'Edition': '',
-                'SpecialIssue': '',
-                'Journal': '',
-                'Series': '',
-                'Newspaper': '',
-                'Thesis': '',
-                'ArticleNewspaper': '',
-                'Lecture': '',
-                'Report': '',
-                'InternetDocument': '',
-                'RadioTVProgram': '',
-                'AudioVideoDocument': '',
-                'PressRelease': '',
-                'ResearchData': '',
-            }
-
-            list_cnt = 0
-            for pubtype in publist_solr.tree.get('pubtype,fdate'):
-                # logging.debug('pubtype = %s' % pubtype.get('value'))
-                # logging.debug('pubtype = %s' % pubtype)
-                year_list = ''
-                year_coins = ''
-                if pubtype.get('pivot'):
-                    for year in pubtype.get('pivot')[::-1]:
-                        # logging.debug('\t%s: %s' % (year.get('value'), year.get('count')))
-                        filterquery = []
-                        filterquery.append('fdate:%s' % year.get('value'))
-                        filterquery.append('pubtype:%s' % pubtype.get('value'))
-                        pivot_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                            application=secrets.SOLR_APP, handler='query',
-                                            query=query, fields=['wtf_json'], rows=100000,
-                                            fquery=filterquery, core='hb2')
-                        pivot_solr.request()
-                        results = pivot_solr.results
-                        # logging.debug('PIVOT_PUB_LIST: %s' % results)
-
-                        publist_docs = []
-                        for result in results:
-                            publist_docs.append(json.loads(result.get('wtf_json')))
-                            year_coins += '<div class="coins"><span class="Z3988" title="%s"></span></div>' % openurl_processor.wtf_openurl(json.loads(result.get('wtf_json'))).replace('&', '&amp;')
-
-                        year_list += '<h5>%s</h5>' % year.get('value') + citeproc_node(wtf_csl.wtf_csl(publist_docs),
-                                                                                       format, locale, style)
-                else:
-                    filterquery = []
-                    filterquery.append('pubtype:%s' % pubtype.get('value'))
-                    pivot_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                      application=secrets.SOLR_APP, handler='query',
-                                      query=query, fields=['wtf_json'], rows=100000,
-                                      fquery=filterquery, core='hb2')
-                    pivot_solr.request()
-                    results = pivot_solr.results
-                    # logging.debug('PIVOT_PUB_LIST: %s' % results)
-
-                    publist_docs = []
-                    for result in results:
-                        publist_docs.append(json.loads(result.get('wtf_json')))
-                        year_coins += '<div class="coins"><span class="Z3988" title="%s"></span></div>' % openurl_processor.wtf_openurl(
-                            json.loads(result.get('wtf_json'))).replace('&', '&amp;')
-
-                    year_list += citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
-
-                group_value = pubtype.get('value')
-                if locale.startswith('de'):
-                    group_value = display_vocabularies.PUBTYPE_GER.get(pubtype.get('value'))
-
-                list_cnt += 1
-                header = '<h4 id="%s_%s">%s</h4>' % (biblist_id, list_cnt, group_value)
-
-                if pubsort == 'stm':
-                    STM_LIST[pubtype.get('value')] = header + year_list
-                    STM_TOC[pubtype.get('value')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
-                    STM_COINS[pubtype.get('value')] = year_coins
-                elif pubsort == 'anh':
-                    ANH_LIST[pubtype.get('value')] = header + year_list
-                    ANH_TOC[pubtype.get('value')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
-                    ANH_COINS[pubtype.get('value')] = year_coins
-                else:
-                    biblist += header + year_list
-                    biblist_toc += '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
-                    biblist_coins += year_coins
-
-            if pubsort == 'anh':
-                # logging.debug(ANH_LIST)
-                biblist = ''
-                biblist_toc = ''
-                for pubtype in ANH_SORT:
-                    if ANH_LIST.get(pubtype):
-                        biblist += ANH_LIST.get(pubtype)
-                        biblist_toc += ANH_TOC.get(pubtype)
-                        biblist_coins += ANH_COINS.get(pubtype)
-
-            if pubsort == 'stm':
-                # logging.debug(STM_LIST)
-                biblist = ''
-                biblist_toc = ''
-                for pubtype in STM_SORT:
-                    if STM_LIST.get(pubtype):
-                        biblist += STM_LIST.get(pubtype)
-                        biblist_toc += STM_TOC.get(pubtype)
-                        biblist_coins += STM_COINS.get(pubtype)
-
-            if toc:
-                response += '<ul id="%s_citetoc">' % biblist_id + biblist_toc + '</ul>'
-
-            response += biblist + biblist_coins
-
-        else:
-
-            publist_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                application=secrets.SOLR_APP, handler='query',
-                                query=query, fields=['wtf_json'],
-                                rows=100000, fquery=filterquery, sort='fdate desc',
-                                group=group, group_field=group_field, group_limit=group_limit,
-                                core='hb2')
-            publist_solr.request()
-            results.extend(publist_solr.results)
-            # logging.info('publist_solr.results: %s' % results)
-
-            publist_docs = []
-            if group:
-                biblist = ''
-                for result in results:
-                    # logging.debug('groupValue: %s' % result.get('groupValue'))
-                    # logging.debug('numFound: %s' % result.get('doclist').get('numFound'))
-                    # logging.debug('docs: %s' % result.get('doclist').get('docs'))
-
-                    for doc in result.get('doclist').get('docs'):
-                        publist_docs.append(json.loads(doc.get('wtf_json')))
-
-                    header = ''
-                    if str2bool(group_by_type):
-                        # logging.debug('LOCALE: %s' % locale)
-                        group_value = result.get('groupValue')
-                        if locale.startswith('de'):
-                            group_value = display_vocabularies.PUBTYPE_GER.get(result.get('groupValue'))
-                        header += '<h4 id="%s">%s</h4>' % (result.get('groupValue'), group_value)
-                    else:
-                        header += '<h4 id="%s">%s</h4>' % (result.get('groupValue'), result.get('groupValue'))
-
-                    if str2bool(group_by_type):
-                        if pubsort == 'stm':
-                            STM_LIST[result.get('groupValue')] = header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
-                        elif pubsort == 'anh':
-                            ANH_LIST[result.get('groupValue')] = header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
-                        else:
-                            biblist += header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
-                    else:
-                        biblist += header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
-
-                    if str2bool(group_by_type) and pubsort == 'anh':
-                        # logging.debug(ANH_LIST)
-                        biblist = ''
-                        for pubtype in ANH_SORT:
-                            if ANH_LIST.get(pubtype):
-                                biblist += ANH_LIST.get(pubtype)
-
-                    if str2bool(group_by_type) and pubsort == 'stm':
-                        # logging.debug(STM_LIST)
-                        biblist = ''
-                        for pubtype in STM_SORT:
-                            if STM_LIST.get(pubtype):
-                                biblist += STM_LIST.get(pubtype)
-
-                    publist_docs = []
-
-                response = biblist
-            else:
-                for result in results:
-                    publist_docs.append(json.loads(result.get('wtf_json')))
-
-                response = citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
-
-    if response:
-        try:
-
-            storage_publists_cache = app.extensions['redis']['REDIS_PUBLIST_CACHE']
-
-            storage_publists_cache.set(key, response)
-            storage_publists_cache.hset(agent_id, key, timestamp())
-
-        except Exception as e:
-            logging.error('REDIS: %s' % e)
-
-    return response
-
-
-def citeproc_node(docs=None, format='html', locale='', style=''):
-
-    locales_url = secrets.CITEPROC_LOCALES_FILE
-
-    with open(locales_url) as data_file:
-        locales = json.load(data_file)
-
-    # load a CSL style (from the current directory)
-    # logging.debug('LOCALE: %s' % locale)
-    if locale not in locales.get('language-names').keys():
-        locale = locales.get('primary-dialects').get(locale)
-    # logging.debug('LOCALE: %s' % locale)
-
-    citeproc_url = secrets.CITEPROC_SERVICE_URL % (format, style, locale)
-
-    items = {}
-
-    for item in docs:
-        items.setdefault(item.get('id'), item)
-
-    # logging.debug(json.dumps({'items': items}, indent=4))
-
-    response = requests.post(citeproc_url, data=json.dumps({'items': items}),
-                             headers={'Content-type': 'application/json'})
-
-    # logging.debug(response.content)
-
-    bib = response.content.decode()
-    if format == 'html':
-        urls = re.findall(urlmarker.URL_REGEX, bib)
-        logging.info(urls)
-
-        for url in list(set(urls)):
-            bib = bib.replace(url, '<a href="%s">%s</a>' % (url, url))
-
-        dois = re.findall(urlmarker.DOI_REGEX, bib)
-        # logging.info('DOIs: %s' % dois)
-
-        for doi in list(set(dois)):
-            if doi.endswith('.'):
-                doi = doi[:-1]
-            elif doi.endswith('.</div>'):
-                doi = doi[:-7]
-            bib = bib.replace(doi, '<a href="http://dx.doi.org/%s">%s</a>' % (doi.replace('doi:', ''), doi))
-
-    return bib
-
-
-def render_bibliography(docs=None, format='html', locale='', style='', commit_link=False, commit_system=''):
-
-    if docs is None:
-        docs = []
-
-    publist = ''
-    # logging.debug('csl-docs: %s' % docs)
-    if len(docs) > 0:
-
-        locales_url = secrets.CITEPROC_LOCALES_FILE
-
-        with open(locales_url) as data_file:
-            locales = json.load(data_file)
-
-        bib_source = CiteProcJSON(docs)
-        # load a CSL style (from the current directory)
-        locale = '%s/csl-locales/locales-%s' % (secrets.CSL_DATA_DIR, locales.get('primary-dialects').get(locale))
-        # logging.info('locale: %s' % locale)
-        bib_style = CitationStylesStyle('%s/csl/%s' % (secrets.CSL_DATA_DIR, style),
-                                        locale=locale,
-                                        validate=False)
-        # Create the citeproc-py bibliography, passing it the:
-        # * CitationStylesStyle,
-        # * BibliographySource (CiteProcJSON in this case), and
-        # * a formatter (plain, html, or you can write a custom formatter)
-        bibliography = CitationStylesBibliography(bib_style, bib_source, formatter.html)
-        # get a list of the item ids and register them to the bibliography object
-
-        def warn(citation_item):
-            logging.warning(
-                "WARNING: Reference with key '{}' not found in the bibliography.".format(citation_item.key)
-            )
-
-        for item in docs:
-            citation = Citation([CitationItem(item.get('id'))])
-            bibliography.register(citation)
-            bibliography.cite(citation, warn)
-
-        # And finally, the bibliography can be rendered.
-        if format == 'html':
-            publist += '<div class="csl-bib-body">'
-
-        idx = 0
-        for item in bibliography.bibliography():
-            # TODO Formatierung
-            # logging.info('CSL item: %s' % item)
-            # logging.info('CSL item ID: %s' % docs[idx].get('id'))
-            if format == 'html':
-                publist += '<div class="csl-entry">'
-                if commit_link:
-                    publist += '<span class="glyphicon glyphicon-minus" aria-hidden="true"></span> '
-
-            if format == 'html':
-                urls = re.findall(urlmarker.URL_REGEX, str(item))
-                # logging.info(urls)
-
-                for url in urls:
-                    item = item.replace(url, '<a href="%s">%s</a>' % (url, url))
-
-            publist += str(item)
-
-            if commit_link and commit_system:
-                if commit_system == 'crossref':
-                    publist += ' <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span> <a href="%s?doi=%s">%s</a>' % (url_for("new_by_identifiers"), docs[idx].get('id'), lazy_gettext('Use this Record'))
-                else:
-                    publist += ' <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span> <a href="%s?source=%s&id=%s">%s</a>' % (url_for("new_by_identifiers"), commit_system, docs[idx].get('id'), lazy_gettext('Use this Record'))
-
-            if format == 'html':
-                publist += '</div>'
-
-            idx += 1
-
-        if format == 'html':
-            publist += '</div>'
-
-    return publist
 
 
 # ---------- SUPER_ADMIN ----------
@@ -4894,10 +4448,9 @@ def redis_clean(db='0'):
 @app.route('/consolidate_email/<affiliation>')
 @login_required
 def consolidate_email(affiliation=''):
-    if secrets.APP_SECURITY:
-        if current_user.role != 'admin' and current_user.role != 'superadmin':
-            flash(gettext('For Admins ONLY!!!'))
-            return redirect(url_for('homepage'))
+    if current_user.role != 'admin' and current_user.role != 'superadmin':
+        flash(gettext('For Admins ONLY!!!'))
+        return redirect(url_for('homepage'))
 
     if affiliation:
         persons = []
@@ -4937,1054 +4490,10 @@ def consolidate_email(affiliation=''):
         return make_response('Please set affiliation parameter', 400)
 
 
-# ---------- IMPORT / EXPORT ----------
-
-@app.route('/export/solr_dump/<core>')
-@login_required
-def export_solr_dump(core=''):
-    if secrets.APP_SECURITY:
-        if current_user.role != 'superadmin':
-            flash(gettext('For SuperAdmins ONLY!!!'))
-            return redirect(url_for('homepage'))
-    '''
-    Export the wtf_json field of every doc in the index to a new document in the users core and to the user's local file
-    system. Uses the current user's ID and a timestamp as the document ID and file name.
-    '''
-    if core != 'hb2_users':
-        filename = '%s_%s.json' % (core, int(time.time()))
-        export_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                           application=secrets.SOLR_APP, export_field='wtf_json', core=core)
-        export_docs = export_solr.export()
-        # target_solr = Solr(application=secrets.SOLR_APP, core='hb2_users', data=[{'id': filename, 'core': core, 'dump': json.dumps(export_docs)}])
-        # target_solr.update()
-        return send_file(BytesIO(str.encode(json.dumps(export_docs))), attachment_filename=filename, as_attachment=True,
-                         cache_timeout=1, add_etags=True)
-    else:
-        flash('Cannot export hb2_users this way!', 'error')
-        return redirect('superadmin')
-
-
-@app.route('/export/not_imported_records/<core>')
-@login_required
-def export_not_imported_records(core=''):
-    if secrets.APP_SECURITY:
-        if current_user.role != 'superadmin':
-            flash(gettext('For SuperAdmins ONLY!!!'))
-            return redirect(url_for('homepage'))
-    '''
-    Export the wtf_json field of every doc in the index to a new document in the users core and to the user's local file
-    system. Uses the current user's ID and a timestamp as the document ID and file name.
-    '''
-    if core != 'hb2_users':
-        filename = '%s_%s.json' % (core, int(time.time()))
-        export_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                           application=secrets.SOLR_APP, query='-editorial_status:imported', export_field='wtf_json',
-                           core=core)
-        export_docs = export_solr.export()
-        # target_solr = Solr(application=secrets.SOLR_APP, core='hb2_users', data=[{'id': filename, 'core': core, 'dump': json.dumps(export_docs)}])
-        # target_solr.update()
-        return send_file(BytesIO(str.encode(json.dumps(export_docs))), attachment_filename=filename, as_attachment=True,
-                         cache_timeout=1, add_etags=True)
-    else:
-        flash('Cannot export hb2_users this way!', 'error')
-        return redirect('superadmin')
-
-
-@app.route('/export/serials')
-@login_required
-def export_serials():
-    if secrets.APP_SECURITY:
-        if current_user.role != 'superadmin':
-            flash(gettext('For SuperAdmins ONLY!!!'))
-            return redirect(url_for('homepage'))
-    '''
-    Export the wtf_json field of every doc in the index to a new document in the users core and to the user's local file
-    system. Uses the current user's ID and a timestamp as the document ID and file name.
-    '''
-    filename = '%s_%s.json' % ('serials', int(time.time()))
-    export_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                       application=secrets.SOLR_APP, query='pubtype:Series or pubtype:Jounral', export_field='wtf_json',
-                       core='hb2')
-    export_docs = export_solr.export()
-    return send_file(BytesIO(str.encode(json.dumps(export_docs, indent=4))), attachment_filename=filename, as_attachment=True,
-                     cache_timeout=1, add_etags=True)
-
-
-@app.route('/import/solr_dumps')
-@login_required
-def import_solr_dumps():
-    if secrets.APP_SECURITY:
-        if current_user.role != 'superadmin':
-            flash(gettext('For SuperAdmins ONLY!!!'))
-            return redirect(url_for('homepage'))
-    '''
-    Import Solr dumps either from the users core or from the local file system.
-    '''
-    page = int(request.args.get('page', 1))
-    solr_dumps = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                      application=secrets.SOLR_APP, core='hb2_users', query='id:*.json', facet='false',
-                      start=(page - 1) * 10)
-    solr_dumps.request()
-    num_found = solr_dumps.count()
-    pagination = Pagination(page=page, total=num_found, found=num_found, bs_version=3, search=True,
-                            record_name=lazy_gettext('dumps'),
-                            search_msg=lazy_gettext('Showing {start} to {end} of {found} {record_name}'))
-    mystart = 1 + (pagination.page - 1) * pagination.per_page
-    form = FileUploadForm()
-    return render_template('solr_dumps.html', records=solr_dumps.results, offset=mystart - 1, pagination=pagination,
-                           header=lazy_gettext('Import Dump'), del_redirect='import/solr_dumps', form=form)
-
-
-def _import_data(doc, relitems=False):
-    # logging.info('START: %s' % timestamp())
-    try:
-        form = display_vocabularies.PUBTYPE2FORM.get(doc.get('pubtype')).from_json(doc)
-        return _record2solr(form, action='create', relitems=relitems)
-    except AttributeError as e:
-        logging.error(e)
-        logging.error('%s' % doc)
-
-
-def _import_person_data(doc, relitems):
-    form = PersonAdminForm.from_json(doc)
-    return _person2solr(form, action='create')
-
-
-def _import_orga_data(doc, relitems):
-    form = OrgaAdminForm.from_json(doc)
-    return _orga2solr(form, action='create', relitems=relitems)
-
-
-def _import_group_data(doc, relitems):
-    form = GroupAdminForm.from_json(doc)
-    return _group2solr(form, action='create')
-
-
-@app.route('/import/solr_dump/<filename>', methods=['GET', 'POST'])
-# @login_required
-def import_solr_dump(filename=''):
-    if secrets.APP_SECURITY:
-        if current_user.role != 'superadmin':
-            flash(gettext('For SuperAdmins ONLY!!!'))
-            return redirect(url_for('homepage'))
-    thedata = ''
-    solr_data = []
-    type = ''
-    relitems = request.args.get('relitems', 1)
-    do_relitems = True
-    if relitems == 0:
-        do_relitems = False
-    if request.method == 'GET':
-        if filename:
-            import_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                               application=secrets.SOLR_APP, core='hb2_users', query='id:%s' % filename, facet='false')
-            import_solr.request()
-            thedata = json.loads(import_solr.results[0].get('dump')[0])
-            type = import_solr.results[0].get('core')
-    elif request.method == 'POST':
-        form = FileUploadForm()
-        if form.validate_on_submit():
-            if not form.type.data:
-                flash('Please select a data type!', 'error')
-                return redirect('superadmin')
-            else:
-                type = form.type.data
-            if not form.file.data:
-                flash('Please select a data file!', 'error')
-                return redirect('superadmin')
-            else:
-                thedata = json.loads(form.file.data.stream.read())
-
-    # pool = Pool(4)
-    # solr_data.append(pool.map(_import_data, thedata))
-    target = 'dashboard'
-    if type == 'publication':
-        for mydata in thedata:
-            _import_data(mydata, do_relitems)
-    elif type == 'person':
-        for mydata in thedata:
-            _import_person_data(mydata, do_relitems)
-        target = 'persons'
-    elif type == 'organisation':
-        for mydata in thedata:
-            _import_orga_data(mydata, do_relitems)
-        target = 'organisations'
-    elif type == 'group':
-        for mydata in thedata:
-            _import_group_data(mydata, do_relitems)
-        target = 'groups'
-
-    flash('%s records imported!' % len(thedata), 'success')
-    return redirect(target)
-
-
-def _update_data(doc):
-    form = display_vocabularies.PUBTYPE2FORM.get(doc.get('pubtype')).from_json(doc)
-    return _record2solr(form, action='update')
-
-
-def _update_person_data(doc):
-    form = PersonAdminForm.from_json(doc)
-    return _person2solr(form, action='update')
-
-
-def _update_orga_data(doc):
-    form = OrgaAdminForm.from_json(doc)
-    return _orga2solr(form, action='update')
-
-
-def _update_group_data(doc):
-    form = GroupAdminForm.from_json(doc)
-    return _group2solr(form, action='update')
-
-
-@app.route('/update/solr_dump/<filename>', methods=['GET', 'POST'])
-@login_required
-def update_solr_dump(filename=''):
-    if secrets.APP_SECURITY:
-        if current_user.role != 'superadmin':
-            flash(gettext('For SuperAdmins ONLY!!!'))
-            return redirect(url_for('homepage'))
-    thedata = ''
-    type = ''
-    if request.method == 'GET':
-        if filename:
-            update_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                               application=secrets.SOLR_APP, core='hb2_users', query='id:%s' % filename, facet='false')
-            update_solr.request()
-            thedata = json.loads(update_solr.results[0].get('dump')[0])
-            type = update_solr.results[0].get('core')
-    elif request.method == 'POST':
-        form = FileUploadForm()
-        if form.validate_on_submit():
-            if not form.type.data:
-                flash('Please select a data type!', 'error')
-                return redirect('superadmin')
-            else:
-                type = form.type.data
-            if not form.file.data:
-                flash('Please select a data file!', 'error')
-                return redirect('superadmin')
-            else:
-                thedata = json.loads(form.file.data.stream.read())
-
-    # pool = Pool(4)
-    # solr_data.append(pool.map(_import_data, thedata))
-    target = 'dashboard'
-    if type == 'publication':
-        for mydata in thedata:
-            _update_data(mydata)
-    elif type == 'person':
-        for mydata in thedata:
-            _update_person_data(mydata)
-        target = 'persons'
-    elif type == 'organisation':
-        for mydata in thedata:
-            _update_orga_data(mydata)
-        target = 'organisations'
-    elif type == 'group':
-        for mydata in thedata:
-            _update_group_data(mydata)
-        target = 'groups'
-
-    flash('%s records imported!' % len(thedata), 'success')
-    return redirect(target)
-
-
-@app.route('/delete/solr_dump/<record_id>')
-@login_required
-def delete_dump(record_id=''):
-    if current_user.role != 'superadmin':
-        flash(gettext('For SuperAdmins ONLY!!!'))
-        return redirect(url_for('homepage'))
-    delete_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                              application=secrets.SOLR_APP, core='hb2_users', del_id=record_id)
-    delete_record_solr.delete()
-
-    return jsonify({'deleted': True})
-
-
-@app.route('/store/mods', methods=['POST'])
-def store_mods():
-    """Store a collection of MODS records in Solr and SolRDF"""
-
-# ---------- REST ----------
-
-
-@app.route("/spec")
-def spec():
-    swag = swagger(app, from_file_keyword='swagger_from_file')
-    swag['info']['version'] = '2016-12-09'
-    swag['info']['title'] = 'hb2_flask'
-    swag['info']['description'] = secrets.SWAGGER_DESCRIPTION
-    swag['schemes'] = secrets.SWAGGER_SCHEMES
-    swag['host'] = secrets.SWAGGER_HOST
-    swag['basePath'] = secrets.SWAGGER_BASEPATH
-    swag['tags'] = [
-        {
-            'name': 'monitoring',
-            'description': 'Methods for monitoring the service'
-        },
-        {
-            'name': 'groups',
-            'description': 'Working groups/Projects operations'
-        },
-        {
-            'name': 'organisations',
-            'description': 'Organisation operations'
-        },
-        {
-            'name': 'persons',
-            'description': 'Persons operations'
-        },
-        {
-            'name': 'works',
-            'description': 'Works operations'
-        },
-    ]
-    return jsonify(swag)
-
-
-@app.route('/_ping')
-@csrf.exempt
-def _ping():
-    """
-        Ping the service
-
-        swagger_from_file: api_doc/_ping.yml
-    """
-    try:
-        if 'failed' in json.dumps(dependencies_health(), indent=4):
-            return make_response('One or more dependencies unavailable!', 500)
-        else:
-            return make_response('pong', 200)
-    except Exception:
-        return make_response('One or more dependencies unavailable!', 500)
-
-
-@app.route('/_health')
-@csrf.exempt
-def _health():
-    """
-        Showing the health of the service an its dependencies
-
-        swagger_from_file: api_doc/_health.yml
-    """
-    health_json = {
-        "name": "hb2_flask",
-        "timestamp": timestamp(),
-        "dependencies": dependencies_health()
-    }
-
-    json_string = json.dumps(health_json, indent=4)
-    status = 200
-
-    if 'failed' in json_string:
-        status = 500
-
-    response = make_response(json_string, status)
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Content-type'] = 'application/json'
-
-    return response
-
-
-def dependencies_health():
-
-    dependencies = []
-
-    # health of Solr cores
-    try:
-        status = requests.get(
-            'http://%s:%s/%s/hb2/admin/ping?wt=json' % (secrets.SOLR_HOST, secrets.SOLR_PORT, secrets.SOLR_APP),
-            headers={'Accept': 'application/json'}).json().get('status').lower()
-    except requests.exceptions.ConnectionError:
-        status = 'failed'
-
-    dependencies.append({
-        'service': 'Solr Core "hb2"',
-        'status': status,
-        'description': 'Storage for bibliographic data',
-        'external': False
-    })
-
-    try:
-        status = requests.get(
-            'http://%s:%s/%s/hb2_users/admin/ping?wt=json' % (secrets.SOLR_HOST, secrets.SOLR_PORT, secrets.SOLR_APP),
-            headers={'Accept': 'application/json'}).json().get('status').lower()
-    except requests.exceptions.ConnectionError:
-        status = 'failed'
-
-    dependencies.append({
-        'service': 'Solr Core "hb2_users"',
-        'status': status,
-        'description': 'Storage for registered users',
-        'external': False
-    })
-
-    try:
-        status = requests.get(
-            'http://%s:%s/%s/group/admin/ping?wt=json' % (secrets.SOLR_HOST, secrets.SOLR_PORT, secrets.SOLR_APP),
-            headers={'Accept': 'application/json'}).json().get('status').lower()
-    except requests.exceptions.ConnectionError:
-        status = 'failed'
-
-    dependencies.append({
-        'service': 'Solr Core "group',
-        'status': status,
-        'description': 'Storage for working groups or projects data',
-        'external': False
-    })
-
-    try:
-        status = requests.get(
-            'http://%s:%s/%s/organisation/admin/ping?wt=json' % (secrets.SOLR_HOST, secrets.SOLR_PORT, secrets.SOLR_APP),
-            headers={'Accept': 'application/json'}).json().get('status').lower()
-    except requests.exceptions.ConnectionError:
-        status = 'failed'
-
-    dependencies.append({
-        'service': 'Solr Core "organisation',
-        'status': status,
-        'description': 'Storage for organisations data',
-        'external': False
-    })
-
-    try:
-        status = requests.get(
-            'http://%s:%s/%s/person/admin/ping?wt=json' % (secrets.SOLR_HOST, secrets.SOLR_PORT, secrets.SOLR_APP),
-            headers={'Accept': 'application/json'}).json().get('status').lower()
-    except requests.exceptions.ConnectionError:
-        status = 'failed'
-
-    dependencies.append({
-        'service': 'Solr Core "person',
-        'status': status,
-        'description': 'Storage for persons data',
-        'external': False
-    })
-
-    # health of Redis
-    try:
-        storage = app.extensions['redis']['REDIS_CONSOLIDATE_PERSONS']
-        status = storage.dbsize()
-    except:
-        status = 0
-
-    if status:
-        dependencies.append({
-            'service': 'Redis "CONSOLIDATE_PERSONS"',
-            'status': 'ok',
-            'description': 'Storage for bibliographic records not linked to institutional actors',
-            'external': False
-        })
-    else:
-        dependencies.append({
-            'service': 'Redis "CONSOLIDATE_PERSONS"',
-            'status': 'failed',
-            'description': 'Storage for bibliographic records not linked to institutional actors',
-            'external': False
-        })
-
-    try:
-        storage = app.extensions['redis']['REDIS_PUBLIST_CACHE']
-        status = storage.dbsize()
-    except:
-        status = 0
-
-    if status:
-        dependencies.append({
-            'service': 'Redis "PUBLIST_CACHE"',
-            'status': 'ok',
-            'description': 'Cache for user defined citation lists',
-            'external': False
-        })
-    else:
-        dependencies.append({
-            'service': 'Redis "PUBLIST_CACHE"',
-            'status': 'failed',
-            'description': 'Cache for user defined citation lists',
-            'external': False
-        })
-
-    # health of GBV SRU
-    response = requests.get('http://sru.gbv.de/gvk')
-    if response.status_code == 200:
-        dependencies.append({'service': 'GVK SRU', 'status': 'ok', 'external': True})
-    else:
-        dependencies.append({'service': 'GVK SRU', 'status': 'failed', 'external': True})
-    # health of CrossRef
-    response = requests.get('http://api.crossref.org/works?query=frbr')
-    if response.status_code == 200:
-        dependencies.append({'service': 'CrossRef API', 'status': 'ok', 'external': True})
-    else:
-        dependencies.append({'service': 'CrossRef API', 'status': 'failed', 'external': True})
-    # health of DataCite
-    try:
-        response = requests.get('https://api.datacite.org/works?query=frbr', timeout=3)
-        if response.status_code == 200:
-            dependencies.append({'service': 'DataCite API', 'status': 'ok', 'external': True})
-        else:
-            dependencies.append({'service': 'DataCite API', 'status': 'failed', 'external': True})
-    except requests.exceptions.ReadTimeout:
-        dependencies.append({'service': 'DataCite API', 'status': 'failed', 'external': True})
-    # health of ORCID
-    response = requests.get('https://pub.orcid.org/v2.0_rc3/status', headers={'Accept': 'text/plain'})
-    if response.status_code == 200:
-        dependencies.append({'service': 'ORCID API', 'status': 'ok', 'external': True})
-    else:
-        dependencies.append({'service': 'ORCID API', 'status': 'failed', 'external': True})
-    # health of PAIA
-    paia_health_json = requests.get(
-        'https://api.ub.tu-dortmund.de/paia/_health',
-        headers={'Accept': 'application/json'}).json()
-    if 'failed' in json.dumps(paia_health_json):
-        dependencies.append({
-            'service': paia_health_json.get('name'),
-            'status': 'failed',
-            'description': 'Authorization Service of TU Dortmund University, University Library',
-            'external': False
-        })
-    else:
-        dependencies.append({
-            'service': paia_health_json.get('name'),
-            'status': 'ok',
-            'description': 'Authorization Service of TU Dortmund University, University Library',
-            'external': False
-        })
-    # TODO health of RUB Login Service
-
-    return dependencies
-
-
-@app.route('/work/<work_id>', methods=['GET'])
-@csrf.exempt
-def work_get(work_id=''):
-    """
-        Get a work
-
-        swagger_from_file: api_doc/work_get.yml
-    """
-    thedata = show_record(pubtype='', record_id=work_id, format='raw')
-    if thedata:
-        return make_response(json.dumps(thedata, indent=4), 200)
-    else:
-        return make_response('work resource \'%s\' not found!' % work_id, 404)
-
-
-@app.route('/work', methods=['POST'])
-@csrf.exempt
-def work_post():
-    """
-        Create a new work
-
-        swagger_from_file: api_doc/work_post.yml
-    """
-
-    if request.headers.get('Accept') == 'application/json':
-
-        if is_token_valid(request.headers.get('Authorization')):
-
-            thedata = request.data
-
-            if show_record(record_id=json.loads(thedata).get('id'), format='raw'):
-                return make_response('Bad request: work already exist!', 400)
-            else:
-                form = display_vocabularies.PUBTYPE2FORM.get(thedata.get('pubtype')).from_json(thedata)
-                form.created.data = timestamp()
-                form.changed.data = timestamp()
-                _record2solr(form, action='create')
-                return make_response(thedata, 201)
-        else:
-            return make_response('Unauthorized', 401)
-    else:
-        return make_response('Bad request: invalid accept header!', 400)
-
-
-@app.route('/work/<work_id>', methods=['PUT'])
-@csrf.exempt
-def work_put(work_id=''):
-    """
-        Update an existing work
-
-        swagger_from_file: api_doc/work_put.yml
-    """
-
-    if request.headers.get('Accept') == 'application/json':
-
-        if is_token_valid(request.headers.get('Authorization')):
-
-            thedata = request.data
-
-            update_work_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                    application=secrets.SOLR_APP, core='hb2',
-                                    query='id:%s' % work_id)
-            update_work_solr.request()
-
-            if update_work_solr.results:
-
-                form = display_vocabularies.PUBTYPE2FORM.get(thedata.get('pubtype')).from_json(thedata)
-                form.changed.data = timestamp()
-                _record2solr(form, action='update')
-
-                return make_response(thedata, 201)
-            else:
-                update_work_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                        application=secrets.SOLR_APP, core='hb2',
-                                        query='same_as:%s' % work_id)
-                update_work_solr.request()
-
-                if update_work_solr.results:
-                    return make_response('Conflict: The ID of the resource already exists as "same_as"! Please check your data!', 409)
-                else:
-                    return make_response('work resource \'%s\' not found!' % work_id, 404)
-        else:
-            return make_response('Unauthorized', 401)
-    else:
-        return make_response('Bad request: invalid accept header!', 400)
-
-
-@app.route('/work/<work_id>', methods=['DELETE'])
-@csrf.exempt
-def work_delete(work_id=''):
-    """
-        Delete an existing work
-
-        swagger_from_file: api_doc/work_delete.yml
-    """
-
-    if is_token_valid(request.headers.get('Authorization')):
-        # TODO decide on base of the api key scopes
-        # load work
-        delete_work_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                application=secrets.SOLR_APP, core='hb2',
-                                query='id:%s' % work_id)
-        delete_work_solr.request()
-
-        if delete_work_solr.results:
-            thedata = json.loads(delete_work_solr.results[0].get('wtf_json'))
-            form = display_vocabularies.PUBTYPE2FORM.get(thedata.get('pubtype')).from_json(thedata)
-            # modify status to 'deleted'
-            form.editorial_status.data = 'deleted'
-            form.changed.data = timestamp()
-            form.note.data = 'Deleted via REST API'
-            # save work
-            _record2solr(form, action='delete')
-
-            return make_response('work deleted!', 204)
-        else:
-            return make_response('work resource \'%s\' not found!' % work_id, 404)
-
-    else:
-        return make_response('Unauthorized', 401)
-
-
-@app.route('/person/<person_id>', methods=['GET'])
-@csrf.exempt
-def person_get(person_id=''):
-    """
-        Get a person
-
-        swagger_from_file: api_doc/person_get.yml
-    """
-    thedata = show_person(person_id=person_id, format='raw')
-    if thedata:
-        # if not valid access_token then limit the data fields!
-        if is_token_valid(request.headers.get('Authorization')):
-
-            return make_response(json.dumps(thedata, indent=4), 200)
-        else:
-            limited_data = {}
-            limited_data.setdefault('id', thedata.get('id'))
-            limited_data.setdefault('same_as', thedata.get('same_as'))
-            limited_data.setdefault('created', thedata.get('created'))
-            limited_data.setdefault('changed', thedata.get('changed'))
-            limited_data.setdefault('editorial_status', thedata.get('editorial_status'))
-
-            limited_data.setdefault('name', thedata.get('name'))
-            limited_data.setdefault('also_known_as', thedata.get('also_known_as'))
-            limited_data.setdefault('gnd', thedata.get('gnd'))
-            limited_data.setdefault('orcid', thedata.get('orcid'))
-            limited_data.setdefault('affiliation', thedata.get('affiliation'))
-            limited_data.setdefault('group', thedata.get('group'))
-
-            return make_response(json.dumps(limited_data, indent=4), 200)
-    else:
-        return make_response('person resource \'%s\' not found!' % person_id, 404)
-
-
-@app.route('/person', methods=['POST'])
-@csrf.exempt
-def person_post():
-    """
-        Create a new person
-
-        swagger_from_file: api_doc/person_post.yml
-    """
-
-    if request.headers.get('Accept') == 'application/json':
-
-        if is_token_valid(request.headers.get('Authorization')):
-
-            thedata = request.data
-
-            if show_person(person_id=json.loads(thedata).get('id'), format='raw'):
-                return make_response('Bad request: person already exist!', 400)
-            else:
-                form = PersonAdminForm.from_json(json.loads(thedata))
-                form.created.data = timestamp()
-                form.changed.data = timestamp()
-                _person2solr(form, action='create')
-                return make_response(thedata, 201)
-        else:
-            return make_response('Unauthorized', 401)
-    else:
-        return make_response('Bad request: invalid accept header!', 400)
-
-
-@app.route('/person/<person_id>', methods=['PUT'])
-@csrf.exempt
-def person_put(person_id=''):
-    """
-        Update an existing person
-
-        swagger_from_file: api_doc/person_put.yml
-    """
-
-    if request.headers.get('Accept') == 'application/json':
-
-        if is_token_valid(request.headers.get('Authorization')):
-
-            thedata = request.data
-
-            update_person_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                      application=secrets.SOLR_APP, core='person',
-                                      query='id:%s' % person_id)
-            update_person_solr.request()
-
-            if update_person_solr.results:
-
-                form = PersonAdminForm.from_json(json.loads(thedata))
-                form.changed.data = timestamp()
-                _person2solr(form, action='update')
-
-                return make_response(thedata, 201)
-            else:
-                update_person_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                          application=secrets.SOLR_APP, core='person',
-                                          query='same_as:%s' % person_id)
-                update_person_solr.request()
-
-                if update_person_solr.results:
-                    return make_response('Conflict: The ID of the resource already exists as "same_as"! Please check your data!', 409)
-                else:
-                    return make_response('person resource \'%s\' not found!' % person_id, 404)
-        else:
-            return make_response('Unauthorized', 401)
-    else:
-        return make_response('Bad request: invalid accept header!', 400)
-
-
-@app.route('/person/<person_id>', methods=['DELETE'])
-@csrf.exempt
-def person_delete(person_id=''):
-    """
-        Delete an existing person
-
-        swagger_from_file: api_doc/person_delete.yml
-    """
-
-    if is_token_valid(request.headers.get('Authorization')):
-        # TODO decide on base of the api key scopes
-        # load group
-        delete_person_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                  application=secrets.SOLR_APP, core='person',
-                                  query='id:%s' % person_id)
-        delete_person_solr.request()
-
-        if delete_person_solr.results:
-            thedata = json.loads(delete_person_solr.results[0].get('wtf_json'))
-            form = PersonAdminForm.from_json(thedata)
-            # modify status to 'deleted'
-            form.editorial_status.data = 'deleted'
-            form.changed.data = timestamp()
-            form.note.data = 'Deleted via REST API'
-            # save group
-            _person2solr(form, action='delete')
-
-            return make_response('person deleted!', 204)
-        else:
-            return make_response('person resource \'%s\' not found!' % person_id, 404)
-
-    else:
-        return make_response('Unauthorized', 401)
-
-
-@app.route('/organisation/<orga_id>', methods=['GET'])
-@csrf.exempt
-def orga_get(orga_id=''):
-    """
-        Get an organisation
-
-        swagger_from_file: api_doc/orga_get.yml
-    """
-    thedata = show_orga(orga_id=orga_id, format='raw')
-    if thedata:
-        # if not valid access_token then limit the data fields!
-        if is_token_valid(request.headers.get('Authorization')):
-
-            return make_response(json.dumps(thedata, indent=4), 200)
-        else:
-            del thedata['correction_request']
-            del thedata['dwid']
-            del thedata['owner']
-            del thedata['deskman']
-            return make_response(json.dumps(thedata, indent=4), 200)
-    else:
-        return make_response('organisation resource \'%s\' not found!' % orga_id, 404)
-
-
-@app.route('/organisation', methods=['POST'])
-@csrf.exempt
-def orga_post():
-    """
-        Create a new organisation
-
-        swagger_from_file: api_doc/orga_post.yml
-    """
-
-    if request.headers.get('Accept') == 'application/json':
-
-        if is_token_valid(request.headers.get('Authorization')):
-
-            thedata = request.data
-
-            if show_orga(orga_id=json.loads(thedata).get('id'), format='raw'):
-                return make_response('Bad request: organisation already exist!', 400)
-            else:
-                form = OrgaAdminForm.from_json(json.loads(thedata))
-                form.created.data = timestamp()
-                form.changed.data = timestamp()
-                _orga2solr(form, action='create')
-                return make_response(thedata, 201)
-        else:
-            return make_response('Unauthorized', 401)
-    else:
-        return make_response('Bad request: invalid accept header!', 400)
-
-
-@app.route('/organisation/<orga_id>', methods=['PUT'])
-@csrf.exempt
-def orga_put(orga_id=''):
-    """
-        Update an existing organisation
-
-        swagger_from_file: api_doc/orga_put.yml
-    """
-
-    if request.headers.get('Accept') == 'application/json':
-
-        if is_token_valid(request.headers.get('Authorization')):
-
-            thedata = request.data
-
-            update_orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                    application=secrets.SOLR_APP, core='organisation',
-                                    query='id:%s' % orga_id)
-            update_orga_solr.request()
-
-            if update_orga_solr.results:
-
-                # TODO update each field
-                form = OrgaAdminForm.from_json(json.loads(thedata))
-                form.changed.data = timestamp()
-                logging.info(form.data)
-                _orga2solr(form, action='update')
-
-                return make_response(thedata, 200)
-            else:
-                update_orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                        application=secrets.SOLR_APP, core='organisation',
-                                        query='same_as:%s' % orga_id)
-                update_orga_solr.request()
-
-                if update_orga_solr.results:
-                    return make_response('Conflict: The ID of the resource already exists as "same_as"! Please check your data!', 409)
-                else:
-                    return make_response('organisation resource \'%s\' not found!' % orga_id, 404)
-        else:
-            return make_response('Unauthorized', 401)
-    else:
-        return make_response('Bad request: invalid accept header!', 400)
-
-
-@app.route('/organisation/<orga_id>', methods=['DELETE'])
-@csrf.exempt
-def orga_delete(orga_id=''):
-    """
-        Delete an existing organisation
-
-        swagger_from_file: api_doc/orga_delete.yml
-    """
-
-    if is_token_valid(request.headers.get('Authorization')):
-        # TODO decide on base of the api key scopes
-        # load group
-        delete_orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                application=secrets.SOLR_APP, core='organisation',
-                                query='id:%s' % orga_id)
-        delete_orga_solr.request()
-
-        if delete_orga_solr.results:
-            thedata = json.loads(delete_orga_solr.results[0].get('wtf_json'))
-            form = OrgaAdminForm.from_json(thedata)
-            # modify status to 'deleted'
-            form.editorial_status.data = 'deleted'
-            form.changed.data = timestamp()
-            form.note.data = 'Deleted via REST API'
-            # save group
-            _orga2solr(form, action='delete')
-
-            return make_response('organisation deleted!', 204)
-        else:
-            return make_response('organisation resource \'%s\' not found!' % orga_id, 404)
-
-    else:
-        return make_response('Unauthorized', 401)
-
-
-@app.route('/group/<group_id>', methods=['GET'])
-@csrf.exempt
-def group_get(group_id=''):
-    """
-        Get a group
-
-        swagger_from_file: api_doc/group_get.yml
-    """
-    thedata = show_group(group_id=group_id, format='raw')
-    if thedata:
-        if is_token_valid(request.headers.get('Authorization')):
-
-            return make_response(json.dumps(thedata, indent=4), 200)
-        else:
-            del thedata['correction_request']
-            del thedata['owner']
-            del thedata['deskman']
-            return make_response(json.dumps(thedata, indent=4), 200)
-    else:
-        return make_response('group resource \'%s\' not found!' % group_id, 404)
-
-
-@app.route('/group', methods=['POST'])
-@csrf.exempt
-def group_post():
-    """
-        Create a new group
-
-        swagger_from_file: api_doc/group_post.yml
-    """
-
-    if request.headers.get('Accept') == 'application/json':
-
-        if is_token_valid(request.headers.get('Authorization')):
-
-            thedata = request.data
-
-            if show_group(group_id=json.loads(thedata).get('id'), format='raw'):
-                return make_response('Bad request: group already exist!', 400)
-            else:
-                form = GroupAdminForm.from_json(json.loads(thedata))
-                form.created.data = timestamp()
-                form.changed.data = timestamp()
-                _group2solr(form, action='create')
-                return make_response(thedata, 201)
-        else:
-            return make_response('Unauthorized', 401)
-    else:
-        return make_response('Bad request: invalid accept header!', 400)
-
-
-@app.route('/group/<group_id>', methods=['PUT'])
-@csrf.exempt
-def group_put(group_id=''):
-    """
-        Update an existing group
-
-        swagger_from_file: api_doc/group_put.yml
-    """
-
-    if request.headers.get('Accept') == 'application/json':
-
-        if is_token_valid(request.headers.get('Authorization')):
-
-            thedata = request.data
-
-            update_group_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                     application=secrets.SOLR_APP, core='group',
-                                     query='id:%s' % group_id)
-            update_group_solr.request()
-
-            if update_group_solr.results:
-
-                form = GroupAdminForm.from_json(json.loads(thedata))
-                form.changed.data = timestamp()
-                _group2solr(form, action='update')
-
-                return make_response(thedata, 201)
-            else:
-                update_group_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                         application=secrets.SOLR_APP, core='group',
-                                         query='same_as:%s' % group_id)
-                update_group_solr.request()
-
-                if update_group_solr.results:
-                    return make_response('Conflict: The ID of the resource already exists as "same_as"! Please check your data!', 409)
-                else:
-                    return make_response('group resource \'%s\' not found!' % group_id, 404)
-        else:
-            return make_response('Unauthorized', 401)
-    else:
-        return make_response('Bad request: invalid accept header!', 400)
-
-
-@app.route('/group/<group_id>', methods=['DELETE'])
-@csrf.exempt
-def group_delete(group_id=''):
-    """
-        Delete an existing group
-
-        swagger_from_file: api_doc/group_delete.yml
-    """
-
-    if is_token_valid(request.headers.get('Authorization')):
-        # TODO decide on base of the api key scopes
-        # load group
-        delete_group_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                 application=secrets.SOLR_APP, core='group', query='id:%s' % group_id)
-        delete_group_solr.request()
-
-        if delete_group_solr.results:
-            thedata = json.loads(delete_group_solr.results[0].get('wtf_json'))
-            form = GroupAdminForm.from_json(thedata)
-            # modify status to 'deleted'
-            form.editorial_status.data = 'deleted'
-            form.changed.data = timestamp()
-            form.note.data = 'Deleted via REST API'
-            # save group
-            _group2solr(form, action='delete')
-
-            return make_response('group deleted!', 204)
-        else:
-            return make_response('group resource \'%s\' not found!' % group_id, 404)
-
-    else:
-        return make_response('Unauthorized', 401)
-
-
 # ---------- ORCID ----------
 
 
-class OrcidForm(Form):
+class OrcidForm(FlaskForm):
     read_limited = BooleanField(lazy_gettext('read limited'), validators=[Optional()], default='checked')
     update_activities = BooleanField(lazy_gettext('update activities'), validators=[Optional()], default='checked')
     update_person = BooleanField(lazy_gettext('update personal information'), validators=[Optional()], default='checked')
@@ -6284,10 +4793,9 @@ def orcid_login():
 @app.route('/orcid/linked_users/<affiliation>')
 @login_required
 def linked_users(affiliation=''):
-    if secrets.APP_SECURITY:
-        if current_user.role != 'admin' and current_user.role != 'superadmin':
-            flash(gettext('For Admins ONLY!!!'))
-            return redirect(url_for('homepage'))
+    if current_user.role != 'admin' and current_user.role != 'superadmin':
+        flash(gettext('For Admins ONLY!!!'))
+        return redirect(url_for('homepage'))
 
     if affiliation:
         query = 'orcidscopes:[\'\' TO *]'
@@ -6343,10 +4851,9 @@ def linked_users(affiliation=''):
 @app.route('/orcid/link_failed/<affiliation>')
 @login_required
 def link_failed(affiliation=''):
-    if secrets.APP_SECURITY:
-        if current_user.role != 'admin' and current_user.role != 'superadmin':
-            flash(gettext('For Admins ONLY!!!'))
-            return redirect(url_for('homepage'))
+    if current_user.role != 'admin' and current_user.role != 'superadmin':
+        flash(gettext('For Admins ONLY!!!'))
+        return redirect(url_for('homepage'))
 
     if affiliation:
         query = '-orcidid:[\'\' TO *] AND orcidscopes:[\'\' TO *]'
@@ -6432,7 +4939,7 @@ class User(UserMixin):
             return None
 
 
-class LoginForm(Form):
+class LoginForm(FlaskForm):
     username = StringField(lazy_gettext('Username'))
     password = PasswordField(lazy_gettext('Password'))
     wayf = HiddenField(lazy_gettext('Where Are You From?'))
@@ -6471,7 +4978,7 @@ def login():
 
                     # new user data for solr
                     tmp.setdefault('id', request.form.get('username').encode('ascii'))
-                    tmp.setdefault('name', '%s %s' % (authuser.get('given_name'), authuser.get('last_name')))
+                    tmp.setdefault('name', '%s, %s' % (authuser.get('last_name'), authuser.get('given_name')))
                     tmp.setdefault('email', authuser.get('email'))
                     if user.role == '' or user.role == 'user':
                         tmp.setdefault('role', 'user')
@@ -6490,7 +4997,7 @@ def login():
                     new_user_solr.update()
 
                     # update user data for login
-                    user.name = '%s %s' % (authuser.get('given_name'), authuser.get('last_name'))
+                    user.name = '%s, %s' % (authuser.get('last_name'), authuser.get('given_name'))
                     user.email = authuser.get('email')
                     user.accesstoken = accesstoken
                     user.id = authuser.get('id')
@@ -6656,6 +5163,704 @@ def redirect_back(endpoint, **values):
     if not target or not is_safe_url(target):
         target = url_for(endpoint, **values)
     return redirect(target)
+
+
+@app.route('/<agent>/<agent_id>/bibliography/<style>', methods=['GET'])
+@csrf.exempt
+def bibliography(agent='', agent_id='', style='harvard1'):
+    """
+        Getting a bibliography
+
+        swagger_from_file: bibliography_doc/bibliography.yml
+    """
+    format = request.args.get('format', 'html')
+
+    filter_by_year = request.args.get('filter_by_year', '')
+    filter_by_type = request.args.get('filter_by_type', '')
+    exclude_by_type = request.args.get('exclude_by_type', '')
+    filter_by_pr = request.args.get('filter_by_pr', False)
+    filter_by_ger = request.args.get('filter_by_ger', False)
+    filter_by_eng = request.args.get('filter_by_eng', False)
+    filter_by_current_members = request.args.get('filter_by_current_members', False)
+    filter_by_former_members = request.args.get('filter_by_former_members', False)
+    group_by_year = request.args.get('group_by_year', False)
+    # logging.info('group_by_year = %s' % group_by_year)
+    group_by_type = request.args.get('group_by_type', False)
+    group_by_type_year = request.args.get('group_by_type_year', False)
+    pubsort = request.args.get('pubsort', '')
+    toc = request.args.get('toc', False)
+    locale = request.args.get('locale', '')
+    # TODO start-creationdate, end-creationdate >> Szenario Raumplanung
+
+    reasoning = request.args.get('reasoning', False)
+    refresh = request.args.get('refresh', False)
+
+    formats = ['html', 'js', 'csl', 'pdf']
+    agent_types = {
+        'person': 'person',
+        'research_group': 'organisation',
+        'chair': 'organisation',
+        'organisation': 'organisation',
+        'working_group': 'group',
+        'project': 'group',
+    }
+    pubsorts = ['stm', 'anh']
+    STM_SORT = ['ArticleJournal', 'Chapter', 'Monograph', 'Journal', 'Series', 'Conference', 'Collection',
+                'MultivolumeWork', 'SpecialIssue', 'Patent', 'Standard', 'Thesis', 'InternetDocument', 'Report', 'Lecture', 'Sonstiges',
+                'ArticleNewspaper', 'PressRelease', 'RadioTVProgram', 'AudioVideoDocument',
+                'ResearchData', 'Other']
+    STM_LIST = {
+        'ArticleJournal': '',
+        'Chapter': '',
+        'Monograph': '',
+        'Journal': '',
+        'Series': '',
+        'Conference': '',
+        'Collection': '',
+        'MultivolumeWork': '',
+        'SpecialIssue': '',
+        'Patent': '',
+        'Standard': '',
+        'Thesis': '',
+        'InternetDocument': '',
+        'Report': '',
+        'Lecture': '',
+        'ArticleNewspaper': '',
+        'PressRelease': '',
+        'RadioTVProgram': '',
+        'AudioVideoDocument': '',
+        'ResearchData': '',
+        'Other': '',
+    }
+    ANH_SORT = ['Monograph', 'ArticleJournal', 'ChapterInLegalCommentary', 'Chapter', 'LegalCommentary', 'Collection',
+                 'MultivolumeWork', 'Conference', 'Edition', 'SpecialIssue', 'Journal', 'Series', 'Newspaper', 'Thesis',
+                'ArticleNewspaper',
+                'Lecture', 'Report', 'InternetDocument', 'RadioTVProgram', 'AudioVideoDocument',
+                'PressRelease', 'ResearchData', 'Other']
+    ANH_LIST = {
+        'Monograph': '',
+        'ArticleJournal': '',
+        'ChapterInLegalCommentary': '',
+        'Chapter': '',
+        'LegalCommentary': '',
+        'Collection': '',
+        'MultivolumeWork': '',
+        'Conference': '',
+        'Edition': '',
+        'SpecialIssue': '',
+        'Journal': '',
+        'Series': '',
+        'Newspaper': '',
+        'Thesis': '',
+        'ArticleNewspaper': '',
+        'Lecture': '',
+        'Report': '',
+        'InternetDocument': '',
+        'RadioTVProgram': '',
+        'AudioVideoDocument': '',
+        'PressRelease': '',
+        'ResearchData': '',
+        'Other': '',
+    }
+
+    if format not in formats:
+        return make_response('Bad request: format!', 400)
+    elif agent not in agent_types.keys():
+        return make_response('Bad request: agent!', 400)
+    elif pubsort and pubsort not in pubsorts:
+        return make_response('Bad request: pubsort!', 400)
+
+    key = request.full_path.replace('&refresh=true', '').replace('?refresh=true', '?')
+    # logging.debug('KEY: %s' % key)
+    response = ''
+    if not refresh:
+        # request in cache?
+        try:
+
+            storage_publists_cache = app.extensions['redis']['REDIS_PUBLIST_CACHE']
+
+            if storage_publists_cache.exists(key):
+                response = storage_publists_cache.get(key)
+
+        except Exception as e:
+            logging.info('REDIS ERROR: %s' % e)
+
+    if response == '':
+
+        group = False
+        group_field = ''
+        group_limit = 100000
+        if str2bool(group_by_year):
+            group = True
+            group_field = 'fdate'
+        elif str2bool(group_by_type):
+            group = True
+            group_field = 'pubtype'
+
+        filterquery = []
+        if str2bool(filter_by_eng):
+            filterquery.append('language:eng')
+        elif str2bool(filter_by_ger):
+            filterquery.append('language:ger')
+        elif str2bool(filter_by_pr):
+            filterquery.append('peer_reviewed:true')
+
+        if filter_by_type != '':
+            entries = filter_by_type.split('|')
+            filter_string = ''
+            for entry in entries:
+                filter_string += 'pubtype:%s' % PUBTYPE_KEYS.get(entry.lower()) + '+OR+'
+            filterquery.append(filter_string[:-4])
+
+        if filter_by_year != '':
+            filterquery.append('fdate:"%s"' % filter_by_year)
+
+        if exclude_by_type:
+            entries = exclude_by_type.split('|')
+            for entry in entries:
+                filterquery.append('-pubtype:"%s"' % PUBTYPE_KEYS.get(entry.lower()))
+
+        query = ''
+        results = []
+        if agent_types.get(agent) == 'person':
+
+            # get facet value
+            actor_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                              application=secrets.SOLR_APP, query='gnd:%s' % agent_id, export_field='wtf_json',
+                              core=agent_types.get(agent))
+            actor_solr.request()
+
+            if len(actor_solr.results) == 0:
+                return make_response('Not Found: Unknown Agent!', 404)
+            else:
+                name = actor_solr.results[0].get('name')
+
+                query = 'pndid:%s' % agent_id
+                # query = 'pnd:"%s%s%s"' % (agent_id, '%23', name)
+                # logging.info('query=%s' % query)
+
+        else:
+            # get orga/group doc
+            actor_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                              application=secrets.SOLR_APP, query='id:%s' % agent_id,
+                              export_field='wtf_json',
+                              core=agent_types.get(agent))
+            actor_solr.request()
+
+            if actor_solr.results:
+
+                name = actor_solr.results[0].get('pref_label')
+                # logging.debug('name = %s' % name)
+
+                if reasoning:
+                    # logging.debug('reasoning: %s' % reasoning)
+                    orgas = {}
+                    orgas.setdefault(agent_id, name)
+                    # get all children
+                    if actor_solr.results[0].get('children'):
+                        children = actor_solr.results[0].get('children')
+                        for child_json in children:
+                            child = json.loads(child_json)
+                            orgas.setdefault(child.get('id'), child.get('label'))
+                    query = ''
+                    idx_o = 0
+                    id_type = agent_types.get(agent)
+                    if id_type == 'organisation':
+                        id_type = 'affiliation'
+
+                    for orga_id in orgas.keys():
+
+                        fquery = ['gnd:[\'\' TO *]']
+
+                        if not agent_types.get(agent) == 'person':
+                            if filter_by_former_members:
+                                fquery.append('personal_status:emeritus+OR+personal_status:alumnus')
+                            elif filter_by_current_members:
+                                fquery.append('-personal_status:emeritus')
+                                fquery.append('-personal_status:alumnus')
+
+                        member_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                           application=secrets.SOLR_APP, query='%s_id:"%s"' % (id_type, orga_id),
+                                           fquery=fquery, fields=['gnd', 'name'], rows=100000,
+                                           core='person')
+                        member_solr.request()
+
+                        query_part = ''
+
+                        if member_solr.results and len(member_solr.results) > 0:
+                            idx_p = 0
+                            for member in member_solr.results:
+                                query_part += 'pnd:"%s%s%s"' % (member.get('gnd'), '%23', member.get('name'))
+                                idx_p += 1
+                                if idx_p < len(member_solr.results) and query_part != '':
+                                    query_part += ' OR '
+
+                            if query_part != '':
+                                query += query_part
+
+                        idx_o += 1
+                        if idx_o < len(orgas) and query != '':
+                            query += ' OR '
+
+                    while query.endswith(' OR '):
+                        query = query[:-4]
+
+                    # logging.info('query=%s' % query)
+
+                else:
+                    logging.debug('reasoning: %s' % reasoning)
+                    id_type = agent_types.get(agent)
+                    if id_type == 'organisation':
+                        id_type = 'affiliation'
+                    query = '%s_id:%s' % (id_type, agent_id)
+            else:
+                return make_response('Not Found: Unknown Agent!', 404)
+
+        biblist_id = str(uuid.uuid4())
+        biblist = ''
+        biblist_toc = ''
+        biblist_coins = ''
+
+        STM_TOC = {
+            'ArticleJournal': '',
+            'Chapter': '',
+            'Monograph': '',
+            'Journal': '',
+            'Series': '',
+            'Conference': '',
+            'Collection': '',
+            'MultivolumeWork': '',
+            'SpecialIssue': '',
+            'Patent': '',
+            'Standard': '',
+            'Thesis': '',
+            'InternetDocument': '',
+            'Report': '',
+            'Lecture': '',
+            'ArticleNewspaper': '',
+            'PressRelease': '',
+            'RadioTVProgram': '',
+            'AudioVideoDocument': '',
+            'ResearchData': '',
+        }
+        ANH_TOC = {
+            'Monograph': '',
+            'ArticleJournal': '',
+            'ChapterInLegalCommentary': '',
+            'Chapter': '',
+            'LegalCommentary': '',
+            'Collection': '',
+            'MultivolumeWork': '',
+            'Conference': '',
+            'Edition': '',
+            'SpecialIssue': '',
+            'Journal': '',
+            'Series': '',
+            'Newspaper': '',
+            'Thesis': '',
+            'ArticleNewspaper': '',
+            'Lecture': '',
+            'Report': '',
+            'InternetDocument': '',
+            'RadioTVProgram': '',
+            'AudioVideoDocument': '',
+            'PressRelease': '',
+            'ResearchData': '',
+        }
+
+        STM_COINS = {
+            'ArticleJournal': '',
+            'Chapter': '',
+            'Monograph': '',
+            'Journal': '',
+            'Series': '',
+            'Conference': '',
+            'Collection': '',
+            'MultivolumeWork': '',
+            'SpecialIssue': '',
+            'Patent': '',
+            'Standard': '',
+            'Thesis': '',
+            'InternetDocument': '',
+            'Report': '',
+            'Lecture': '',
+            'ArticleNewspaper': '',
+            'PressRelease': '',
+            'RadioTVProgram': '',
+            'AudioVideoDocument': '',
+            'ResearchData': '',
+        }
+        ANH_COINS = {
+            'Monograph': '',
+            'ArticleJournal': '',
+            'ChapterInLegalCommentary': '',
+            'Chapter': '',
+            'LegalCommentary': '',
+            'Collection': '',
+            'MultivolumeWork': '',
+            'Conference': '',
+            'Edition': '',
+            'SpecialIssue': '',
+            'Journal': '',
+            'Series': '',
+            'Newspaper': '',
+            'Thesis': '',
+            'ArticleNewspaper': '',
+            'Lecture': '',
+            'Report': '',
+            'InternetDocument': '',
+            'RadioTVProgram': '',
+            'AudioVideoDocument': '',
+            'PressRelease': '',
+            'ResearchData': '',
+        }
+
+        if group_by_type_year and not filter_by_year and not filter_by_type:
+
+            facet_tree = ('pubtype', 'fdate')
+
+            publist_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                application=secrets.SOLR_APP, handler='query',
+                                query=query, fields=['wtf_json'], rows=0,
+                                facet='true', facet_tree=facet_tree, facet_sort=False, facet_limit=-1,
+                                sort='fdate asc', core='hb2')
+            publist_solr.request()
+            # logging.info('publist_solr.tree: %s' % json.dumps(publist_solr.tree, indent=4))
+
+            list_cnt = 0
+            for pubtype in publist_solr.tree.get('pubtype,fdate'):
+                # logging.debug('pubtype = %s' % pubtype.get('value'))
+                # logging.debug('pubtype = %s' % pubtype)
+                year_list = ''
+                year_coins = ''
+                if pubtype.get('pivot'):
+                    for year in pubtype.get('pivot')[::-1]:
+                        # logging.debug('\t%s: %s' % (year.get('value'), year.get('count')))
+                        filterquery = []
+                        filterquery.append('fdate:%s' % year.get('value'))
+                        filterquery.append('pubtype:%s' % pubtype.get('value'))
+                        pivot_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                          application=secrets.SOLR_APP, handler='query',
+                                          query=query, fields=['wtf_json'], rows=100000,
+                                          fquery=filterquery, core='hb2')
+                        pivot_solr.request()
+                        results = pivot_solr.results
+                        # logging.debug('PIVOT_PUB_LIST: %s' % results)
+
+                        publist_docs = []
+                        for result in results:
+                            publist_docs.append(json.loads(result.get('wtf_json')))
+                            year_coins += '<div class="coins"><span class="Z3988" title="%s"></span></div>' % openurl_processor.wtf_openurl(json.loads(result.get('wtf_json'))).replace('&', '&amp;')
+
+                        if not group_by_type:
+                            year_list += '<h5>%s</h5>' % year.get('value')
+                        year_list += citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
+                else:
+                    filterquery = []
+                    filterquery.append('pubtype:%s' % pubtype.get('value'))
+                    pivot_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                      application=secrets.SOLR_APP, handler='query',
+                                      query=query, fields=['wtf_json'], rows=100000,
+                                      fquery=filterquery, core='hb2')
+                    pivot_solr.request()
+                    results = pivot_solr.results
+                    # logging.debug('PIVOT_PUB_LIST: %s' % results)
+
+                    publist_docs = []
+                    for result in results:
+                        publist_docs.append(json.loads(result.get('wtf_json')))
+                        year_coins += '<div class="coins"><span class="Z3988" title="%s"></span></div>' % openurl_processor.wtf_openurl(
+                            json.loads(result.get('wtf_json'))).replace('&', '&amp;')
+
+                    year_list += citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
+
+                group_value = pubtype.get('value')
+                if locale.startswith('de'):
+                    group_value = display_vocabularies.PUBTYPE_GER.get(pubtype.get('value'))
+                else:
+                    group_value = display_vocabularies.PUBTYPE_ENG.get(pubtype.get('value'))
+
+                list_cnt += 1
+                header = '<h4 id="%s_%s">%s</h4>' % (biblist_id, list_cnt, group_value)
+                footer = ''
+                if toc:
+                    back_string = 'Back to table of contents'
+                    if locale.startswith('de'):
+                        back_string = 'Zurück zum Inhaltsverzeichnis'
+                    footer = '<div class="toc_return"><a href="#%s_citetoc">%s</a></div>' % (biblist_id, back_string)
+
+                if pubsort == 'stm':
+                    STM_LIST[pubtype.get('value')] = header + year_list + footer
+                    STM_TOC[pubtype.get('value')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                    STM_COINS[pubtype.get('value')] = year_coins
+                elif pubsort == 'anh':
+                    ANH_LIST[pubtype.get('value')] = header + year_list + footer
+                    ANH_TOC[pubtype.get('value')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                    ANH_COINS[pubtype.get('value')] = year_coins
+                else:
+                    biblist += header + year_list + footer
+                    biblist_toc += '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                    biblist_coins += year_coins
+
+            if pubsort == 'anh':
+                # logging.debug(ANH_LIST)
+                biblist = ''
+                biblist_toc = ''
+                for pubtype in ANH_SORT:
+                    if ANH_LIST.get(pubtype):
+                        biblist += ANH_LIST.get(pubtype)
+                        biblist_toc += ANH_TOC.get(pubtype)
+                        biblist_coins += ANH_COINS.get(pubtype)
+            elif pubsort == 'stm':
+                # logging.debug(STM_LIST)
+                biblist = ''
+                biblist_toc = ''
+                for pubtype in STM_SORT:
+                    if STM_LIST.get(pubtype):
+                        biblist += STM_LIST.get(pubtype)
+                        biblist_toc += STM_TOC.get(pubtype)
+                        biblist_coins += STM_COINS.get(pubtype)
+
+        else:
+
+            publist_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                application=secrets.SOLR_APP, handler='query',
+                                query=query, fields=['wtf_json'],
+                                rows=100000, fquery=filterquery,
+                                group=group, group_field=group_field, group_limit=group_limit,
+                                sort='fdate desc',
+                                core='hb2')
+            publist_solr.request()
+            results.extend(publist_solr.results)
+            # print('publist_solr.results: %s' % results)
+
+            publist_docs = []
+            if group:
+                biblist = ''
+                list_cnt = 0
+                for result in results:
+                    # logging.debug('groupValue: %s' % result.get('groupValue'))
+                    # logging.debug('numFound: %s' % result.get('doclist').get('numFound'))
+                    # logging.debug('docs: %s' % result.get('doclist').get('docs'))
+
+                    coins = ''
+                    for doc in result.get('doclist').get('docs'):
+                        publist_docs.append(json.loads(doc.get('wtf_json')))
+                        coins += '<div class="coins"><span class="Z3988" title="%s"></span></div>' % openurl_processor.wtf_openurl(json.loads(doc.get('wtf_json'))).replace('&', '&amp;')
+
+                    group_value = result.get('groupValue')
+                    if str2bool(group_by_type):
+                        if locale.startswith('de'):
+                            group_value = display_vocabularies.PUBTYPE_GER.get(result.get('groupValue'))
+                        else:
+                            group_value = display_vocabularies.PUBTYPE_ENG.get(result.get('groupValue'))
+
+                    list_cnt += 1
+                    header = '<h4 id="%s_%s">%s</h4>' % (biblist_id, list_cnt, group_value)
+                    footer = ''
+                    if toc:
+                        back_string = 'Back to table of contents'
+                        if locale.startswith('de'):
+                            back_string = 'Zurück zum Inhaltsverzeichnis'
+                        footer = '<div class="toc_return"><a href="#%s_citetoc">%s</a></div>' % (biblist_id, back_string)
+
+                    if str2bool(group_by_type):
+                        if pubsort == 'stm':
+                            STM_LIST[result.get('groupValue')] = header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style) + footer
+                            STM_TOC[result.get('groupValue')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                            STM_COINS[result.get('groupValue')] = coins
+                        elif pubsort == 'anh':
+                            ANH_LIST[result.get('groupValue')] = header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style) + footer
+                            ANH_TOC[result.get('groupValue')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                            ANH_COINS[result.get('groupValue')] = coins
+                        else:
+                            biblist += header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style) + footer
+                            biblist_toc += '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                            biblist_coins += coins
+                    elif str2bool(group_by_year):
+                        biblist += header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style) + footer
+                        biblist_toc += '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                        biblist_coins += coins
+                    else:
+                        biblist += header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style) + footer
+
+                    if str2bool(group_by_type) and pubsort == 'anh':
+                        # logging.debug(ANH_LIST)
+                        biblist = ''
+                        biblist_toc = ''
+                        for pubtype in ANH_SORT:
+                            if ANH_LIST.get(pubtype):
+                                biblist += ANH_LIST.get(pubtype)
+                                biblist_toc += ANH_TOC.get(pubtype)
+                                biblist_coins += ANH_COINS.get(pubtype)
+                    elif str2bool(group_by_type) and pubsort == 'stm':
+                        # logging.debug(STM_LIST)
+                        biblist = ''
+                        biblist_toc = ''
+                        for pubtype in STM_SORT:
+                            if STM_LIST.get(pubtype):
+                                biblist += STM_LIST.get(pubtype)
+                                biblist_toc += STM_TOC.get(pubtype)
+                                biblist_coins += STM_COINS.get(pubtype)
+
+                    publist_docs = []
+
+            else:
+                for result in results:
+                    publist_docs.append(json.loads(result.get('wtf_json')))
+
+                biblist = citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
+
+        response = ''
+
+        if toc:
+            response += '<ul id="%s_citetoc">' % biblist_id + biblist_toc + '</ul>'
+
+        response += biblist + biblist_coins
+
+    if response:
+        try:
+
+            storage_publists_cache = app.extensions['redis']['REDIS_PUBLIST_CACHE']
+
+            storage_publists_cache.set(key, response)
+            storage_publists_cache.hset(agent_id, key, timestamp())
+
+        except Exception as e:
+            logging.error('REDIS: %s' % e)
+
+    return response
+
+
+def citeproc_node(docs=None, format='html', locale='', style=''):
+
+    locales_url = secrets.CITEPROC_LOCALES_FILE
+
+    with open(locales_url) as data_file:
+        locales = json.load(data_file)
+
+    # load a CSL style (from the current directory)
+    # logging.debug('LOCALE: %s' % locale)
+    if locale not in locales.get('language-names').keys():
+        locale = locales.get('primary-dialects').get(locale)
+    # logging.debug('LOCALE: %s' % locale)
+
+    citeproc_url = secrets.CITEPROC_SERVICE_URL % (format, style, locale)
+
+    items = OrderedDict()
+    for item in docs:
+        items.setdefault(item.get('id'), item)
+
+    response = requests.post(citeproc_url, data=json.dumps({'items': items}),
+                             headers={'Content-type': 'application/json'})
+
+    bib = response.content.decode()
+    if format == 'html':
+        urls = re.findall(urlmarker.URL_REGEX, bib)
+        logging.info(urls)
+
+        for url in list(set(urls)):
+            bib = bib.replace(url, '<a href="%s">%s</a>' % (url.replace('http://dx.doi.org/', 'https://doi.org/'), url.replace('http://dx.doi.org/', 'https://doi.org/')))
+
+        dois = re.findall(urlmarker.DOI_REGEX, bib)
+        # logging.info('DOIs: %s' % dois)
+
+        for doi in list(set(dois)):
+            if doi.endswith('.'):
+                doi = doi[:-1]
+            elif doi.endswith('.</div>'):
+                doi = doi[:-7]
+            bib = bib.replace(doi, '<a href="https://doi.org/%s">%s</a>' % (doi.replace('doi:', ''), doi))
+
+        dois = re.findall(urlmarker.DOI_REGEX_1, bib)
+        # logging.info('DOIs: %s' % dois)
+
+        for doi in list(set(dois)):
+            if doi.endswith('.'):
+                doi = doi[:-1]
+            elif doi.endswith('.</div>'):
+                doi = doi[:-7]
+            bib = bib.replace(doi, '<a href="https://doi.org/%s">%s</a>' % (doi.replace('DOI: ', ''), doi))
+
+    return bib
+
+
+def render_bibliography(docs=None, format='html', locale='', style='', commit_link=False, commit_system=''):
+
+    if docs is None:
+        docs = []
+
+    publist = ''
+    # logging.debug('csl-docs: %s' % docs)
+    if len(docs) > 0:
+
+        locales_url = secrets.CITEPROC_LOCALES_FILE
+
+        with open(locales_url) as data_file:
+            locales = json.load(data_file)
+
+        bib_source = CiteProcJSON(docs)
+        # load a CSL style (from the current directory)
+        locale = '%s/csl-locales/locales-%s' % (secrets.CSL_DATA_DIR, locales.get('primary-dialects').get(locale))
+        # logging.info('locale: %s' % locale)
+        bib_style = CitationStylesStyle('%s/csl/%s' % (secrets.CSL_DATA_DIR, style),
+                                        locale=locale,
+                                        validate=False)
+        # Create the citeproc-py bibliography, passing it the:
+        # * CitationStylesStyle,
+        # * BibliographySource (CiteProcJSON in this case), and
+        # * a formatter (plain, html, or you can write a custom formatter)
+        bibliography = CitationStylesBibliography(bib_style, bib_source, formatter.html)
+        # get a list of the item ids and register them to the bibliography object
+
+        def warn(citation_item):
+            logging.warning(
+                "WARNING: Reference with key '{}' not found in the bibliography.".format(citation_item.key)
+            )
+
+        for item in docs:
+            citation = Citation([CitationItem(item.get('id'))])
+            bibliography.register(citation)
+            bibliography.cite(citation, warn)
+
+        # And finally, the bibliography can be rendered.
+        if format == 'html':
+            publist += '<div class="csl-bib-body">'
+
+        idx = 0
+        for item in bibliography.bibliography():
+            # TODO Formatierung
+            # logging.info('CSL item: %s' % item)
+            # logging.info('CSL item ID: %s' % docs[idx].get('id'))
+            if format == 'html':
+                publist += '<div class="csl-entry">'
+                if commit_link:
+                    publist += '<span class="glyphicon glyphicon-minus" aria-hidden="true"></span> '
+
+            if format == 'html':
+                urls = re.findall(urlmarker.URL_REGEX, str(item))
+                # logging.info(urls)
+
+                for url in urls:
+                    item = item.replace(url, '<a href="%s">%s</a>' % (url, url))
+
+            publist += str(item)
+
+            if commit_link and commit_system:
+                if commit_system == 'crossref':
+                    publist += ' <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span> <a href="%s?doi=%s">%s</a>' % (url_for("new_by_identifiers"), docs[idx].get('id'), lazy_gettext('Use this Record'))
+                else:
+                    publist += ' <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span> <a href="%s?source=%s&id=%s">%s</a>' % (url_for("new_by_identifiers"), commit_system, docs[idx].get('id'), lazy_gettext('Use this Record'))
+
+            if format == 'html':
+                publist += '</div>'
+
+            idx += 1
+
+        if format == 'html':
+            publist += '</div>'
+
+    return publist
 
 
 # TODO

@@ -98,6 +98,7 @@ parameters:
   type: string
 responses:
   200:
+    description: The organisation resource exists and is returned
     schema:
         $ref: "#/definitions/Organisation"
   401:

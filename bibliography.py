@@ -29,6 +29,7 @@ from logging.handlers import RotatingFileHandler
 
 import requests
 import simplejson as json
+from collections import OrderedDict
 from citeproc import Citation, CitationItem
 from citeproc import CitationStylesStyle, CitationStylesBibliography
 from citeproc import formatter
@@ -36,13 +37,13 @@ from citeproc.py2compat import *
 from citeproc.source.json import CiteProcJSON
 from flask import Flask, request, jsonify, url_for
 from flask import make_response
-from flask.ext.babel import Babel, lazy_gettext
-from flask.ext.login import LoginManager
+from flask_babel import Babel, lazy_gettext
+from flask_login import LoginManager
 from flask_cors import CORS
 from flask_humanize import Humanize
 from flask_redis import Redis
 from flask_swagger import swagger
-from flask_wtf.csrf import CsrfProtect
+from flask_wtf.csrf import CSRFProtect
 
 from forms.forms import *
 from processors import openurl_processor
@@ -89,7 +90,7 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS '] = False
 app.config['REDIS_PUBLIST_CACHE_URL'] = secrets.REDIS_PUBLIST_CACHE_URL
 Redis(app, 'REDIS_PUBLIST_CACHE')
 
-csrf = CsrfProtect(app)
+csrf = CSRFProtect(app)
 
 log_formatter = logging.Formatter("[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s")
 handler = RotatingFileHandler(secrets.LOGFILE, maxBytes=10000, backupCount=1)
@@ -100,6 +101,37 @@ app.logger.addHandler(handler)
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.DEBUG)
 log.addHandler(handler)
+
+PUBTYPE_KEYS = {
+    'articlejournal': 'ArticleJournal',
+    'articlenewspaper': 'ArticleNewspaper',
+    'audiobook': 'AudioBook',
+    'audiovideodocument': 'AudioVideoDocument',
+    'chapter': 'Chapter',
+    'chapterinlegalcommentary': 'ChapterInLegalCommentary',
+    'chapterinmonograph': 'ChapterInMonograph',
+    'collection': 'Collection',
+    'conference': 'Conference',
+    'edition': 'Edition',
+    'internetdocument': 'InternetDocument',
+    'journal': 'Journal',
+    'lecture': 'Lecture',
+    'legalcommentary': 'LegalCommentary',
+    'monograph': 'Monograph',
+    'multivolumework': 'MultivolumeWork',
+    'newspaper': 'Newspaper',
+    'other': 'Other',
+    'patent': 'Patent',
+    'pressrelease': 'PressRelease',
+    'radiotvprogram': 'RadioTVProgram',
+    'report': 'Report',
+    'researchdata': 'ResearchData',
+    'series': 'Series',
+    'software': 'Software',
+    'specialissue': 'SpecialIssue',
+    'standard': 'Standard',
+    'thesis': 'Thesis',
+}
 
 
 # ---------- PUB LISTS ----------
@@ -116,9 +148,12 @@ def bibliography(agent='', agent_id='', style='harvard1'):
 
     filter_by_year = request.args.get('filter_by_year', '')
     filter_by_type = request.args.get('filter_by_type', '')
+    exclude_by_type = request.args.get('exclude_by_type', '')
     filter_by_pr = request.args.get('filter_by_pr', False)
     filter_by_ger = request.args.get('filter_by_ger', False)
     filter_by_eng = request.args.get('filter_by_eng', False)
+    filter_by_current_members = request.args.get('filter_by_current_members', False)
+    filter_by_former_members = request.args.get('filter_by_former_members', False)
     group_by_year = request.args.get('group_by_year', False)
     # logging.info('group_by_year = %s' % group_by_year)
     group_by_type = request.args.get('group_by_type', False)
@@ -126,8 +161,9 @@ def bibliography(agent='', agent_id='', style='harvard1'):
     pubsort = request.args.get('pubsort', '')
     toc = request.args.get('toc', False)
     locale = request.args.get('locale', '')
+    # TODO start-creationdate, end-creationdate >> Szenario Raumplanung
 
-    reasoning = request.args.get('reasoning', True)
+    reasoning = request.args.get('reasoning', False)
     refresh = request.args.get('refresh', False)
 
     formats = ['html', 'js', 'csl', 'pdf']
@@ -136,13 +172,14 @@ def bibliography(agent='', agent_id='', style='harvard1'):
         'research_group': 'organisation',
         'chair': 'organisation',
         'organisation': 'organisation',
-        'working_group': 'organisation',
+        'working_group': 'group',
+        'project': 'group',
     }
     pubsorts = ['stm', 'anh']
     STM_SORT = ['ArticleJournal', 'Chapter', 'Monograph', 'Journal', 'Series', 'Conference', 'Collection',
-                'SpecialIssue', 'Patent', 'Standard', 'Thesis', 'InternetDocument', 'Report', 'Lecture', 'Sonstiges',
+                'MultivolumeWork', 'SpecialIssue', 'Patent', 'Standard', 'Thesis', 'InternetDocument', 'Report', 'Lecture', 'Sonstiges',
                 'ArticleNewspaper', 'PressRelease', 'RadioTVProgram', 'AudioVideoDocument',
-                'ResearchData']
+                'ResearchData', 'Other']
     STM_LIST = {
         'ArticleJournal': '',
         'Chapter': '',
@@ -151,6 +188,7 @@ def bibliography(agent='', agent_id='', style='harvard1'):
         'Series': '',
         'Conference': '',
         'Collection': '',
+        'MultivolumeWork': '',
         'SpecialIssue': '',
         'Patent': '',
         'Standard': '',
@@ -163,12 +201,13 @@ def bibliography(agent='', agent_id='', style='harvard1'):
         'RadioTVProgram': '',
         'AudioVideoDocument': '',
         'ResearchData': '',
+        'Other': '',
     }
     ANH_SORT = ['Monograph', 'ArticleJournal', 'ChapterInLegalCommentary', 'Chapter', 'LegalCommentary', 'Collection',
-                'Conference', 'Edition', 'SpecialIssue', 'Journal', 'Series', 'Newspaper', 'Thesis',
+                 'MultivolumeWork', 'Conference', 'Edition', 'SpecialIssue', 'Journal', 'Series', 'Newspaper', 'Thesis',
                 'ArticleNewspaper',
                 'Lecture', 'Report', 'InternetDocument', 'RadioTVProgram', 'AudioVideoDocument',
-                'PressRelease', 'ResearchData']
+                'PressRelease', 'ResearchData', 'Other']
     ANH_LIST = {
         'Monograph': '',
         'ArticleJournal': '',
@@ -176,6 +215,7 @@ def bibliography(agent='', agent_id='', style='harvard1'):
         'Chapter': '',
         'LegalCommentary': '',
         'Collection': '',
+        'MultivolumeWork': '',
         'Conference': '',
         'Edition': '',
         'SpecialIssue': '',
@@ -191,6 +231,7 @@ def bibliography(agent='', agent_id='', style='harvard1'):
         'AudioVideoDocument': '',
         'PressRelease': '',
         'ResearchData': '',
+        'Other': '',
     }
 
     if format not in formats:
@@ -236,9 +277,19 @@ def bibliography(agent='', agent_id='', style='harvard1'):
             filterquery.append('peer_reviewed:true')
 
         if filter_by_type != '':
-            filterquery.append('pubtype:"%s"' % filter_by_type)
+            entries = filter_by_type.split('|')
+            filter_string = ''
+            for entry in entries:
+                filter_string += 'pubtype:%s' % PUBTYPE_KEYS.get(entry.lower()) + '+OR+'
+            filterquery.append(filter_string[:-4])
+
         if filter_by_year != '':
             filterquery.append('fdate:"%s"' % filter_by_year)
+
+        if exclude_by_type:
+            entries = exclude_by_type.split('|')
+            for entry in entries:
+                filterquery.append('-pubtype:"%s"' % PUBTYPE_KEYS.get(entry.lower()))
 
         query = ''
         results = []
@@ -255,19 +306,20 @@ def bibliography(agent='', agent_id='', style='harvard1'):
             else:
                 name = actor_solr.results[0].get('name')
 
-                query = 'pnd:"%s%s%s"' % (agent_id, '%23', name)
+                query = 'pndid:%s' % agent_id
+                # query = 'pnd:"%s%s%s"' % (agent_id, '%23', name)
                 # logging.info('query=%s' % query)
 
-        elif agent_types.get(agent) == 'organisation':
-            # get orga doc
+        else:
+            # get orga/group doc
             actor_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                              application=secrets.SOLR_APP, query='gnd:%s' % agent_id, export_field='wtf_json',
+                              application=secrets.SOLR_APP, query='id:%s' % agent_id,
+                              export_field='wtf_json',
                               core=agent_types.get(agent))
             actor_solr.request()
 
-            if len(actor_solr.results) == 0:
-                return make_response('Not Found: Unknown Agent!', 404)
-            else:
+            if actor_solr.results:
+
                 name = actor_solr.results[0].get('pref_label')
                 # logging.debug('name = %s' % name)
 
@@ -281,21 +333,32 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                         for child_json in children:
                             child = json.loads(child_json)
                             orgas.setdefault(child.get('id'), child.get('label'))
-                    # for each orga get all persons
-                    # logging.info('orgas: %s' % orgas)
                     query = ''
                     idx_o = 0
+                    id_type = agent_types.get(agent)
+                    if id_type == 'organisation':
+                        id_type = 'affiliation'
+
                     for orga_id in orgas.keys():
+
+                        fquery = ['gnd:[\'\' TO *]']
+
+                        if not agent_types.get(agent) == 'person':
+                            if filter_by_former_members:
+                                fquery.append('personal_status:emeritus+OR+personal_status:alumnus')
+                            elif filter_by_current_members:
+                                fquery.append('-personal_status:emeritus')
+                                fquery.append('-personal_status:alumnus')
+
                         member_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                           application=secrets.SOLR_APP, query='faffiliation:"%s"' % orgas.get(orga_id),
-                                           fquery=['gnd:[\'\' TO *]'], fields=['gnd', 'name'], rows=100000,
+                                           application=secrets.SOLR_APP, query='%s_id:"%s"' % (id_type, orga_id),
+                                           fquery=fquery, fields=['gnd', 'name'], rows=100000,
                                            core='person')
                         member_solr.request()
 
                         query_part = ''
 
                         if member_solr.results and len(member_solr.results) > 0:
-                            # logging.debug('members: %s' % len(member_solr.results))
                             idx_p = 0
                             for member in member_solr.results:
                                 query_part += 'pnd:"%s%s%s"' % (member.get('gnd'), '%23', member.get('name'))
@@ -317,7 +380,111 @@ def bibliography(agent='', agent_id='', style='harvard1'):
 
                 else:
                     logging.debug('reasoning: %s' % reasoning)
-                    # TODO werte die Felder affiliation_context und group_context aus
+                    id_type = agent_types.get(agent)
+                    if id_type == 'organisation':
+                        id_type = 'affiliation'
+                    query = '%s_id:%s' % (id_type, agent_id)
+            else:
+                return make_response('Not Found: Unknown Agent!', 404)
+
+        biblist_id = str(uuid.uuid4())
+        biblist = ''
+        biblist_toc = ''
+        biblist_coins = ''
+
+        STM_TOC = {
+            'ArticleJournal': '',
+            'Chapter': '',
+            'Monograph': '',
+            'Journal': '',
+            'Series': '',
+            'Conference': '',
+            'Collection': '',
+            'MultivolumeWork': '',
+            'SpecialIssue': '',
+            'Patent': '',
+            'Standard': '',
+            'Thesis': '',
+            'InternetDocument': '',
+            'Report': '',
+            'Lecture': '',
+            'ArticleNewspaper': '',
+            'PressRelease': '',
+            'RadioTVProgram': '',
+            'AudioVideoDocument': '',
+            'ResearchData': '',
+        }
+        ANH_TOC = {
+            'Monograph': '',
+            'ArticleJournal': '',
+            'ChapterInLegalCommentary': '',
+            'Chapter': '',
+            'LegalCommentary': '',
+            'Collection': '',
+            'MultivolumeWork': '',
+            'Conference': '',
+            'Edition': '',
+            'SpecialIssue': '',
+            'Journal': '',
+            'Series': '',
+            'Newspaper': '',
+            'Thesis': '',
+            'ArticleNewspaper': '',
+            'Lecture': '',
+            'Report': '',
+            'InternetDocument': '',
+            'RadioTVProgram': '',
+            'AudioVideoDocument': '',
+            'PressRelease': '',
+            'ResearchData': '',
+        }
+
+        STM_COINS = {
+            'ArticleJournal': '',
+            'Chapter': '',
+            'Monograph': '',
+            'Journal': '',
+            'Series': '',
+            'Conference': '',
+            'Collection': '',
+            'MultivolumeWork': '',
+            'SpecialIssue': '',
+            'Patent': '',
+            'Standard': '',
+            'Thesis': '',
+            'InternetDocument': '',
+            'Report': '',
+            'Lecture': '',
+            'ArticleNewspaper': '',
+            'PressRelease': '',
+            'RadioTVProgram': '',
+            'AudioVideoDocument': '',
+            'ResearchData': '',
+        }
+        ANH_COINS = {
+            'Monograph': '',
+            'ArticleJournal': '',
+            'ChapterInLegalCommentary': '',
+            'Chapter': '',
+            'LegalCommentary': '',
+            'Collection': '',
+            'MultivolumeWork': '',
+            'Conference': '',
+            'Edition': '',
+            'SpecialIssue': '',
+            'Journal': '',
+            'Series': '',
+            'Newspaper': '',
+            'Thesis': '',
+            'ArticleNewspaper': '',
+            'Lecture': '',
+            'Report': '',
+            'InternetDocument': '',
+            'RadioTVProgram': '',
+            'AudioVideoDocument': '',
+            'PressRelease': '',
+            'ResearchData': '',
+        }
 
         if group_by_type_year and not filter_by_year and not filter_by_type:
 
@@ -330,101 +497,6 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                                 sort='fdate asc', core='hb2')
             publist_solr.request()
             # logging.info('publist_solr.tree: %s' % json.dumps(publist_solr.tree, indent=4))
-
-            biblist_id = str(uuid.uuid4())
-            biblist = ''
-            biblist_toc = ''
-            biblist_coins = ''
-
-            STM_TOC = {
-                'ArticleJournal': '',
-                'Chapter': '',
-                'Monograph': '',
-                'Journal': '',
-                'Series': '',
-                'Conference': '',
-                'Collection': '',
-                'SpecialIssue': '',
-                'Patent': '',
-                'Standard': '',
-                'Thesis': '',
-                'InternetDocument': '',
-                'Report': '',
-                'Lecture': '',
-                'ArticleNewspaper': '',
-                'PressRelease': '',
-                'RadioTVProgram': '',
-                'AudioVideoDocument': '',
-                'ResearchData': '',
-            }
-            ANH_TOC = {
-                'Monograph': '',
-                'ArticleJournal': '',
-                'ChapterInLegalCommentary': '',
-                'Chapter': '',
-                'LegalCommentary': '',
-                'Collection': '',
-                'Conference': '',
-                'Edition': '',
-                'SpecialIssue': '',
-                'Journal': '',
-                'Series': '',
-                'Newspaper': '',
-                'Thesis': '',
-                'ArticleNewspaper': '',
-                'Lecture': '',
-                'Report': '',
-                'InternetDocument': '',
-                'RadioTVProgram': '',
-                'AudioVideoDocument': '',
-                'PressRelease': '',
-                'ResearchData': '',
-            }
-
-            STM_COINS = {
-                'ArticleJournal': '',
-                'Chapter': '',
-                'Monograph': '',
-                'Journal': '',
-                'Series': '',
-                'Conference': '',
-                'Collection': '',
-                'SpecialIssue': '',
-                'Patent': '',
-                'Standard': '',
-                'Thesis': '',
-                'InternetDocument': '',
-                'Report': '',
-                'Lecture': '',
-                'ArticleNewspaper': '',
-                'PressRelease': '',
-                'RadioTVProgram': '',
-                'AudioVideoDocument': '',
-                'ResearchData': '',
-            }
-            ANH_COINS = {
-                'Monograph': '',
-                'ArticleJournal': '',
-                'ChapterInLegalCommentary': '',
-                'Chapter': '',
-                'LegalCommentary': '',
-                'Collection': '',
-                'Conference': '',
-                'Edition': '',
-                'SpecialIssue': '',
-                'Journal': '',
-                'Series': '',
-                'Newspaper': '',
-                'Thesis': '',
-                'ArticleNewspaper': '',
-                'Lecture': '',
-                'Report': '',
-                'InternetDocument': '',
-                'RadioTVProgram': '',
-                'AudioVideoDocument': '',
-                'PressRelease': '',
-                'ResearchData': '',
-            }
 
             list_cnt = 0
             for pubtype in publist_solr.tree.get('pubtype,fdate'):
@@ -439,9 +511,9 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                         filterquery.append('fdate:%s' % year.get('value'))
                         filterquery.append('pubtype:%s' % pubtype.get('value'))
                         pivot_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                            application=secrets.SOLR_APP, handler='query',
-                                            query=query, fields=['wtf_json'], rows=100000,
-                                            fquery=filterquery, core='hb2')
+                                          application=secrets.SOLR_APP, handler='query',
+                                          query=query, fields=['wtf_json'], rows=100000,
+                                          fquery=filterquery, core='hb2')
                         pivot_solr.request()
                         results = pivot_solr.results
                         # logging.debug('PIVOT_PUB_LIST: %s' % results)
@@ -451,8 +523,9 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                             publist_docs.append(json.loads(result.get('wtf_json')))
                             year_coins += '<div class="coins"><span class="Z3988" title="%s"></span></div>' % openurl_processor.wtf_openurl(json.loads(result.get('wtf_json'))).replace('&', '&amp;')
 
-                        year_list += '<h5>%s</h5>' % year.get('value') + citeproc_node(wtf_csl.wtf_csl(publist_docs),
-                                                                                       format, locale, style)
+                        if not group_by_type:
+                            year_list += '<h5>%s</h5>' % year.get('value')
+                        year_list += citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
                 else:
                     filterquery = []
                     filterquery.append('pubtype:%s' % pubtype.get('value'))
@@ -475,16 +548,24 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                 group_value = pubtype.get('value')
                 if locale.startswith('de'):
                     group_value = display_vocabularies.PUBTYPE_GER.get(pubtype.get('value'))
+                else:
+                    group_value = display_vocabularies.PUBTYPE_ENG.get(pubtype.get('value'))
 
                 list_cnt += 1
                 header = '<h4 id="%s_%s">%s</h4>' % (biblist_id, list_cnt, group_value)
+                footer = ''
+                if toc:
+                    back_string = 'Back to table of contents'
+                    if locale.startswith('de'):
+                        back_string = 'Zurück zum Inhaltsverzeichnis'
+                    footer = '<div class="toc_return"><a href="#%s_citetoc">%s</a></div>' % (biblist_id, back_string)
 
                 if pubsort == 'stm':
-                    STM_LIST[pubtype.get('value')] = header + year_list
+                    STM_LIST[pubtype.get('value')] = header + year_list + footer
                     STM_TOC[pubtype.get('value')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
                     STM_COINS[pubtype.get('value')] = year_coins
                 elif pubsort == 'anh':
-                    ANH_LIST[pubtype.get('value')] = header + year_list
+                    ANH_LIST[pubtype.get('value')] = header + year_list + footer
                     ANH_TOC[pubtype.get('value')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
                     ANH_COINS[pubtype.get('value')] = year_coins
                 else:
@@ -501,8 +582,7 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                         biblist += ANH_LIST.get(pubtype)
                         biblist_toc += ANH_TOC.get(pubtype)
                         biblist_coins += ANH_COINS.get(pubtype)
-
-            if pubsort == 'stm':
+            elif pubsort == 'stm':
                 # logging.debug(STM_LIST)
                 biblist = ''
                 biblist_toc = ''
@@ -512,76 +592,102 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                         biblist_toc += STM_TOC.get(pubtype)
                         biblist_coins += STM_COINS.get(pubtype)
 
-            if toc:
-                response += '<ul id="%s_citetoc">' % biblist_id + biblist_toc + '</ul>'
-
-            response += biblist + biblist_coins
-
         else:
 
             publist_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
                                 application=secrets.SOLR_APP, handler='query',
                                 query=query, fields=['wtf_json'],
-                                rows=100000, fquery=filterquery, sort='fdate desc',
+                                rows=100000, fquery=filterquery,
                                 group=group, group_field=group_field, group_limit=group_limit,
+                                sort='fdate desc',
                                 core='hb2')
             publist_solr.request()
             results.extend(publist_solr.results)
-            # logging.info('publist_solr.results: %s' % results)
+            # print('publist_solr.results: %s' % results)
 
             publist_docs = []
             if group:
                 biblist = ''
+                list_cnt = 0
                 for result in results:
                     # logging.debug('groupValue: %s' % result.get('groupValue'))
                     # logging.debug('numFound: %s' % result.get('doclist').get('numFound'))
                     # logging.debug('docs: %s' % result.get('doclist').get('docs'))
 
+                    coins = ''
                     for doc in result.get('doclist').get('docs'):
                         publist_docs.append(json.loads(doc.get('wtf_json')))
+                        coins += '<div class="coins"><span class="Z3988" title="%s"></span></div>' % openurl_processor.wtf_openurl(json.loads(doc.get('wtf_json'))).replace('&', '&amp;')
 
-                    header = ''
+                    group_value = result.get('groupValue')
                     if str2bool(group_by_type):
-                        # logging.debug('LOCALE: %s' % locale)
-                        group_value = result.get('groupValue')
                         if locale.startswith('de'):
                             group_value = display_vocabularies.PUBTYPE_GER.get(result.get('groupValue'))
-                        header += '<h4 id="%s">%s</h4>' % (result.get('groupValue'), group_value)
-                    else:
-                        header += '<h4 id="%s">%s</h4>' % (result.get('groupValue'), result.get('groupValue'))
+                        else:
+                            group_value = display_vocabularies.PUBTYPE_ENG.get(result.get('groupValue'))
+
+                    list_cnt += 1
+                    header = '<h4 id="%s_%s">%s</h4>' % (biblist_id, list_cnt, group_value)
+                    footer = ''
+                    if toc:
+                        back_string = 'Back to table of contents'
+                        if locale.startswith('de'):
+                            back_string = 'Zurück zum Inhaltsverzeichnis'
+                        footer = '<div class="toc_return"><a href="#%s_citetoc">%s</a></div>' % (biblist_id, back_string)
 
                     if str2bool(group_by_type):
                         if pubsort == 'stm':
-                            STM_LIST[result.get('groupValue')] = header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
+                            STM_LIST[result.get('groupValue')] = header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style) + footer
+                            STM_TOC[result.get('groupValue')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                            STM_COINS[result.get('groupValue')] = coins
                         elif pubsort == 'anh':
-                            ANH_LIST[result.get('groupValue')] = header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
+                            ANH_LIST[result.get('groupValue')] = header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style) + footer
+                            ANH_TOC[result.get('groupValue')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                            ANH_COINS[result.get('groupValue')] = coins
                         else:
-                            biblist += header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
+                            biblist += header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style) + footer
+                            biblist_toc += '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                            biblist_coins += coins
+                    elif str2bool(group_by_year):
+                        biblist += header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style) + footer
+                        biblist_toc += '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                        biblist_coins += coins
                     else:
-                        biblist += header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
+                        biblist += header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style) + footer
 
                     if str2bool(group_by_type) and pubsort == 'anh':
                         # logging.debug(ANH_LIST)
                         biblist = ''
+                        biblist_toc = ''
                         for pubtype in ANH_SORT:
                             if ANH_LIST.get(pubtype):
                                 biblist += ANH_LIST.get(pubtype)
-
-                    if str2bool(group_by_type) and pubsort == 'stm':
+                                biblist_toc += ANH_TOC.get(pubtype)
+                                biblist_coins += ANH_COINS.get(pubtype)
+                    elif str2bool(group_by_type) and pubsort == 'stm':
                         # logging.debug(STM_LIST)
                         biblist = ''
+                        biblist_toc = ''
                         for pubtype in STM_SORT:
                             if STM_LIST.get(pubtype):
                                 biblist += STM_LIST.get(pubtype)
+                                biblist_toc += STM_TOC.get(pubtype)
+                                biblist_coins += STM_COINS.get(pubtype)
 
                     publist_docs = []
 
-                response = biblist
             else:
                 for result in results:
                     publist_docs.append(json.loads(result.get('wtf_json')))
 
-                response = citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
+                biblist = citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
+
+        response = ''
+
+        if toc:
+            response += '<ul id="%s_citetoc">' % biblist_id + biblist_toc + '</ul>'
+
+        response += biblist + biblist_coins
 
     if response:
         try:
@@ -612,17 +718,12 @@ def citeproc_node(docs=None, format='html', locale='', style=''):
 
     citeproc_url = secrets.CITEPROC_SERVICE_URL % (format, style, locale)
 
-    items = {}
-
+    items = OrderedDict()
     for item in docs:
         items.setdefault(item.get('id'), item)
 
-    # logging.debug(json.dumps({'items': items}, indent=4))
-
     response = requests.post(citeproc_url, data=json.dumps({'items': items}),
                              headers={'Content-type': 'application/json'})
-
-    # logging.debug(response.content)
 
     bib = response.content.decode()
     if format == 'html':
@@ -630,7 +731,7 @@ def citeproc_node(docs=None, format='html', locale='', style=''):
         logging.info(urls)
 
         for url in list(set(urls)):
-            bib = bib.replace(url, '<a href="%s">%s</a>' % (url, url))
+            bib = bib.replace(url, '<a href="%s">%s</a>' % (url.replace('http://dx.doi.org/', 'https://doi.org/'), url.replace('http://dx.doi.org/', 'https://doi.org/')))
 
         dois = re.findall(urlmarker.DOI_REGEX, bib)
         # logging.info('DOIs: %s' % dois)
@@ -640,7 +741,17 @@ def citeproc_node(docs=None, format='html', locale='', style=''):
                 doi = doi[:-1]
             elif doi.endswith('.</div>'):
                 doi = doi[:-7]
-            bib = bib.replace(doi, '<a href="http://dx.doi.org/%s">%s</a>' % (doi.replace('doi:', ''), doi))
+            bib = bib.replace(doi, '<a href="https://doi.org/%s">%s</a>' % (doi.replace('doi:', ''), doi))
+
+        dois = re.findall(urlmarker.DOI_REGEX_1, bib)
+        # logging.info('DOIs: %s' % dois)
+
+        for doi in list(set(dois)):
+            if doi.endswith('.'):
+                doi = doi[:-1]
+            elif doi.endswith('.</div>'):
+                doi = doi[:-7]
+            bib = bib.replace(doi, '<a href="https://doi.org/%s">%s</a>' % (doi.replace('DOI: ', ''), doi))
 
     return bib
 

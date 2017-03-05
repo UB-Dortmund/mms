@@ -1,4 +1,4 @@
-from flask.ext.babel import lazy_gettext
+from flask_babel import lazy_gettext
 
 LICENSE_MAP = (
     ('', lazy_gettext('Select a License')),
@@ -53,7 +53,7 @@ LANGUAGES = [
     ('slv', lazy_gettext('Slovenian')),
     ('baq', lazy_gettext('Basque')),
     ('gag', lazy_gettext('Galician')),
-    # Baskisch und Galicisch
+    ('tib', lazy_gettext('Tibetan')),
 ]
 
 USER_ROLES = [
@@ -61,17 +61,23 @@ USER_ROLES = [
     ('aut', lazy_gettext('Author')),
     ('edt', lazy_gettext('Editor')),
     ('ctb', lazy_gettext('Contributor')),
+    ('ths', lazy_gettext('Thesis Adviser')),
 ]
 
-CORP_ROLES = [
+CORP_ROLES_USER = [
     ('', lazy_gettext('Select a Role')),
-    ('ctb', lazy_gettext('Contributor')),
     ('edt', lazy_gettext('Editor')),
-    ('his', lazy_gettext('Host institution')),
+    ('ctb', lazy_gettext('Contributor')),
     ('dgg', lazy_gettext('Degree granting institution')),
+]
+
+CORP_ROLES = CORP_ROLES_USER[:]
+
+CORP_ROLES.extend([
+    ('his', lazy_gettext('Host institution')),
     ('orm', lazy_gettext('Organizer')),
     ('brd', lazy_gettext('Broadcaster')),
-]
+])
 
 PATENT_PERS_ROLES = [
     ('', lazy_gettext('Select a Role')),
@@ -83,43 +89,42 @@ PATENT_CORP_ROLES = [
     ('pta', lazy_gettext('Patent applicant')),
 ]
 
-ADMIN_ROLES = USER_ROLES
+ADMIN_ROLES = USER_ROLES[:]
 
 ADMIN_ROLES.extend([
     ('abr', lazy_gettext('Abridger')),
-    ('act', lazy_gettext('Actor')),
-    ('aft', lazy_gettext('Author of Afterword')),
-    ('aui', lazy_gettext('Author of Foreword')),
     ('arr', lazy_gettext('Arranger')),
+    ('aui', lazy_gettext('Author of Foreword')),
+    ('aft', lazy_gettext('Author of Afterword')),
+    ('org', lazy_gettext('Originator')),
+    ('std', lazy_gettext('Set designer')),
     ('chr', lazy_gettext('Choreographer')),
-    ('cmp', lazy_gettext('Composer')),
-    ('cst', lazy_gettext('Costume Designer')),
-    ('cwt', lazy_gettext('Commentator for written text')),
-    ('drt', lazy_gettext('Director')),
-    ('elg', lazy_gettext('Electrician')),
+    ('stl', lazy_gettext('Storyteller')),
     ('fmk', lazy_gettext('Filmmaker')),
+    ('pht', lazy_gettext('Photographer')),
     ('hnr', lazy_gettext('Honoree')),
     ('ill', lazy_gettext('Illustrator')),
     ('itr', lazy_gettext('Instrumentalist')),
-    ('ive', lazy_gettext('Interviewee')),
     ('ivr', lazy_gettext('Interviewer')),
+    ('ive', lazy_gettext('Interviewee')),
+    ('cwt', lazy_gettext('Commentator for written text')),
+    ('cmp', lazy_gettext('Composer')),
+    ('cst', lazy_gettext('Costume Designer')),
+    ('elg', lazy_gettext('Electrician')),
     ('mod', lazy_gettext('Moderator')),
     ('mus', lazy_gettext('Musician')),
-    ('org', lazy_gettext('Originator')),
-    ('pdr', lazy_gettext('Project Director')),
-    ('pht', lazy_gettext('Photographer')),
     ('pmn', lazy_gettext('Production Manager')),
-    ('prg', lazy_gettext('Programmer')),
     ('pro', lazy_gettext('Producer')),
+    ('prg', lazy_gettext('Programmer')),
+    ('pdr', lazy_gettext('Project Director')),
     ('red', lazy_gettext('Redaktor')),
-    ('sng', lazy_gettext('Singer')),
     ('spk', lazy_gettext('Speaker')),
-    ('std', lazy_gettext('Set designer')),
-    ('stl', lazy_gettext('Storyteller')),
+    ('drt', lazy_gettext('Director')),
+    ('sng', lazy_gettext('Singer')),
+    ('act', lazy_gettext('Actor')),
     ('tcd', lazy_gettext('Technical Director')),
-    ('ths', lazy_gettext('Thesis Adviser')),
     ('trl', lazy_gettext('Translator')),
-    ])
+])
 
 USER_PUBTYPES = [
     ('', lazy_gettext('Select a Publication Type')),
@@ -264,7 +269,10 @@ FREQUENCY = [
 PUB_STATUS = [
     ('', lazy_gettext('Select a Publication Status')),
     ('published', lazy_gettext('Published')),
-    ('unpublished', lazy_gettext('Unpublished'))
+    ('unpublished', lazy_gettext('Unpublished')),
+    ('forthcoming', lazy_gettext('Forthcoming')),
+    ('submitted', lazy_gettext('Submitted')),
+    ('accepted', lazy_gettext('Accepted')),
 ]
 
 PATENT_PUB_STATUS = PUB_STATUS
@@ -273,11 +281,28 @@ PATENT_PUB_STATUS.extend([
     ('granted', lazy_gettext('Granted'))
 ])
 
+PATENT_COUNTRY_CODES = [
+    ('', lazy_gettext('Select a country code')),
+    ('DE', lazy_gettext('DE')),
+    ('FR', lazy_gettext('FR')),
+    ('GB', lazy_gettext('GB')),
+    ('AT', lazy_gettext('AT')),
+    ('US', lazy_gettext('US')),
+]
+
 CATALOGS = [
     ('Ruhr-Universität Bochum', lazy_gettext('Ruhr-Universität Bochum')),
     ('Technische Universität Dortmund', lazy_gettext('Technische Universität Dortmund')),
     ('Temporäre Daten', lazy_gettext('Temporäre Daten')),
 ]
+
+OA_FUNDS = [
+    ('', lazy_gettext('Select a Open Access Fund')),
+    ('Ruhr-Universität Bochum', lazy_gettext('Ruhr-Universität Bochum')),
+    ('Technische Universität Dortmund', lazy_gettext('Technische Universität Dortmund')),
+]
+
+
 
 RELATION_TYPES = [
     ('', lazy_gettext('Select a Relation Type')),

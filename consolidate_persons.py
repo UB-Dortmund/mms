@@ -29,10 +29,9 @@ from fuzzywuzzy import fuzz
 from utils.solr_handler import Solr
 
 try:
-    import app_secrets
     import local_app_secrets as secrets
 except ImportError:
-    import app_secrets
+    import app_secrets as secrets
 
 
 # TODO: Deduplizierung nach Nachname, 1. Buchsctabe des Vornamens

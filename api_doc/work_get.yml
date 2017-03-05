@@ -169,7 +169,7 @@ definitions:
             table_of_contents:
                 type: string
             number_of_pages:
-                type: int
+                type: integer
             medium:
                 type: string
             publisher:
@@ -330,6 +330,7 @@ parameters:
   type: string
 responses:
   200:
+    description: The work resource exists and is returned
     schema:
         $ref: "#/definitions/Work"
   404:

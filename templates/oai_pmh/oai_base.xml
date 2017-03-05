@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>{{ now }}</responseDate>
+    <request verb="{{ data.verb }}"{% if data.metadata_prefix %} metadataPrefix="{{ data.metadata_prefix }}"{% endif %}{% if data.from %} from="{{ data.from }}"{% endif %}{% if data.until %} until="{{ data.until }}"{% endif %}{% if data.set %} set="{{ data.set }}"{% endif %}{% if data.identifier %} identifier="{{ data.identifier }}"{% if data.resumption_token %} resumptionToken="{{ data.resumption_token }}"{% endif %}{% endif %}>{{ data.base_url }}</request>
+    <{{ data.verb }}>
+    {% block contents %}{% endblock contents %}
+    </{{ data.verb }}>
+</OAI-PMH>
