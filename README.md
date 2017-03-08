@@ -1,16 +1,20 @@
-# Research Bibliography Platform
+# Metadata Management System
 
-The Research Bibliography Platform is a joint project between the University Library Bochum and the University Library
-Dortmund. It is comprised of a web application for submitting, editing and searching bibliographic metadata about
-publications produced by the UAR universities and a linked data platform for structured querying of the data.
+The Metadata Management System is based on the Research Bibliography Platform, which is a joint project between
+the University Library Bochum and the University Library Dortmund.
+It is comprised of a web application for submitting, editing and searching bibliographic metadata about
+publications and a linked data platform for structured querying of the data.
+
+This is the succeeding project of [hb2flask](https://github.com/ubbochum/hb2_flask) and
+its [fork](https://github.com/UB-Dortmund/hb2_flask).
 
 ## Structure
 
 The platform is parted into several web services:
 
 * the APP: a web application for submitting, editing and searching bibliographic metadata
-* the API: a restful web service submitting, editing and searching bibliographic metadata and an OAI-PMH interface
-* the bibliography service: a service to export individually specified bibliographies
+* the API: a restful web service submitting, editing and searching bibliographic metadata
+* the citations list service: a service to export individually specified citations lists or bibliographies
 * the OAI-PMH data provider
 * the export and statistics service
 
