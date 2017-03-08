@@ -102,7 +102,11 @@
                     <dd>
                         <a href="{{ url_for('search') }}?q=*:*&core=person&filter=affiliation_id:&quot;{{ record.data.id }}&quot;">{{ _('Show Members') }}</a>
                         <br/>
+                        <a href="{{ url_for('show_members_of_orga', orga_id=record.data.id) }}">{{ _('Show Members (accumulated)') }}</a>
+                        <br/>
                         <a href="{{ url_for('search') }}?q=*:*&core=hb2&filter=affiliation_id:&quot;{{ record.data.id }}&quot;">{{ _('Show Works') }}</a>
+                        <br/>
+                        <a href="{{ url_for('show_works_of_orga', orga_id=record.data.id) }}">{{ _('Show Works (accumulated)') }}</a>
                     </dd>
                 {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
                     <hr/>

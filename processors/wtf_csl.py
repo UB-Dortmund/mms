@@ -192,10 +192,11 @@ def wtf_csl(wtf_records=None):
                                 if len(editor) > 0:
                                     csl_record.setdefault('editor', editor)
                             else:
-                                if myjson.get('subseries'):
+                                if myjson.get('fsubseries'):
+                                    title = myjson.get('fsubseries')
+                                else:
                                     title = myjson.get('title')
-                                    title += '/ %s' % myjson.get('subtitle')
-                                    csl_record.setdefault('container-title', title)
+                                csl_record.setdefault('edition', title)
                         else:
                             csl_record.setdefault('container-title', host.get('is_part_of'))
 

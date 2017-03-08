@@ -1,6 +1,6 @@
 # The MIT License
 #
-#  Copyright 2016 UB Dortmund <api.ub@tu-dortmund.de>.
+#  Copyright 2017 UB Dortmund <api.ub@tu-dortmund.de>.
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to deal
@@ -26,29 +26,21 @@ DIFFERENT_PROXY_PATH = True
 DEBUG = True
 DEBUG_KEY = '1cf7e937-c98b-4e80-ac65-ecf0bb2e5e86'
 
-LOGFILE = 'log/publist.log'
+LOGFILE = 'log/stats.log'
 
-APP_PORT = 5006
+APP_PORT = 5009
 
 # ---- DOCS ---- #
 SWAGGER_SCHEMES = ['http', 'https']
-SWAGGER_HOST = 'localhost:5006'
+SWAGGER_HOST = 'localhost:5009'
 SWAGGER_BASEPATH = '/'
 SWAGGER_API_VERSION = ''
 SWAGGER_TITLE = ''
 SWAGGER_DESCRIPTION = ''
 
 # ---- PERSISTENCE ---- #
-SOLR_HOST = '129.217.132.17'
+SOLR_HOST = '129.217.132.18'
 SOLR_PORT = '5200'
 SOLR_APP = 'solr'
 
-REDIS_PUBLIST_CACHE_URL = 'redis://129.217.132.17:6379/1'
-REDIS_PUBLIST_CACHE_HOST = '129.217.132.17'
-REDIS_PUBLIST_CACHE_PORT = 6379
-REDIS_PUBLIST_CACHE_DB = 1
-
-# ---- CITEPROC ---- #
-CITEPROC_LOCALES_FILE = '/path/to/csl-locales/locales.json'
-CITEPROC_SERVICE_URL = 'http://127.0.0.1:8085?responseformat=%s&style=%s&locale=%s'
 

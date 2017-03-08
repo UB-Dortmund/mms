@@ -1,26 +1,26 @@
-{% extends 'oai_base.xml' %}
-{% load l10n %}
-        {% load xml_util %}
+{% extends 'oai_pmh/oai_base.xml' %}
         {% block contents %}
-        {% for record in docs %}
+        {% for record in data.docs %}
 	<record>
 		<header{% if record.deleted == 'true' %} status="deleted"{% endif %}>
 			<identifier>{{ id_prefix}}{{ record.id }}</identifier>
-			<datestamp>{{ record.recordChangeDate|slice:"-10" }}</datestamp>
-            <setSpec>doc-type:{{ record.oai_type }}</setSpec>
-            {% for ddc in record.ddc %}
-            <setSpec>ddc:{{ ddc }}</setSpec>
-            {% endfor %}
+			<datestamp>{{ record.recordChangeDate[:10] }}</datestamp>
+            <setSpec>doc-type:{{ record.pubtype }}</setSpec>
+			{%- with wtf_json = record.wtf_json|deserialize_json %}
+			{%- if wtf_json.ddc_subject and wtf_json.ddc_subject.0.id %}
+			{%- for ddc in wtf_json.ddc_subject %}
+			<setSpec>ddc:{{ ddc.id }}</setSpec>
+			{%- endfor %}
+			{%- endif %}
+			{%- endwith %}
 		</header>
         {% if record.deleted != 'true' %}
 		<metadata>
-            {% autoescape off %}
-                    {% if metadata_prefix == 'mods' %}{{ record.mods|uncdata }}{% endif %}
-                    {% if metadata_prefix == 'dc' %}{{ record.dc|uncdata }}{% endif %}
-            {% endautoescape %}
+            {% if data.format == 'mods' %}{{ record.mods|safe }}{% endif %}
+            {% if data.format == 'dc' %}{% include 'oai_pmh/oai_dc.xml' %}{% endif %}
 		</metadata>
         {% endif %}
 	</record>
         {% endfor %}
-        {% if resumption_token %}<resumptionToken cursor="{{ cursor|unlocalize }}" completeListSize="{{ complete_list_size|unlocalize }}"{% if not last_batch %} expirationDate="{{ expiration_date }}"{% endif %}>{% if not last_batch %}{{ resumption_token }}{% endif %}</resumptionToken>{% endif %}
+        {% if data.resumption_token %}<resumptionToken cursor="{{ data.cursor }}" completeListSize="{{ data.complete_list_size }}"{% if not data.last_batch %} expirationDate="{{ data.expiration_date }}"{% endif %}>{% if not data.last_batch %}{{ data.resumption_token }}{% endif %}</resumptionToken>{% endif %}
         {% endblock contents %}

@@ -1,0 +1,47 @@
+{% with wtf_json = record.wtf_json|deserialize_json %}
+                    <oai_dc:dc
+                            xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+                            xmlns:dc="http://purl.org/dc/elements/1.1/"
+                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                            xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+                        <dc:type>doc-type:{{ wtf_json.pubtype }}</dc:type>
+                        <dc:identifier>{{ data.id_prefix }}{{ wtf_json.id }}</dc:identifier>
+                        <dc:identifier>https://bibliographie.ub.rub.de/entry/f8d4798f-f533-4459-a62f-d203e61309bb</dc:identifier>
+                        <dc:title>{{ wtf_json.title }}{% if wtf_json.subseries %} / {{ wtf_json.subseries }}{% endif %}</dc:title>
+                        <dc:language>{{ wtf_json.language[0] }}</dc:language>
+                        {% if wtf_json.issued %}<dc:date>{{ wtf_json.issued }}</dc:date>{% endif %}
+                        {%- if wtf_json.publisher %}<dc:publisher>{{ wtf_json.publisher }}</dc:publisher>{%- endif %}
+                        {%- if wtf_json.person and wtf_json.person[0].name -%}
+                        {%- for person in wtf_json.person %}
+                        <dc:creator>{{ person.name }}</dc:creator>
+                        {%- endfor %}
+                        {%- endif %}
+                        {%- if wtf_json.corporation and wtf_json.corporation[0].name %}
+                        {%- for corporation in wtf_json.corporation %}
+                        <dc:creator>{{ name }}</dc:creator>
+                        {%- endfor %}
+                        {%- endif %}
+                        {%- if wtf_json.number_of_pages %}
+                        <dc:format>{{ wtf_json.number_of_pages }}</dc:format>
+                        {%- endif %}
+                        {%- if record.is_part_of %}
+                        {%- for part in record.is_part_of %}
+                        {%- with mypart = part|deserialize_json %}
+                        <dc:source>{{ mypart.title }}</dc:source>
+                        <dc:relation>{{ data.id_prefix }}{{ mypart.id }}</dc:relation>
+                        {%- if mypart.page_first and mypart.page_last %}
+                        <dc:format>{{ mypart.page_first }}-{{ mypart.page_last }}</dc:format>
+                        {%- endif %}
+                        {%- if mypart.page_first and not mypart.page_last %}
+                        <dc:format>{{ mypart.page_first }}</dc:format>
+                        {%- endif %}
+                        {%- endwith %}
+                        {%- endfor %}
+                        {%- endif %}
+                        {%- if wtf_json.ddc_subject and wtf_json.ddc_subject.0.id %}
+                        {%- for ddc in wtf_json.ddc_subject %}
+                        <dc:subject>ddc:{{ ddc.id }}</dc:subject>
+                        {%- endfor %}
+                        {%- endif %}
+                    </oai_dc:dc>
+{% endwith %}

@@ -24,13 +24,9 @@
 
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
-import datetime
-import dicttoxml
 import pytz
 import utcdatetime
-from xml.dom.minidom import parseString, getDOMImplementation
 import logging
-import re
 from logging.handlers import RotatingFileHandler
 
 import requests
@@ -96,10 +92,11 @@ log = logging.getLogger('werkzeug')
 log.setLevel(logging.DEBUG)
 log.addHandler(handler)
 
+
 # ---------- OAI-PMH Data Provider ----------
 
 
-@app.route('/oai', methods=['GET'])
+@app.route('/oai/', methods=['GET'])
 @csrf.exempt
 def oai_get():
     """
@@ -115,7 +112,8 @@ def oai_get():
                                             data={'verb': verb,
                                                   'error_code': 'badArgument',
                                                   'error_text': 'The request includes illegal arguments, is missing required arguments, includes a repeated argument, or values for arguments have an illegal syntax.',
-                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                      theme(request.access_route)).get('baseURL'),
                                                   },
                                             now=timestamp(),
                                             mimetype='text/xml')
@@ -128,7 +126,8 @@ def oai_get():
             oai_identify_xml = render_template('oai_pmh/oai_identify.xml',
                                                data={'verb': verb,
                                                      'info': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)),
-                                                     'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                     'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                         theme(request.access_route)).get('baseURL'),
                                                      },
                                                now=timestamp(),
                                                mimetype='text/xml')
@@ -142,16 +141,20 @@ def oai_get():
 
         if identifier:
             try:
-                uuid.UUID(identifier.replace(secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'), ''))
-                result = persistence.get_work(identifier.replace(secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'), ''))
+                uuid.UUID(
+                    identifier.replace(secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'), ''))
+                result = persistence.get_work(
+                    identifier.replace(secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'), ''))
                 if result:
                     oai_listmetadataformats_xml = render_template('oai_pmh/oai_listmetadataformats.xml',
                                                                   data={
                                                                       'verb': verb,
                                                                       'identifier': identifier,
                                                                       'formats': secrets.FORMATS,
-                                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
-                                                                      'id_prefix': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'),
+                                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                                          theme(request.access_route)).get('baseURL'),
+                                                                      'id_prefix': secrets.OAI_PMH_APP_DATA.get(
+                                                                          theme(request.access_route)).get('id_prefix'),
                                                                   },
                                                                   now=timestamp(),
                                                                   mimetype='text/xml')
@@ -165,7 +168,8 @@ def oai_get():
                                                     data={'verb': verb,
                                                           'error_code': 'idDoesNotExist',
                                                           'error_text': 'The value of the identifier argument is unknown or illegal in this repository.',
-                                                          'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                          'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                              theme(request.access_route)).get('baseURL'),
                                                           },
                                                     now=timestamp(),
                                                     mimetype='text/xml')
@@ -179,7 +183,8 @@ def oai_get():
                                                 data={'verb': verb,
                                                       'error_code': 'idDoesNotExist',
                                                       'error_text': 'The value of the identifier argument is unknown or illegal in this repository.',
-                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                          theme(request.access_route)).get('baseURL'),
                                                       },
                                                 now=timestamp(),
                                                 mimetype='text/xml')
@@ -194,7 +199,8 @@ def oai_get():
                                                           data={
                                                               'verb': verb,
                                                               'formats': secrets.FORMATS,
-                                                              'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                              'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                                  theme(request.access_route)).get('baseURL'),
                                                           },
                                                           now=timestamp(),
                                                           mimetype='text/xml')
@@ -209,7 +215,8 @@ def oai_get():
                                             data={'verb': verb,
                                                   'error_code': 'badArgument',
                                                   'error_text': 'The request includes illegal arguments, is missing required arguments, includes a repeated argument, or values for arguments have an illegal syntax.',
-                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                      theme(request.access_route)).get('baseURL'),
                                                   },
                                             now=timestamp(),
                                             mimetype='application/xml')
@@ -224,7 +231,8 @@ def oai_get():
             oai_listsets_xml = render_template('oai_pmh/oai_listsets.xml',
                                                data={'verb': verb,
                                                      'info': secrets.SETS_INFO,
-                                                     'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                     'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                         theme(request.access_route)).get('baseURL'),
                                                      },
                                                now=timestamp(),
                                                mimetype='text/xml')
@@ -257,7 +265,8 @@ def oai_get():
                                             data={'verb': verb,
                                                   'error_code': 'badArgument',
                                                   'error_text': 'The request includes illegal arguments, is missing required arguments, includes a repeated argument, or values for arguments have an illegal syntax.',
-                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                      theme(request.access_route)).get('baseURL'),
                                                   },
                                             now=timestamp(),
                                             mimetype='text/xml')
@@ -276,7 +285,8 @@ def oai_get():
                                                 data={'verb': verb,
                                                       'error_code': 'cannotDisseminateFormat',
                                                       'error_text': 'The metadata format identified by the value given for the metadataPrefix argument is not supported by the item or by the repository.',
-                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                          theme(request.access_route)).get('baseURL'),
                                                       },
                                                 now=timestamp(),
                                                 mimetype='text/xml')
@@ -338,7 +348,8 @@ def oai_get():
                                                 data={'verb': verb,
                                                       'error_code': 'badResumptionToken',
                                                       'error_text': 'The value of the resumptionToken argument is invalid or expired.',
-                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                          theme(request.access_route)).get('baseURL'),
                                                       },
                                                 now=timestamp(),
                                                 mimetype='text/xml')
@@ -402,8 +413,10 @@ def oai_get():
         oai_listidentifiers_xml = render_template('oai_pmh/oai_listidentifiers.xml',
                                                   data={'verb': verb,
                                                         'docs': result,
-                                                        'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
-                                                        'id_prefix': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'),
+                                                        'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                            theme(request.access_route)).get('baseURL'),
+                                                        'id_prefix': secrets.OAI_PMH_APP_DATA.get(
+                                                            theme(request.access_route)).get('id_prefix'),
                                                         'resumption_token': rt_id,
                                                         'expiration_date': rt.get('expirationDate'),
                                                         'cursor': rt.get('cursor'),
@@ -421,13 +434,304 @@ def oai_get():
         response.headers["Content-Type"] = "text/xml"
 
         return response
+    elif verb == 'ListRecords':
+        allowed_params = ('verb', 'from', 'until', 'metadataPrefix', 'set', 'resumptionToken')
 
+        # Optional parameters
+        oai_from = request.args.get('from', '')
+        oai_until = request.args.get('until', '')
+        oai_set = request.args.get('set', '')
+        # Exclusive parameter
+        resumption_token = request.args.get('resumptionToken', '')
+
+        # Required parameter
+        oai_metadata_prefix = request.args.get('metadataPrefix', '')
+
+        # exists a not allowed parameter?
+        try:
+            if len(request.args) > 1:
+                for param in request.args.keys():
+                    if param not in allowed_params:
+                        raise KeyError
+        except KeyError:
+            oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                            data={'verb': verb,
+                                                  'error_code': 'badArgument',
+                                                  'error_text': 'The request includes illegal arguments, is missing required arguments, includes a repeated argument, or values for arguments have an illegal syntax.',
+                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                      theme(request.access_route)).get('baseURL'),
+                                                  },
+                                            now=timestamp(),
+                                            mimetype='text/xml')
+
+            response = make_response(oai_error_xml)
+            response.headers["Content-Type"] = "text/xml"
+
+            return response
+
+        # is metadata_prefix valid?
+        if oai_metadata_prefix not in secrets.VALID_METADATA_PREFIXES:
+            if resumption_token != '':
+                pass
+            else:
+                oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                                data={'verb': verb,
+                                                      'error_code': 'cannotDisseminateFormat',
+                                                      'error_text': 'The metadata format identified by the value given for the metadataPrefix argument is not supported by the item or by the repository.',
+                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                          theme(request.access_route)).get('baseURL'),
+                                                      },
+                                                now=timestamp(),
+                                                mimetype='text/xml')
+
+                response = make_response(oai_error_xml)
+                response.headers["Content-Type"] = "text/xml"
+
+                return response
+
+        # is resumption_token exclusive?
+        if resumption_token and (oai_from or oai_until or oai_set):
+            oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                            data={'verb': verb,
+                                                  'error_code': 'badArgument',
+                                                  'error_text': 'The request includes illegal arguments, is missing required arguments, includes a repeated argument, or values for arguments have an illegal syntax.',
+                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                      theme(request.access_route)).get('baseURL'),
+                                                  },
+                                            now=timestamp(),
+                                            mimetype='text/xml')
+
+            response = make_response(oai_error_xml)
+            response.headers["Content-Type"] = "text/xml"
+
+            return response
+
+        # build query
+        cursor = 0
+        if resumption_token:
+            r = app.extensions['redis']['REDIS_OAI_PMH_RT']
+            rt = r.hget('resumptionToken', resumption_token)
+            cursor = rt.get('cursor')
+            oai_from = rt.get('from')
+            oai_until = rt.get('until')
+            oai_set = rt.get('set')
+
+            if oai_from and not oai_until:
+                query = 'recordChangeDate:[%s+TO+*]' % (oai_from + 'T00:00:00Z')
+            elif not oai_from and oai_until:
+                query = 'recordChangeDate:[*+TO+%s]' % (oai_until + 'T00:00:00Z')
+            elif oai_from and oai_until:
+                query = 'recordChangeDate:[%s+TO+%s]' % (oai_from + 'T00:00:00Z', oai_until + 'T00:00:00Z')
+            else:
+                query = '*:*'
+
+            filterquery = []
+            if oai_set:
+                theset = oai_set
+                if oai_set.startswith('doc-type'):
+                    filterquery.append('oai_type:"%s"' % theset.replace('doc-type:', ''))
+                if oai_set.startswith('ddc'):
+                    filterquery.append('ddc:"%s"' % theset.replace('ddc:', ''))
+                if oai_set == 'ec_fundedresources':
+                    filterquery.append('fp7:*')
+
+            # resumptionToken expired?
+            if datetime.datetime.now() > datetime.datetime.strptime(rt.get('expirationDate'), "%Y-%m-%dT%H:%M:%S.%fZ"):
+                oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                                data={'verb': verb,
+                                                      'error_code': 'badResumptionToken',
+                                                      'error_text': 'The value of the resumptionToken argument is invalid or expired.',
+                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                          theme(request.access_route)).get('baseURL'),
+                                                      },
+                                                now=timestamp(),
+                                                mimetype='text/xml')
+
+                response = make_response(oai_error_xml)
+                response.headers["Content-Type"] = "text/xml"
+
+                return response
+        else:
+            if oai_from and not oai_until:
+                query = 'recordChangeDate:[%s+TO+*]' % (oai_from + 'T00:00:00Z')
+            elif not oai_from and oai_until:
+                query = 'recordChangeDate:[*+TO+%s]' % (oai_until + 'T00:00:00Z')
+            elif oai_from and oai_until:
+                query = 'recordChangeDate:[%s+TO+%s]' % (oai_from + 'T00:00:00Z', oai_until + 'T00:00:00Z')
+            else:
+                query = '*:*'
+
+            filterquery = []
+            if oai_set:
+                theset = oai_set
+                if oai_set.startswith('doc-type'):
+                    filterquery.append('oai_type:"%s"' % theset.replace('doc-type:', ''))
+                if oai_set.startswith('ddc'):
+                    filterquery.append('ddc:"%s"' % theset.replace('ddc:', ''))
+                if oai_set == 'ec_fundedresources':
+                    filterquery.append('fp7:*')
+
+        # Solr request
+        search_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT, application=secrets.SOLR_APP,
+                           start=cursor, rows=secrets.BATCH_SIZE,
+                           query=query,
+                           fquery=filterquery,
+                           sort='recordChangeDate asc')
+        search_solr.request()
+        result = search_solr.results
+
+        hit_count = search_solr.count()
+
+        rt_last = False
+        if int(cursor) + secrets.BATCH_SIZE >= hit_count:
+            rt_last = True
+
+        rt_id = ''
+        rt = {}
+        if hit_count > secrets.BATCH_SIZE and cursor < hit_count:
+            rt_id = uuid.uuid4()
+            rt.setdefault('expirationDate', (datetime.datetime.now() + datetime.timedelta(2)).isoformat() + 'Z')
+            rt.setdefault('cursor', (int(cursor) + secrets.BATCH_SIZE))
+            if oai_from:
+                rt.setdefault('from', oai_from)
+            if oai_until:
+                rt.setdefault('until', oai_until)
+            if oai_set:
+                rt.setdefault('set', oai_set)
+
+            r = app.extensions['redis']['REDIS_OAI_PMH_RT']
+            r.hset('resumptionToken', rt_id, rt)
+
+        oai_listrecords_xml = render_template('oai_pmh/oai_listrecords.xml',
+                                              data={'verb': verb,
+                                                    'docs': result,
+                                                    'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                        theme(request.access_route)).get('baseURL'),
+                                                    'id_prefix': secrets.OAI_PMH_APP_DATA.get(
+                                                        theme(request.access_route)).get('id_prefix'),
+                                                    'resumption_token': rt_id,
+                                                    'expiration_date': rt.get('expirationDate'),
+                                                    'cursor': rt.get('cursor'),
+                                                    'complete_list_size': hit_count,
+                                                    'last_batch': rt_last,
+                                                    'metadata_prefix': oai_metadata_prefix,
+                                                    'format': oai_metadata_prefix.replace(
+                                                        'oai_', ''),
+                                                    'from': oai_from,
+                                                    'until': oai_until,
+                                                    'set': oai_set,
+                                                    },
+                                              now=timestamp(),
+                                              mimetype='text/xml')
+
+        response = make_response(oai_listrecords_xml)
+        response.headers["Content-Type"] = "text/xml"
+
+        return response
+    elif verb == 'GetRecord':
+        if len(request.args) > 3:
+            oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                            data={'verb': verb,
+                                                  'error_code': 'badArgument',
+                                                  'error_text': 'The request includes illegal arguments, is missing required arguments, includes a repeated argument, or values for arguments have an illegal syntax.',
+                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                      theme(request.access_route)).get('baseURL'),
+                                                  },
+                                            now=timestamp(),
+                                            mimetype='text/xml')
+
+            response = make_response(oai_error_xml)
+            response.headers["Content-Type"] = "text/xml"
+
+            return response
+        else:
+            # Required parameter
+            identifier = request.args.get('identifier', '')
+            oai_metadata_prefix = request.args.get('metadataPrefix', '')
+            if not identifier or not oai_metadata_prefix:
+                oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                                data={'verb': verb,
+                                                      'error_code': 'badArgument',
+                                                      'error_text': 'The request includes illegal arguments, is missing required arguments, includes a repeated argument, or values for arguments have an illegal syntax.',
+                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                          theme(request.access_route)).get('baseURL'),
+                                                      },
+                                                now=timestamp(),
+                                                mimetype='text/xml')
+
+                response = make_response(oai_error_xml)
+                response.headers["Content-Type"] = "text/xml"
+
+                return response
+            else:
+                # is metadata_prefix valid?
+                if oai_metadata_prefix not in secrets.VALID_METADATA_PREFIXES:
+                    oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                                    data={'verb': verb,
+                                                          'error_code': 'cannotDisseminateFormat',
+                                                          'error_text': 'The metadata format identified by the value given for the metadataPrefix argument is not supported by the item or by the repository.',
+                                                          'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                              theme(request.access_route)).get('baseURL'),
+                                                          },
+                                                    now=timestamp(),
+                                                    mimetype='text/xml')
+
+                    response = make_response(oai_error_xml)
+                    response.headers["Content-Type"] = "text/xml"
+
+                    return response
+                else:
+                    uuid.UUID(
+                        identifier.replace(secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'),
+                                           ''))
+                    result = persistence.get_work(
+                        identifier.replace(secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'),
+                                           ''))
+                    if result:
+                        # print(json.dumps(result, indent=4))
+                        oai_getrecord_xml = render_template('oai_pmh/oai_getrecord.xml',
+                                                            data={'verb': verb,
+                                                                  'record': result,
+                                                                  'identifier': identifier,
+                                                                  'metadata_prefix': oai_metadata_prefix,
+                                                                  'format': oai_metadata_prefix.replace(
+                                                                      'oai_', ''),
+                                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                                      theme(request.access_route)).get(
+                                                                      'baseURL'),
+                                                                  'id_prefix': secrets.OAI_PMH_APP_DATA.get(
+                                                                      theme(request.access_route)).get(
+                                                                      'id_prefix'),
+                                                                  },
+                                                            now=timestamp(),
+                                                            mimetype='text/xml')
+
+                        response = make_response(oai_getrecord_xml)
+                        response.headers["Content-Type"] = "text/xml"
+
+                        return response
+                    else:
+                        oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                                        data={'verb': verb,
+                                                              'error_code': 'idDoesNotExist',
+                                                              'error_text': 'The value of the identifier argument is unknown or illegal in this repository.',
+                                                              'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                                  theme(request.access_route)).get('baseURL'),
+                                                              },
+                                                        now=timestamp(),
+                                                        mimetype='text/xml')
+
+                        response = make_response(oai_error_xml)
+                        response.headers["Content-Type"] = "text/xml"
+
+                        return response
     else:
         oai_error_xml = render_template('oai_pmh/oai_error.xml',
                                         data={'verb': verb,
                                               'error_code': 'badVerb',
                                               'error_text': 'Value of the verb argument is not a legal OAI-PMH verb, the verb argument is missing, or the verb argument is repeated.',
-                                              'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                              'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get(
+                                                  'baseURL'),
                                               },
                                         now=timestamp(),
                                         mimetype='text/xml')
@@ -438,7 +742,7 @@ def oai_get():
         return response
 
 
-@app.route('/oai', methods=['POST'])
+@app.route('/oai/', methods=['POST'])
 @csrf.exempt
 def oai_post():
     """
@@ -446,7 +750,8 @@ def oai_post():
 
         swagger_from_file: api_doc/oai_pmh_post.yml
     """
-    if request.headers.get('Content-Type') and request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+    if request.headers.get('Content-Type') and request.headers.get(
+            'Content-Type') == 'application/x-www-form-urlencoded':
         verb = request.form['verb']
     else:
         response = make_response(400, 'Not well formed Header! Content-Type must be application/x-www-form-urlencoded')
@@ -462,7 +767,8 @@ def oai_post():
                                             data={'verb': verb,
                                                   'error_code': 'badArgument',
                                                   'error_text': 'The request includes illegal arguments, is missing required arguments, includes a repeated argument, or values for arguments have an illegal syntax.',
-                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get(
+                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                      theme(request.access_route)).get(
                                                       'baseURL'),
                                                   },
                                             now=timestamp(),
@@ -476,7 +782,8 @@ def oai_post():
             oai_identify_xml = render_template('oai_pmh/oai_identify.xml',
                                                data={'verb': verb,
                                                      'info': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)),
-                                                     'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                     'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                         theme(request.access_route)).get('baseURL'),
                                                      },
                                                now=timestamp(),
                                                mimetype='text/xml')
@@ -491,16 +798,24 @@ def oai_post():
 
             if identifier:
                 try:
-                    uuid.UUID(identifier.replace(secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'), ''))
-                    result = persistence.get_work(identifier.replace(secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'), ''))
+                    uuid.UUID(
+                        identifier.replace(secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'),
+                                           ''))
+                    result = persistence.get_work(
+                        identifier.replace(secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'),
+                                           ''))
                     if result:
                         oai_listmetadataformats_xml = render_template('oai_pmh/oai_listmetadataformats.xml',
                                                                       data={
                                                                           'verb': verb,
                                                                           'identifier': identifier,
                                                                           'formats': secrets.FORMATS,
-                                                                          'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
-                                                                          'id_prefix': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'),
+                                                                          'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                                              theme(request.access_route)).get(
+                                                                              'baseURL'),
+                                                                          'id_prefix': secrets.OAI_PMH_APP_DATA.get(
+                                                                              theme(request.access_route)).get(
+                                                                              'id_prefix'),
                                                                       },
                                                                       now=timestamp(),
                                                                       mimetype='text/xml')
@@ -514,7 +829,8 @@ def oai_post():
                                                         data={'verb': verb,
                                                               'error_code': 'idDoesNotExist',
                                                               'error_text': 'The value of the identifier argument is unknown or illegal in this repository.',
-                                                              'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                              'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                                  theme(request.access_route)).get('baseURL'),
                                                               },
                                                         now=timestamp(),
                                                         mimetype='text/xml')
@@ -528,7 +844,8 @@ def oai_post():
                                                     data={'verb': verb,
                                                           'error_code': 'idDoesNotExist',
                                                           'error_text': 'The value of the identifier argument is unknown or illegal in this repository.',
-                                                          'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                          'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                              theme(request.access_route)).get('baseURL'),
                                                           },
                                                     now=timestamp(),
                                                     mimetype='text/xml')
@@ -542,7 +859,8 @@ def oai_post():
                                                           data={
                                                               'verb': verb,
                                                               'formats': secrets.FORMATS,
-                                                              'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                              'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                                  theme(request.access_route)).get('baseURL'),
                                                           },
                                                           now=timestamp(),
                                                           mimetype='text/xml')
@@ -557,7 +875,8 @@ def oai_post():
                                             data={'verb': verb,
                                                   'error_code': 'badArgument',
                                                   'error_text': 'The request includes illegal arguments, is missing required arguments, includes a repeated argument, or values for arguments have an illegal syntax.',
-                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                      theme(request.access_route)).get('baseURL'),
                                                   },
                                             now=timestamp(),
                                             mimetype='application/xml')
@@ -572,7 +891,8 @@ def oai_post():
             oai_listsets_xml = render_template('oai_pmh/oai_listsets.xml',
                                                data={'verb': verb,
                                                      'info': secrets.SETS_INFO,
-                                                     'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                     'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                         theme(request.access_route)).get('baseURL'),
                                                      },
                                                now=timestamp(),
                                                mimetype='text/xml')
@@ -615,7 +935,8 @@ def oai_post():
                                             data={'verb': verb,
                                                   'error_code': 'badArgument',
                                                   'error_text': 'The request includes illegal arguments, is missing required arguments, includes a repeated argument, or values for arguments have an illegal syntax.',
-                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                      theme(request.access_route)).get('baseURL'),
                                                   },
                                             now=timestamp(),
                                             mimetype='text/xml')
@@ -634,7 +955,8 @@ def oai_post():
                                                 data={'verb': verb,
                                                       'error_code': 'cannotDisseminateFormat',
                                                       'error_text': 'The metadata format identified by the value given for the metadataPrefix argument is not supported by the item or by the repository.',
-                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                          theme(request.access_route)).get('baseURL'),
                                                       },
                                                 now=timestamp(),
                                                 mimetype='text/xml')
@@ -696,7 +1018,8 @@ def oai_post():
                                                 data={'verb': verb,
                                                       'error_code': 'badResumptionToken',
                                                       'error_text': 'The value of the resumptionToken argument is invalid or expired.',
-                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                          theme(request.access_route)).get('baseURL'),
                                                       },
                                                 now=timestamp(),
                                                 mimetype='text/xml')
@@ -760,8 +1083,10 @@ def oai_post():
         oai_listidentifiers_xml = render_template('oai_pmh/oai_listidentifiers.xml',
                                                   data={'verb': verb,
                                                         'docs': result,
-                                                        'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
-                                                        'id_prefix': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'),
+                                                        'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                            theme(request.access_route)).get('baseURL'),
+                                                        'id_prefix': secrets.OAI_PMH_APP_DATA.get(
+                                                            theme(request.access_route)).get('id_prefix'),
                                                         'resumption_token': rt_id,
                                                         'expiration_date': rt.get('expirationDate'),
                                                         'cursor': rt.get('cursor'),
@@ -779,13 +1104,319 @@ def oai_post():
         response.headers["Content-Type"] = "text/xml"
 
         return response
+    elif verb == 'ListRecords':
+        allowed_params = ('verb', 'from', 'until', 'metadataPrefix', 'set', 'resumptionToken')
 
+        # Required parameter
+        oai_metadata_prefix = ''
+        # Optional parameters
+        oai_from = ''
+        oai_until = ''
+        oai_set = ''
+        # Exclusive parameter
+        resumption_token = ''
+
+        try:
+            if len(request.form) > 1:
+                for param in request.form:
+                    if param not in allowed_params:
+                        raise KeyError
+                    else:
+                        if param == 'metadataPrefix':
+                            oai_metadata_prefix = request.form[param]
+                        if param == 'from':
+                            oai_from = request.form[param]
+                        if param == 'until':
+                            oai_until = request.form[param]
+                        if param == 'set':
+                            oai_set = request.form[param]
+                        if param == 'resumptionToken':
+                            resumption_token = request.form[param]
+
+        except KeyError:
+            oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                            data={'verb': verb,
+                                                  'error_code': 'badArgument',
+                                                  'error_text': 'The request includes illegal arguments, is missing required arguments, includes a repeated argument, or values for arguments have an illegal syntax.',
+                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                      theme(request.access_route)).get('baseURL'),
+                                                  },
+                                            now=timestamp(),
+                                            mimetype='text/xml')
+
+            response = make_response(oai_error_xml)
+            response.headers["Content-Type"] = "text/xml"
+
+            return response
+
+        # is metadata_prefix valid?
+        if oai_metadata_prefix not in secrets.VALID_METADATA_PREFIXES:
+            if resumption_token != '':
+                pass
+            else:
+                oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                                data={'verb': verb,
+                                                      'error_code': 'cannotDisseminateFormat',
+                                                      'error_text': 'The metadata format identified by the value given for the metadataPrefix argument is not supported by the item or by the repository.',
+                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                          theme(request.access_route)).get('baseURL'),
+                                                      },
+                                                now=timestamp(),
+                                                mimetype='text/xml')
+
+                response = make_response(oai_error_xml)
+                response.headers["Content-Type"] = "text/xml"
+
+                return response
+
+        # is resumption_token exclusive?
+        if resumption_token and (oai_from or oai_until or oai_set):
+            oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                            data={'verb': verb,
+                                                  'error_code': 'badArgument',
+                                                  'error_text': 'The request includes illegal arguments, is missing required arguments, includes a repeated argument, or values for arguments have an illegal syntax.',
+                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                      theme(request.access_route)).get('baseURL'),
+                                                  },
+                                            now=timestamp(),
+                                            mimetype='text/xml')
+
+            response = make_response(oai_error_xml)
+            response.headers["Content-Type"] = "text/xml"
+
+            return response
+
+        # build query
+        cursor = 0
+        if resumption_token:
+            r = app.extensions['redis']['REDIS_OAI_PMH_RT']
+            rt = r.hget('resumptionToken', resumption_token)
+            cursor = rt.get('cursor')
+            oai_from = rt.get('from')
+            oai_until = rt.get('until')
+            oai_set = rt.get('set')
+
+            if oai_from and not oai_until:
+                query = 'recordChangeDate:[%s+TO+*]' % (oai_from + 'T00:00:00Z')
+            elif not oai_from and oai_until:
+                query = 'recordChangeDate:[*+TO+%s]' % (oai_until + 'T00:00:00Z')
+            elif oai_from and oai_until:
+                query = 'recordChangeDate:[%s+TO+%s]' % (oai_from + 'T00:00:00Z', oai_until + 'T00:00:00Z')
+            else:
+                query = '*:*'
+
+            filterquery = []
+            if oai_set:
+                theset = oai_set
+                if oai_set.startswith('doc-type'):
+                    filterquery.append('oai_type:"%s"' % theset.replace('doc-type:', ''))
+                if oai_set.startswith('ddc'):
+                    filterquery.append('ddc:"%s"' % theset.replace('ddc:', ''))
+                if oai_set == 'ec_fundedresources':
+                    filterquery.append('fp7:*')
+
+            # resumptionToken expired?
+            if datetime.datetime.now() > datetime.datetime.strptime(rt.get('expirationDate'), "%Y-%m-%dT%H:%M:%S.%fZ"):
+                oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                                data={'verb': verb,
+                                                      'error_code': 'badResumptionToken',
+                                                      'error_text': 'The value of the resumptionToken argument is invalid or expired.',
+                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                          theme(request.access_route)).get('baseURL'),
+                                                      },
+                                                now=timestamp(),
+                                                mimetype='text/xml')
+
+                response = make_response(oai_error_xml)
+                response.headers["Content-Type"] = "text/xml"
+
+                return response
+        else:
+            if oai_from and not oai_until:
+                query = 'recordChangeDate:[%s+TO+*]' % (oai_from + 'T00:00:00Z')
+            elif not oai_from and oai_until:
+                query = 'recordChangeDate:[*+TO+%s]' % (oai_until + 'T00:00:00Z')
+            elif oai_from and oai_until:
+                query = 'recordChangeDate:[%s+TO+%s]' % (oai_from + 'T00:00:00Z', oai_until + 'T00:00:00Z')
+            else:
+                query = '*:*'
+
+            filterquery = []
+            if oai_set:
+                theset = oai_set
+                if oai_set.startswith('doc-type'):
+                    filterquery.append('oai_type:"%s"' % theset.replace('doc-type:', ''))
+                if oai_set.startswith('ddc'):
+                    filterquery.append('ddc:"%s"' % theset.replace('ddc:', ''))
+                if oai_set == 'ec_fundedresources':
+                    filterquery.append('fp7:*')
+
+        # Solr request
+        search_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT, application=secrets.SOLR_APP,
+                           start=cursor, rows=secrets.BATCH_SIZE,
+                           query=query,
+                           fquery=filterquery,
+                           sort='recordChangeDate asc')
+        search_solr.request()
+        result = search_solr.results
+
+        hit_count = search_solr.count()
+
+        rt_last = False
+        if int(cursor) + secrets.BATCH_SIZE >= hit_count:
+            rt_last = True
+
+        rt_id = ''
+        rt = {}
+        if hit_count > secrets.BATCH_SIZE and cursor < hit_count:
+            rt_id = uuid.uuid4()
+            rt.setdefault('expirationDate', (datetime.datetime.now() + datetime.timedelta(2)).isoformat() + 'Z')
+            rt.setdefault('cursor', (int(cursor) + secrets.BATCH_SIZE))
+            if oai_from:
+                rt.setdefault('from', oai_from)
+            if oai_until:
+                rt.setdefault('until', oai_until)
+            if oai_set:
+                rt.setdefault('set', oai_set)
+
+            r = app.extensions['redis']['REDIS_OAI_PMH_RT']
+            r.hset('resumptionToken', rt_id, rt)
+
+        oai_listrecords_xml = render_template('oai_pmh/oai_listrecords.xml',
+                                              data={'verb': verb,
+                                                    'docs': result,
+                                                    'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                        theme(request.access_route)).get('baseURL'),
+                                                    'id_prefix': secrets.OAI_PMH_APP_DATA.get(
+                                                        theme(request.access_route)).get('id_prefix'),
+                                                    'resumption_token': rt_id,
+                                                    'expiration_date': rt.get('expirationDate'),
+                                                    'cursor': rt.get('cursor'),
+                                                    'complete_list_size': hit_count,
+                                                    'last_batch': rt_last,
+                                                    'metadata_prefix': oai_metadata_prefix,
+                                                    'format': oai_metadata_prefix.replace(
+                                                        'oai_', ''),
+                                                    'from': oai_from,
+                                                    'until': oai_until,
+                                                    'set': oai_set,
+                                                    },
+                                              now=timestamp(),
+                                              mimetype='text/xml')
+
+        response = make_response(oai_listrecords_xml)
+        response.headers["Content-Type"] = "text/xml"
+
+        return response
+    elif verb == 'GetRecord':
+        if len(request.form) > 3:
+            oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                            data={'verb': verb,
+                                                  'error_code': 'badArgument',
+                                                  'error_text': 'The request includes illegal arguments, is missing required arguments, includes a repeated argument, or values for arguments have an illegal syntax.',
+                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                      theme(request.access_route)).get('baseURL'),
+                                                  },
+                                            now=timestamp(),
+                                            mimetype='text/xml')
+
+            response = make_response(oai_error_xml)
+            response.headers["Content-Type"] = "text/xml"
+
+            return response
+        else:
+            # Required parameter
+            identifier = ''
+            if 'identifier' in request.form:
+                identifier = request.form['identifier']
+            oai_metadata_prefix = ''
+            if 'metadataPrefix' in request.form:
+                oai_metadata_prefix = request.form['metadataPrefix']
+
+            if not identifier or not oai_metadata_prefix:
+                oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                                data={'verb': verb,
+                                                      'error_code': 'badArgument',
+                                                      'error_text': 'The request includes illegal arguments, is missing required arguments, includes a repeated argument, or values for arguments have an illegal syntax.',
+                                                      'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                          theme(request.access_route)).get('baseURL'),
+                                                      },
+                                                now=timestamp(),
+                                                mimetype='text/xml')
+
+                response = make_response(oai_error_xml)
+                response.headers["Content-Type"] = "text/xml"
+
+                return response
+            else:
+                # is metadata_prefix valid?
+                if oai_metadata_prefix not in secrets.VALID_METADATA_PREFIXES:
+                    oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                                    data={'verb': verb,
+                                                          'error_code': 'cannotDisseminateFormat',
+                                                          'error_text': 'The metadata format identified by the value given for the metadataPrefix argument is not supported by the item or by the repository.',
+                                                          'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                              theme(request.access_route)).get('baseURL'),
+                                                          },
+                                                    now=timestamp(),
+                                                    mimetype='text/xml')
+
+                    response = make_response(oai_error_xml)
+                    response.headers["Content-Type"] = "text/xml"
+
+                    return response
+                else:
+                    uuid.UUID(
+                        identifier.replace(secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'),
+                                           ''))
+                    result = persistence.get_work(
+                        identifier.replace(secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('id_prefix'),
+                                           ''))
+                    if result:
+                        # print(json.dumps(result, indent=4))
+                        oai_getrecord_xml = render_template('oai_pmh/oai_getrecord.xml',
+                                                            data={'verb': verb,
+                                                                  'record': result,
+                                                                  'identifier': identifier,
+                                                                  'metadata_prefix': oai_metadata_prefix,
+                                                                  'format': oai_metadata_prefix.replace(
+                                                                      'oai_', ''),
+                                                                  'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                                      theme(request.access_route)).get(
+                                                                      'baseURL'),
+                                                                  'id_prefix': secrets.OAI_PMH_APP_DATA.get(
+                                                                      theme(request.access_route)).get(
+                                                                      'id_prefix'),
+                                                                  },
+                                                            now=timestamp(),
+                                                            mimetype='text/xml')
+
+                        response = make_response(oai_getrecord_xml)
+                        response.headers["Content-Type"] = "text/xml"
+
+                        return response
+                    else:
+                        oai_error_xml = render_template('oai_pmh/oai_error.xml',
+                                                        data={'verb': verb,
+                                                              'error_code': 'idDoesNotExist',
+                                                              'error_text': 'The value of the identifier argument is unknown or illegal in this repository.',
+                                                              'base_url': secrets.OAI_PMH_APP_DATA.get(
+                                                                  theme(request.access_route)).get('baseURL'),
+                                                              },
+                                                        now=timestamp(),
+                                                        mimetype='text/xml')
+
+                        response = make_response(oai_error_xml)
+                        response.headers["Content-Type"] = "text/xml"
+
+                        return response
     else:
         oai_error_xml = render_template('oai_pmh/oai_error.xml',
                                         data={'verb': verb,
                                               'error_code': 'badVerb',
                                               'error_text': 'Value of the verb argument is not a legal OAI-PMH verb, the verb argument is missing, or the verb argument is repeated.',
-                                              'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get('baseURL'),
+                                              'base_url': secrets.OAI_PMH_APP_DATA.get(theme(request.access_route)).get(
+                                                  'baseURL'),
                                               },
                                         now=timestamp(),
                                         mimetype='text/xml')
@@ -796,7 +1427,7 @@ def oai_post():
         return response
 
 
-@app.route("/spec")
+@app.route("/oai/spec")
 def spec():
     swag = swagger(app, from_file_keyword='swagger_from_file')
     swag['info']['version'] = secrets.SWAGGER_API_VERSION
@@ -818,7 +1449,7 @@ def spec():
     return jsonify(swag)
 
 
-@app.route('/_ping')
+@app.route('/oai/_ping')
 @csrf.exempt
 def _ping():
     """
@@ -835,7 +1466,7 @@ def _ping():
         return make_response('One or more dependencies unavailable!', 500)
 
 
-@app.route('/_health')
+@app.route('/oai/_health')
 @csrf.exempt
 def _health():
     """
@@ -962,6 +1593,11 @@ def dependencies_health():
     return dependencies
 
 
+@app.template_filter('deserialize_json')
+def deserialize_json_filter(thejson):
+    return json.loads(thejson)
+
+
 @app.route('/redis/stats/<db>')
 def redis_stats(db='2'):
     if db == '2':
@@ -984,6 +1620,7 @@ def redis_stats(db='2'):
         return jsonify({'stats': stats})
     else:
         return 'No database with ID %s exists!' % db
+
 
 # ---------- MAIN ----------
 

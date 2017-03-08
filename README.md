@@ -6,11 +6,13 @@ publications produced by the UAR universities and a linked data platform for str
 
 ## Structure
 
-The platform is parted into three web services:
+The platform is parted into several web services:
 
 * the APP: a web application for submitting, editing and searching bibliographic metadata
 * the API: a restful web service submitting, editing and searching bibliographic metadata and an OAI-PMH interface
 * the bibliography service: a service to export individually specified bibliographies
+* the OAI-PMH data provider
+* the export and statistics service
 
 Furthermore there exists some batch processes for bulk imports from our previous system, for backups and
 syncing data to third party platforms (e.g. ORCID or the Linked Data Platform of our institutions).
@@ -25,6 +27,8 @@ other, we recommend installing [pyenv](https://github.com/yyuu/pyenv)).
 Install the dependencies into this environment with ```pip install -r requirements.txt```.
 
 Edit the contents of ```*_secrets.py``` and save it as ```local_*_secrets.py```.
+
+Further you have to setup an Apache Solr instance using the configurations in the `ìnit` folder of this project.
 
 You can then run the web app with ```python app.py```, the api with ```python api.py``` and the
 bibliography service with ```python bibliography.py```

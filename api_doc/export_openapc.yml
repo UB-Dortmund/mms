@@ -1,0 +1,17 @@
+Get the OpenAPC data for the requested year
+---
+tags:
+  - export
+produces:
+  - text/csv
+parameters:
+- name: year
+  in: path
+  description: the year for which the data is generated
+  required: true
+  type: integer
+responses:
+  200:
+    description: A CSV table specified in the [Open APC Data Submission Handout](https://github.com/OpenAPC/openapc-de/wiki/Data-Submission-Handout)
+  400:
+    description: No affiliation parameter set. Please contact the administrator!

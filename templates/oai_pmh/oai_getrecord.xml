@@ -1,17 +1,25 @@
-{% extends 'oai_base.xml' %}
+{% extends 'oai_pmh/oai_base.xml' %}
         {% block contents %}
 	<record>
 		<header>
-			<identifier>{{ id_prefix }}{{ oai_id }}</identifier>
-			<datestamp>{{ record.recordChangeDate|slice:"-10" }}</datestamp>
-			<setSpec>doc-type:{{ record.oai_type }}</setSpec>
-            {% for ddc in record.ddc %}
-            <setSpec>ddc:{{ ddc }}</setSpec>
-            {% endfor %}
+			<identifier>{{ data.identifier }}</identifier>
+			<datestamp>{{ data.record.recordChangeDate[:10] }}</datestamp>
+			<setSpec>doc-type:{{ data.record.pubtype }}</setSpec>
+			{%- with wtf_json = data.record.wtf_json|deserialize_json %}
+			{%- if wtf_json.ddc_subject and wtf_json.ddc_subject.0.id %}
+			{%- for ddc in wtf_json.ddc_subject %}
+			<setSpec>ddc:{{ ddc.id }}</setSpec>
+			{%- endfor %}
+			{%- endif %}
+			{%- endwith %}
 		</header>
 		<metadata>
-                    {% if format == 'mods' %}<{{ record.mods|safe }}{% endif %}
-                    {% if format == 'dc' %}{{ record.dc|safe }}{% endif %}
+			{%- if data.format == 'mods' %}
+			{{ data.record.mods|safe }}
+			{%- endif %}
+			{%- if data.format == 'dc' %}
+			{% with record = data.record %}{% include 'oai_pmh/oai_dc.xml' %}{% endwith %}
+			{%- endif %}
 		</metadata>
 	</record>
         {% endblock contents %}

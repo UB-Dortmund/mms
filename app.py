@@ -2851,14 +2851,13 @@ def new_record(pubtype='ArticleJournal'):
                     form.catalog.data = ['Ruhr-Universität Bochum']
         except AttributeError:
             pass
-        # logging.info(form)
-        # logging.info(form.person.name)
-        persistence.record2solr(form, action='create')
-        # return redirect(url_for('dashboard'))
-        # logging.info(form.data)
-        # logging.info(form.data.get('id').strip())
 
-        return show_record(pubtype, form.data.get('id').strip())
+        new_id, message = persistence.record2solr(form, action='create')
+        if current_user.role != 'user':
+            for msg in message:
+                flash(msg, category='warning')
+
+        return redirect(url_for('show_record', pubtype=pubtype, record_id=form.data.get('id').strip()))
 
     if request.args.get('subtype'):
         form.subtype.data = request.args.get('subtype')
@@ -3386,7 +3385,8 @@ def show_record(pubtype, record_id=''):
                             break
 
             if (current_user.role == 'admin' and thedata.get('editorial_status') != 'deleted') \
-                    or current_user.role == 'superadmin' or current_user.email in thedata.get('owner') \
+                    or current_user.role == 'superadmin' \
+                    or (current_user.email in thedata.get('owner') and thedata.get('editorial_status') == 'new') \
                     or (user_eq_actor and thedata.get('editorial_status') == 'new'):
                 editable = True
 
@@ -3550,10 +3550,11 @@ def show_group(group_id=''):
 @app.route('/update/<pubtype>/<record_id>', methods=['GET', 'POST'])
 @login_required
 def edit_record(record_id='', pubtype=''):
+
     cptask = request.args.get('cptask', False)
-    logging.info('cptask = %s' % cptask)
+    # logging.info('cptask = %s' % cptask)
     user_is_actor = request.args.get('user_is_actor', False)
-    logging.info('user_is_actor = %s' % cptask)
+    # logging.info('user_is_actor = %s' % cptask)
 
     lock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
                             application=secrets.SOLR_APP, core='hb2',
@@ -3566,13 +3567,12 @@ def edit_record(record_id='', pubtype=''):
 
     thedata = json.loads(edit_record_solr.results[0].get('wtf_json'))
 
-    # TODO if admin or superadmin or (user and editorial_status=='new')
-
     if request.method == 'POST':
         # logging.info('POST')
         form = display_vocabularies.PUBTYPE2FORM.get(pubtype)()
         if current_user.role != 'admin' and current_user.role != 'superadmin':
             form = display_vocabularies.PUBTYPE2USERFORM.get(pubtype)()
+            # TODO insert GND-IDs and DataCatalog
         # logging.info(form.data)
     elif request.method == 'GET':
         # logging.info('GET')
@@ -3581,101 +3581,116 @@ def edit_record(record_id='', pubtype=''):
             form = display_vocabularies.PUBTYPE2USERFORM.get(pubtype).from_json(thedata)
         # logging.info(form.data)
 
-    if current_user.role == 'admin' or current_user.role == 'superadmin':
-        form.pubtype.choices = forms_vocabularies.ADMIN_PUBTYPES
+    do_unlock = True
+    if current_user.role == 'admin' or current_user.role == 'superadmin' or (current_user.role == 'user' and form.data.get('editorial_status') == 'new'):
+
+        if current_user.role == 'admin' or current_user.role == 'superadmin':
+            form.pubtype.choices = forms_vocabularies.ADMIN_PUBTYPES
+        else:
+            form.pubtype.choices = forms_vocabularies.USER_PUBTYPES
+
+        if thedata.get('pubtype') != pubtype:
+            diff = _diff_struct(thedata, form.data)
+            if len(diff) > 0:
+                flash(Markup(lazy_gettext(
+                    '<p><i class="fa fa-exclamation-triangle fa-3x"></i> <h3>The publication type for the following data has changed. Please check the data.</h3></p>')) + diff,
+                      'warning')
+            form.pubtype.data = pubtype
+
+        if current_user.role == 'admin' or current_user.role == 'superadmin':
+            for person in form.person:
+                if current_user.role == 'admin' or current_user.role == 'superadmin':
+                    if pubtype != 'Patent':
+                        person.role.choices = forms_vocabularies.ADMIN_ROLES
+                else:
+                    if pubtype != 'Patent':
+                        person.role.choices = forms_vocabularies.USER_ROLES
+
+        valid = form.validate_on_submit()
+        # logging.info('form.errors: %s' % valid)
+        # logging.info('form.errors: %s' % form.errors)
+
+        if not valid and form.errors:
+            flash_errors(form)
+            return render_template('tabbed_form.html', form=form,
+                                   header=lazy_gettext('Edit: %(title)s', title=form.data.get('title')),
+                                   site=theme(request.access_route), action='update', pubtype=pubtype)
+
+        if valid:
+
+            try:
+                if current_user.role == 'user':
+                    form.owner[0].data = current_user.email
+                    if len(form.data.get('catalog')) == 0 or form.data.get('catalog')[0] == '':
+                        if current_user.affiliation == 'tudo':
+                            form.catalog.data = ['Technische Universität Dortmund']
+                        if current_user.affiliation == 'rub':
+                            form.catalog.data = ['Ruhr-Universität Bochum']
+                else:
+                    if form.data.get('editorial_status') == 'new':
+                        form.editorial_status.data = 'in_process'
+                    if form.data.get('editorial_status') == 'edited' and current_user.role == 'superadmin':
+                        form.editorial_status.data = 'final_editing'
+            except AttributeError:
+                pass
+
+            new_id, message = persistence.record2solr(form, action='update')
+            if current_user.role != 'user':
+                for msg in message:
+                    flash(msg, category='warning')
+            if new_id != record_id:
+                do_unlock = False
+
+            # if cptask: delete redis record for record_id
+            if cptask:
+                # wenn trotzdem nicht verlinkt wurde, muss der Datensatz als behandelt in Redis
+                # verzeichnet werden!
+                get_record = Solr(application=secrets.SOLR_APP, facet='false', rows=2000000,
+                                  query='id:%s' % record_id, fields=['pnd', 'id', 'title', 'pubtype', 'catalog'])
+                get_record.request()
+
+                is_relevant = True
+                for gnd in get_record.results[0].get('pnd'):
+                    ids = gnd.split('#')
+                    if len(ids) != 3:
+                        is_relevant = False
+                        break
+
+                if is_relevant:
+                    # mark as not relevant anymore in redis
+                    try:
+                        storage_consolidate_persons = app.extensions['redis']['REDIS_CONSOLIDATE_PERSONS']
+                        storage_consolidate_persons.hset('marked', record_id, timestamp())
+                    except Exception as e:
+                        logging.info('REDIS ERROR: %s' % e)
+                        flash('Could not mark task for %s as not relevant anymore' % record_id, 'danger')
+                # delete from tasks list
+                try:
+                    storage_consolidate_persons = app.extensions['redis']['REDIS_CONSOLIDATE_PERSONS']
+                    storage_consolidate_persons.delete(record_id)
+                except Exception as e:
+                    logging.info('REDIS ERROR: %s' % e)
+                    flash('Could not delete task for %s' % record_id, 'danger')
+
+            return redirect(url_for('show_record', pubtype=pubtype, record_id=form.data.get('id').strip()))
+
+        form.changed.data = timestamp()
+        form.deskman.data = current_user.email
+
+        return render_template('tabbed_form.html', form=form, header=lazy_gettext('Edit: %(title)s',
+                                                                                  title=form.data.get('title')),
+                               locked=True, site=theme(request.access_route), action='update',
+                               pubtype=pubtype, record_id=record_id, cptask=str2bool(cptask))
+
     else:
-        form.pubtype.choices = forms_vocabularies.USER_PUBTYPES
-
-    if thedata.get('pubtype') != pubtype:
-        diff = _diff_struct(thedata, form.data)
-        if len(diff) > 0:
-            # flash(Markup(lazy_gettext('<p><i class="fa fa-exclamation-triangle fa-3x"></i> <h3>The following data are incompatible with this publication type</h3></p>')) + _diff_struct(thedata, form.data), 'error')
-            flash(Markup(lazy_gettext(
-                '<p><i class="fa fa-exclamation-triangle fa-3x"></i> <h3>The publication type for the following data has changed. Please check the data.</h3></p>')) + diff,
-                  'warning')
-        form.pubtype.data = pubtype
-
-    if current_user.role == 'admin' or current_user.role == 'superadmin':
-        for person in form.person:
-            if current_user.role == 'admin' or current_user.role == 'superadmin':
-                if pubtype != 'Patent':
-                    person.role.choices = forms_vocabularies.ADMIN_ROLES
-            else:
-                if pubtype != 'Patent':
-                    person.role.choices = forms_vocabularies.USER_ROLES
-
-    valid = form.validate_on_submit()
-    # logging.info('form.errors: %s' % valid)
-    # logging.info('form.errors: %s' % form.errors)
-
-    if not valid and form.errors:
-        flash_errors(form)
-        return render_template('tabbed_form.html', form=form,
-                               header=lazy_gettext('Edit: %(title)s', title=form.data.get('title')),
-                               site=theme(request.access_route), action='update', pubtype=pubtype)
-
-    if valid:
-
-        try:
-            if current_user.role == 'user':
-                form.owner[0].data = current_user.email
-            else:
-                if form.data.get('editorial_status') == 'new':
-                    form.editorial_status.data = 'in_process'
-                if form.data.get('editorial_status') == 'edited' and current_user.role == 'superadmin':
-                    form.editorial_status.data = 'final_editing'
-        except AttributeError:
-            pass
-
-        new_id, message = persistence.record2solr(form, action='update')
-        for msg in message:
-            flash(msg, category='warning')
-        if new_id == record_id:
+        if do_unlock:
             unlock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
                                       application=secrets.SOLR_APP, core='hb2',
                                       data=[{'id': record_id, 'locked': {'set': 'false'}}])
             unlock_record_solr.update()
 
-        # if cptask: delete redis record for record_id
-        if cptask:
-            # wenn trotzdem nicht verlinkt wurde, muss der Datensatz als behandelt in Redis
-            # verzeichnet werden!
-            get_record = Solr(application=secrets.SOLR_APP, facet='false', rows=2000000,
-                              query='id:%s' % record_id, fields=['pnd', 'id', 'title', 'pubtype', 'catalog'])
-            get_record.request()
-
-            is_relevant = True
-            for gnd in get_record.results[0].get('pnd'):
-                ids = gnd.split('#')
-                if len(ids) != 3:
-                    is_relevant = False
-                    break
-
-            if is_relevant:
-                # mark as not relevant anymore in redis
-                try:
-                    storage_consolidate_persons = app.extensions['redis']['REDIS_CONSOLIDATE_PERSONS']
-                    storage_consolidate_persons.hset('marked', record_id, timestamp())
-                except Exception as e:
-                    logging.info('REDIS ERROR: %s' % e)
-                    flash('Could not mark task for %s as not relevant anymore' % record_id, 'danger')
-            # delete from tasks list
-            try:
-                storage_consolidate_persons = app.extensions['redis']['REDIS_CONSOLIDATE_PERSONS']
-                storage_consolidate_persons.delete(record_id)
-            except Exception as e:
-                logging.info('REDIS ERROR: %s' % e)
-                flash('Could not delete task for %s' % record_id, 'danger')
-
-        return show_record(pubtype, form.data.get('id').strip())
-
-    form.changed.data = timestamp()
-    form.deskman.data = current_user.email
-
-    return render_template('tabbed_form.html', form=form, header=lazy_gettext('Edit: %(title)s',
-                                                                              title=form.data.get('title')),
-                           locked=True, site=theme(request.access_route), action='update',
-                           pubtype=pubtype, record_id=record_id, cptask=str2bool(cptask))
+        flash(lazy_gettext('You are not allowed to modify the record data, because the record is in editorial process. Please contact out team!'), 'warning')
+        return redirect(url_for('show_record', pubtype=pubtype, record_id=record_id))
 
 
 @app.route('/update/person/<person_id>', methods=['GET', 'POST'])
@@ -4488,6 +4503,212 @@ def consolidate_email(affiliation=''):
 
     else:
         return make_response('Please set affiliation parameter', 400)
+
+
+# ---------- EXPORT ----------
+
+@app.route('/export/openapc/<year>', methods=['GET'])
+@csrf.exempt
+def export_openapc(year=''):
+
+    if theme(request.access_route) == 'dortmund':
+        affiliation = 'tudo'
+        affiliation_str = 'TU Dortmund'
+    elif theme(request.access_route) == 'bochum':
+        affiliation = 'rubi'
+        affiliation_str = 'Ruhr-Universität Bochum'
+    else:
+        affiliation = ''
+        affiliation_str = ''
+
+    if affiliation:
+        csv = '"institution";"period";"euro";"doi";"is_hybrid";"publisher";"journal_full_title";"issn";"url";"local_id"\n'
+
+        oa_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                       application=secrets.SOLR_APP, core='hb2', handler='query',
+                       query='oa_funds:true', facet='false', rows=100000,
+                       fquery=['%s:true' % affiliation, 'fdate:%s' % year])
+        oa_solr.request()
+        results = oa_solr.results
+
+        if len(results) > 0:
+            for record in results:
+                thedata = json.loads(record.get('wtf_json'))
+
+                doi = record.get('doi')[0]
+                is_hybrid = False
+                if record.get('is_hybrid'):
+                    is_hybrid = record.get('is_hybrid')
+                publisher = ''
+                journal_title = ''
+                issn = ''
+                url = ''
+                if not doi:
+
+                    journal_title = ''
+                    if record.get('is_part_of_id'):
+                        if record.get('is_part_of_id')[0]:
+                            host = persistence.get_work(record.get('is_part_of_id')[0])
+                            if host:
+                                record = json.loads(host.get('wtf_json'))
+                                # print(json.dumps(record, indent=4))
+                                journal_title = record.get('title')
+                                if record.get('fsubseries'):
+                                    journal_title = record.get('fsubseries')
+                                publisher = ''
+                                if record.get('publisher'):
+                                    publisher = record.get('publisher')
+                                issn = ''
+                                if record.get('ISSN'):
+                                    for entry in record.get('ISSN'):
+                                        if entry:
+                                            issn = entry
+                                            break
+
+                    url = ''
+                    if thedata.get('uri'):
+                        for uri in thedata.get('uri'):
+                            url = uri
+                            break
+
+                csv += '"%s";%s;%s;"%s";"%s";"%s";"%s";"%s";"%s";"%s"\n' % (
+                    affiliation_str,
+                    year,
+                    0.00,
+                    doi,
+                    is_hybrid,
+                    publisher,
+                    journal_title,
+                    issn,
+                    url,
+                    record.get('id')
+                )
+
+            resp = make_response(csv, 200)
+            resp.headers['Content-Type'] = 'text/csv; charset=utf-8'
+            return resp
+        else:
+            return make_response('No results', 404)
+    else:
+        return make_response('No affiliation parameter set. Please contact the administrator!', 400)
+
+
+@app.route('/export/oa_report/<year>', methods=['GET'])
+@csrf.exempt
+def export_oa_report(year=''):
+
+    pubtype = request.args.get('pubtype', 'ArticleJournal')
+
+    if theme(request.access_route) == 'dortmund':
+        affiliation = 'tudo'
+        affiliation_str = 'TU Dortmund'
+    elif theme(request.access_route) == 'bochum':
+        affiliation = 'rubi'
+        affiliation_str = 'Ruhr-Universität Bochum'
+    else:
+        affiliation = ''
+        affiliation_str = ''
+
+    if affiliation:
+        csv = '"AU";"TI";"SO";"DT";"RP";"EM";"OI";"PU";"ISSN";"E-ISSN";"DOI";"OA";"RP TUDO";"Fak"\n'
+
+        # TODO search for all publications of the given year
+        oa_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                       application=secrets.SOLR_APP, core='hb2', handler='query',
+                       query='*:*', facet='false', rows=100000,
+                       fquery=['%s:true' % affiliation, 'fdate:%s' % year, 'pubtype:%s' % pubtype])
+        oa_solr.request()
+        results = oa_solr.results
+
+        if results:
+            for record in results:
+                thedata = json.loads(record.get('wtf_json'))
+
+                author = ''
+                corresponding_author = ''
+                corresponding_affiliation = ''
+                faks = ''
+                for person in thedata.get('person'):
+                    if 'aut' in person.get('role'):
+                        author += person.get('name') + ';'
+                        if person.get('corresponding_author'):
+                            corresponding_author = person.get('name')
+                            if person.get('tudo'):
+                                corresponding_affiliation = True
+                                if person.get('gnd'):
+                                    tudo = persistence.get_person(person.get('gnd'))
+                                    # print(person.get('gnd'))
+                                    if tudo:
+                                        if tudo.get('affiliation_id'):
+                                            faks = ''
+                                            for entry in tudo.get('affiliation_id'):
+                                                affil = persistence.get_orga(entry)
+                                                fak = ''
+                                                if affil:
+                                                    has_parent = False
+                                                    fak = affil.get('pref_label')
+                                                    if affil.get('parent_id'):
+                                                        has_parent = True
+                                                        fak = '%s / %s' % (affil.get('parent_label'), affil.get('pref_label'))
+                                                    while has_parent:
+                                                        affil = persistence.get_orga(affil.get('parent_id'))
+                                                        if affil.get('parent_id'):
+                                                            has_parent = True
+                                                            fak = '%s / %s' % (affil.get('parent_label'), affil.get('pref_label'))
+                                                        else:
+                                                            has_parent = False
+                                                else:
+                                                    fak = 'LinkError: Person %s' % person.get('gnd')
+                                                faks += fak + ';'
+                                            faks = faks[:-1]
+
+                author = author[:-1]
+
+                publisher = ''
+                journal_title = ''
+                issn = ''
+                journal_title = ''
+                if record.get('is_part_of_id'):
+                    if record.get('is_part_of_id')[0]:
+                        host = persistence.get_work(record.get('is_part_of_id')[0])
+                        if host:
+                            record = json.loads(host.get('wtf_json'))
+                            # print(json.dumps(record, indent=4))
+                            journal_title = record.get('title')
+                            if record.get('fsubseries'):
+                                journal_title = record.get('fsubseries')
+                            publisher = ''
+                            if record.get('publisher'):
+                                publisher = record.get('publisher')
+                            issn = ''
+                            if record.get('ISSN'):
+                                for entry in record.get('ISSN'):
+                                    if entry:
+                                        issn = entry
+                                        break
+
+                csv += '"%s";"%s";"%s";"%s";"%s";"%s";"%s";"%s";"%s";"%s";"%s";"%s";"%s";"%s"\n' % (
+                    author,
+                    thedata.get('title'),
+                    journal_title,
+                    'article',
+                    corresponding_author,
+                    '',
+                    '',
+                    publisher,
+                    issn,
+                    '',
+                    thedata.get('DOI')[0],
+                    thedata.get('oa_funded'),
+                    corresponding_affiliation,
+                    faks,
+                )
+
+        resp = make_response(csv, 200)
+        resp.headers['Content-Type'] = 'text/csv; charset=utf-8'
+        return resp
+    else:
+        return make_response('No affiliation parameter set. Please contact the administrator!', 400)
 
 
 # ---------- ORCID ----------

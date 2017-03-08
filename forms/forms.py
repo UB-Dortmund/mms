@@ -102,8 +102,12 @@ class PersonUserForm(FlaskForm):
     name = StringField(lazy_gettext('Name'), validators=[Optional()],
                        widget=CustomTextInput(placeholder=lazy_gettext('Name, Given name')))
     role = SelectMultipleField(lazy_gettext('Role'), choices=forms_vocabularies.USER_ROLES)
-    gnd = HiddenField(validators=[Optional()])
-    orcid = HiddenField(validators=[Optional()])
+    gnd = StringField(lazy_gettext('GND-ID'),
+                      validators=[Optional()],
+                      widget=CustomTextInput(readonly='readonly', placeholder=(lazy_gettext('automatically filled contributor ID'))),
+                      description=Markup(lazy_gettext('ID in the Gemeinsame Normdatei of the Deutschen Nationalbibliothek (filled automatically)')))
+    orcid = StringField(lazy_gettext('ORCID'), validators=[Optional()],
+                        description=Markup(lazy_gettext('<a href="https://orcid.org/orcid-search/search" target="_blank">Find in ORCID</a>')))
     corresponding_author = BooleanField(lazy_gettext('Corresponding Author'), validators=[Optional()],
                                         description=lazy_gettext('The person handling the publication process'))
     rubi = BooleanField(lazy_gettext('RUB member'), validators=[Optional()])
@@ -128,8 +132,29 @@ class PersonAsEditorForm(PersonForm):
 
 
 class OpenAccessForm(FlaskForm):
-    project_identifier = StringField(lazy_gettext('Project Identifier'), validators=[URL(), Optional()], widget=CustomTextInput(placeholder=lazy_gettext('e.g. http://purl.org/info:eu-repo/grantAgreement/EC/FP7/12345P')))
     project_type = SelectField(lazy_gettext('Project Type'), choices=forms_vocabularies.PROJECT_TYPES, validators=[Optional()])
+    project_identifier = StringField(lazy_gettext('Project Identifier'), validators=[URL(), Optional()], widget=CustomTextInput(placeholder=lazy_gettext('e.g. http://purl.org/info:eu-repo/grantAgreement/EC/FP7/12345P')))
+    fee = BooleanField(lazy_gettext('Author Pays'))
+    access_level = SelectField(lazy_gettext('Access Level'), choices=[
+        ('', lazy_gettext('Select an Access Level')),
+        ('closed', lazy_gettext('Closed Access')),
+        ('embargoed', lazy_gettext('Embargoed Access')),
+        ('restricted', lazy_gettext('Restricted Access')),
+        ('open', lazy_gettext('Open Access')),
+    ], validators=[Optional()])
+    embargo_end_date = StringField(lazy_gettext('Embargo End Date'), validators=[Optional(), Regexp('[12]\d{3}-[01]\d-[0123]\d')], widget=CustomTextInput(placeholder=lazy_gettext('YYYY-MM-DD')), description=lazy_gettext("If you don't know the month and/or day please use 01"))
+
+
+class OpenAccessAdminForm(FlaskForm):
+    DFG = BooleanField(lazy_gettext('DFG Funded'),
+                       description=Markup(lazy_gettext('APCs funded by the DFG.')))
+    oa_funded = BooleanField(lazy_gettext('Funded by Open Access Fund'),
+                             description=Markup(lazy_gettext('APCs funded by the institutional Open Access Fund.')))
+    is_hybrid = BooleanField(lazy_gettext('Is hybrid?'),
+                             description=Markup(lazy_gettext('Has the article been published in a toll access journal?')))
+    corresponding_affiliation = SelectField(lazy_gettext('Affiliation of the corresponding author'),
+                                            validators=[Optional()],
+                                            choices=forms_vocabularies.OA_FUNDS)
     publication_version = SelectField(lazy_gettext('Publication Version'), choices=[
         ('', lazy_gettext('Select a Publication Version')),
         ('accepted', lazy_gettext('Accepted')),
@@ -142,15 +167,6 @@ class OpenAccessForm(FlaskForm):
         ('rejected', lazy_gettext('Rejected')),
         ('unpublished', lazy_gettext('Unpublished')),
     ], validators=[Optional()])
-    fee = BooleanField(lazy_gettext('Author Pays'))
-    access_level = SelectField(lazy_gettext('Access Level'), choices=[
-        ('', lazy_gettext('Select an Access Level')),
-        ('closed', lazy_gettext('Closed Access')),
-        ('embargoed', lazy_gettext('Embargoed Access')),
-        ('restricted', lazy_gettext('Restricted Access')),
-        ('open', lazy_gettext('Open Access')),
-    ], validators=[Optional()])
-    embargo_end_date = StringField(lazy_gettext('Embargo End Date'), validators=[Optional(), Regexp('[12]\d{3}-[01]\d-[0123]\d')], widget=CustomTextInput(placeholder=lazy_gettext('YYYY-MM-DD')), description=lazy_gettext("If you don't know the month and/or day please use 01"))
     mime_type = SelectField(lazy_gettext('MIME-type'), choices=[
         ('pdf', lazy_gettext('application/pdf')),
         ('msword', lazy_gettext('application/msword')),
@@ -808,14 +824,8 @@ class ArticleJournalForm(ArticleForm):
     ])
     peer_reviewed = BooleanField(lazy_gettext('Peer Reviewed'))
     is_part_of = FieldList(FormField(ArticleRelationForm), min_entries=1)
-    DFG = BooleanField(lazy_gettext('DFG Funded'),
-                       description=Markup(lazy_gettext('APCs funded by the DFG.')))
-    oa_funded = BooleanField(lazy_gettext('Funded by Open Access Fund'),
-                             description=Markup(lazy_gettext('APCs funded by the institutional Open Access Fund.')))
-    corresponding_affiliation = SelectField(lazy_gettext('Affiliation of the corresponding author'),
-                                            validators=[Optional()],
-                                            choices=forms_vocabularies.OA_FUNDS)
     open_access = FormField(OpenAccessForm)
+    open_access_admin = FormField(OpenAccessAdminForm)
     other_version = FieldList(FormField(OtherVersionForm), min_entries=1)
     event = FieldList(FormField(EventForm), min_entries=1)
 
@@ -845,7 +855,7 @@ class ArticleJournalForm(ArticleForm):
              'label': lazy_gettext('Keyword')},
             {'group': [self.abstract],
              'label':lazy_gettext('Content')},
-            {'group': [self.oa_funded, self.DFG, self.corresponding_affiliation, self.open_access],
+            {'group': [self.open_access, self.open_access_admin],
              'label': lazy_gettext('Open Access')},
             {'group': [self.id, self.affiliation_context, self.group_context, self.apparent_dup, self.editorial_status,
                        self.created, self.changed, self.catalog, self.owner, self.deskman,
@@ -884,6 +894,8 @@ class ArticleJournalUserForm(ArticleJournalForm):
              'label': lazy_gettext('Keywords')},
             {'group': [self.abstract],
              'label': lazy_gettext('Abstract')},
+            {'group': [self.open_access],
+             'label': lazy_gettext('Open Access')},
             {'group': [self.affiliation_context, self.group_context],
              'label': lazy_gettext('Work belongs to')},
         ]
@@ -1181,13 +1193,7 @@ class ChapterForm(WorkForm):
         placeholder=lazy_gettext('The Subtitle of the Parent Reference')))
     peer_reviewed = BooleanField(lazy_gettext('Peer Reviewed'))
     open_access = FormField(OpenAccessForm)
-    DFG = BooleanField(lazy_gettext('DFG Funded'),
-                       description=Markup(lazy_gettext('APCs funded by the DFG')))
-    oa_funded = BooleanField(lazy_gettext('Funded by Open Access Fund'),
-                             description=Markup(lazy_gettext('APCs funded by the institutional Open Access Fund.')))
-    corresponding_affiliation = SelectField(lazy_gettext('Affiliation of the corresponding author'),
-                                            validators=[Optional()],
-                                            choices=forms_vocabularies.OA_FUNDS)
+    open_access_admin = FormField(OpenAccessAdminForm)
     is_part_of = FieldList(FormField(ChapterRelationForm), min_entries=1)
     other_version = FieldList(FormField(OtherVersionForm), min_entries=1)
     event = FieldList(FormField(EventForm), min_entries=1)
@@ -1217,7 +1223,7 @@ class ChapterForm(WorkForm):
              'label': lazy_gettext('Keyword')},
             {'group': [self.abstract],
              'label':lazy_gettext('Content')},
-            {'group': [self.oa_funded, self.DFG, self.corresponding_affiliation, self.open_access],
+            {'group': [self.open_access, self.open_access_admin],
              'label': lazy_gettext('Open Access')},
             {'group': [self.id, self.affiliation_context, self.group_context, self.apparent_dup,
                        self.editorial_status, self.created, self.changed, self.catalog, self.owner, self.deskman,
@@ -1247,6 +1253,8 @@ class ChapterUserForm(ChapterForm):
              'label': lazy_gettext('Keywords')},
             {'group': [self.abstract],
              'label':lazy_gettext('Abstract')},
+            {'group': [self.open_access],
+             'label': lazy_gettext('Open Access')},
             {'group': [self.affiliation_context, self.group_context],
              'label': lazy_gettext('Work belongs to')},
         ]
@@ -1509,6 +1517,8 @@ class MonographUserForm(MonographForm):
              'label': lazy_gettext('Publication Details')},
             {'group': [self.person, self.corporation],
              'label': lazy_gettext('Contributors')},
+            {'group': [self.is_part_of],
+             'label': lazy_gettext('Is published in')},
             {'group': [self.keyword],
              'label': lazy_gettext('Keywords')},
             {'group': [self.abstract],

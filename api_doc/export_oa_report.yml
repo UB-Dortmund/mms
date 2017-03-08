@@ -1,0 +1,17 @@
+Get all journal articles of the requested year for use in the Open Access Report
+---
+tags:
+  - export
+produces:
+  - text/csv
+parameters:
+- name: year
+  in: path
+  description: the year for which the data is generated
+  required: true
+  type: integer
+responses:
+  200:
+    description: A CSV table with the headline "AU;TI;SO;DT;RP;EM;OI;PU;ISSN;E-ISSN;DOI;OA;RP TUDO;Fak"
+  400:
+    description: No affiliation parameter set. Please contact the administrator!

@@ -585,6 +585,8 @@
         <field name="dfg" type="boolean" indexed="true" stored="true"/>
         <!-- funded by OA-Funds -->
         <field name="oa_funds" type="boolean" indexed="true" stored="true"/>
+        <!-- Has the article been published in a toll access journal? -->
+        <field name="is_hybrid" type="boolean" indexed="true" stored="true"/>
         <!-- affiliation of the corresponding author (GND-)ID#Name -->
         <field name="corresponding_affiliation" type="string" indexed="true" stored="true" />
 

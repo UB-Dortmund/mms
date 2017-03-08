@@ -26,6 +26,7 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import logging
 import re
 from logging.handlers import RotatingFileHandler
+from bs4 import BeautifulSoup
 
 import requests
 import simplejson as json
@@ -162,11 +163,13 @@ def bibliography(agent='', agent_id='', style='harvard1'):
     toc = request.args.get('toc', False)
     locale = request.args.get('locale', '')
     # TODO start-creationdate, end-creationdate >> Szenario Raumplanung
+    start_creationdate = request.args.get('start_creationdate', '')
+    end_creationdate = request.args.get('end_creationdate', '')
 
     reasoning = request.args.get('reasoning', False)
     refresh = request.args.get('refresh', False)
 
-    formats = ['html', 'js', 'csl', 'pdf']
+    formats = ['html', 'txt']
     agent_types = {
         'person': 'person',
         'research_group': 'organisation',
@@ -284,12 +287,27 @@ def bibliography(agent='', agent_id='', style='harvard1'):
             filterquery.append(filter_string[:-4])
 
         if filter_by_year != '':
-            filterquery.append('fdate:"%s"' % filter_by_year)
+            entries = filter_by_year.split('|')
+            filter_string = ''
+            for entry in entries:
+                filter_string += 'fdate:%s' % entry + '+OR+'
+            filterquery.append(filter_string[:-4])
 
         if exclude_by_type:
             entries = exclude_by_type.split('|')
             for entry in entries:
                 filterquery.append('-pubtype:"%s"' % PUBTYPE_KEYS.get(entry.lower()))
+
+        fquery = ''
+        if start_creationdate and not end_creationdate:
+            fquery = 'recordCreationDate:[%s TO *]' % (start_creationdate + 'T00:00:00Z')
+        elif not start_creationdate and end_creationdate:
+            fquery = 'recordCreationDate:[*+TO+%s]' % (end_creationdate + 'T00:00:00Z')
+        elif start_creationdate and end_creationdate:
+            fquery = 'recordCreationDate:[%s+TO+%s]' % (start_creationdate + 'T00:00:00Z', end_creationdate + 'T00:00:00Z')
+
+        if fquery:
+            filterquery.append(fquery)
 
         query = ''
         results = []
@@ -486,13 +504,14 @@ def bibliography(agent='', agent_id='', style='harvard1'):
             'ResearchData': '',
         }
 
-        if group_by_type_year and not filter_by_year and not filter_by_type:
+        if group_by_type_year:
 
             facet_tree = ('pubtype', 'fdate')
 
             publist_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
                                 application=secrets.SOLR_APP, handler='query',
-                                query=query, fields=['wtf_json'], rows=0,
+                                query=query, fquery=filterquery,
+                                fields=['wtf_json'], rows=0,
                                 facet='true', facet_tree=facet_tree, facet_sort=False, facet_limit=-1,
                                 sort='fdate asc', core='hb2')
             publist_solr.request()
@@ -521,10 +540,15 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                         publist_docs = []
                         for result in results:
                             publist_docs.append(json.loads(result.get('wtf_json')))
-                            year_coins += '<div class="coins"><span class="Z3988" title="%s"></span></div>' % openurl_processor.wtf_openurl(json.loads(result.get('wtf_json'))).replace('&', '&amp;')
+                            if format == 'html':
+                                year_coins += '<div class="coins"><span class="Z3988" title="%s"></span></div>' % openurl_processor.wtf_openurl(json.loads(result.get('wtf_json'))).replace('&', '&amp;')
 
                         if not group_by_type:
-                            year_list += '<h5>%s</h5>' % year.get('value')
+                            if format == 'html':
+                                year_list += '<h5>%s</h5>' % year.get('value')
+                            else:
+                                year_list += '%s\n' % year.get('value')
+
                         year_list += citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
                 else:
                     filterquery = []
@@ -540,21 +564,26 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                     publist_docs = []
                     for result in results:
                         publist_docs.append(json.loads(result.get('wtf_json')))
-                        year_coins += '<div class="coins"><span class="Z3988" title="%s"></span></div>' % openurl_processor.wtf_openurl(
-                            json.loads(result.get('wtf_json'))).replace('&', '&amp;')
+                        if format == 'html':
+                            year_coins += '<div class="coins"><span class="Z3988" title="%s"></span></div>' % openurl_processor.wtf_openurl(
+                                json.loads(result.get('wtf_json'))).replace('&', '&amp;')
 
                     year_list += citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style)
 
-                group_value = pubtype.get('value')
                 if locale.startswith('de'):
                     group_value = display_vocabularies.PUBTYPE_GER.get(pubtype.get('value'))
                 else:
                     group_value = display_vocabularies.PUBTYPE_ENG.get(pubtype.get('value'))
 
                 list_cnt += 1
-                header = '<h4 id="%s_%s">%s</h4>' % (biblist_id, list_cnt, group_value)
+                if format == 'html':
+                    header = '<h4 id="%s_%s">%s</h4>' % (biblist_id, list_cnt, group_value)
+                elif format == 'txt':
+                    header = '%s\n' % group_value
+                else:
+                    header = ''
                 footer = ''
-                if toc:
+                if toc and format == 'html':
                     back_string = 'Back to table of contents'
                     if locale.startswith('de'):
                         back_string = 'Zurück zum Inhaltsverzeichnis'
@@ -562,16 +591,19 @@ def bibliography(agent='', agent_id='', style='harvard1'):
 
                 if pubsort == 'stm':
                     STM_LIST[pubtype.get('value')] = header + year_list + footer
-                    STM_TOC[pubtype.get('value')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
-                    STM_COINS[pubtype.get('value')] = year_coins
+                    if format == 'html':
+                        STM_TOC[pubtype.get('value')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                        STM_COINS[pubtype.get('value')] = year_coins
                 elif pubsort == 'anh':
                     ANH_LIST[pubtype.get('value')] = header + year_list + footer
-                    ANH_TOC[pubtype.get('value')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
-                    ANH_COINS[pubtype.get('value')] = year_coins
+                    if format == 'html':
+                        ANH_TOC[pubtype.get('value')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                        ANH_COINS[pubtype.get('value')] = year_coins
                 else:
                     biblist += header + year_list
-                    biblist_toc += '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
-                    biblist_coins += year_coins
+                    if format == 'html':
+                        biblist_toc += '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                        biblist_coins += year_coins
 
             if pubsort == 'anh':
                 # logging.debug(ANH_LIST)
@@ -580,8 +612,9 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                 for pubtype in ANH_SORT:
                     if ANH_LIST.get(pubtype):
                         biblist += ANH_LIST.get(pubtype)
-                        biblist_toc += ANH_TOC.get(pubtype)
-                        biblist_coins += ANH_COINS.get(pubtype)
+                        if format == 'html':
+                            biblist_toc += ANH_TOC.get(pubtype)
+                            biblist_coins += ANH_COINS.get(pubtype)
             elif pubsort == 'stm':
                 # logging.debug(STM_LIST)
                 biblist = ''
@@ -589,8 +622,9 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                 for pubtype in STM_SORT:
                     if STM_LIST.get(pubtype):
                         biblist += STM_LIST.get(pubtype)
-                        biblist_toc += STM_TOC.get(pubtype)
-                        biblist_coins += STM_COINS.get(pubtype)
+                        if format == 'html':
+                            biblist_toc += STM_TOC.get(pubtype)
+                            biblist_coins += STM_COINS.get(pubtype)
 
         else:
 
@@ -617,7 +651,8 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                     coins = ''
                     for doc in result.get('doclist').get('docs'):
                         publist_docs.append(json.loads(doc.get('wtf_json')))
-                        coins += '<div class="coins"><span class="Z3988" title="%s"></span></div>' % openurl_processor.wtf_openurl(json.loads(doc.get('wtf_json'))).replace('&', '&amp;')
+                        if format == 'html':
+                            coins += '<div class="coins"><span class="Z3988" title="%s"></span></div>' % openurl_processor.wtf_openurl(json.loads(doc.get('wtf_json'))).replace('&', '&amp;')
 
                     group_value = result.get('groupValue')
                     if str2bool(group_by_type):
@@ -627,9 +662,14 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                             group_value = display_vocabularies.PUBTYPE_ENG.get(result.get('groupValue'))
 
                     list_cnt += 1
-                    header = '<h4 id="%s_%s">%s</h4>' % (biblist_id, list_cnt, group_value)
+                    if format == 'html':
+                        header = '<h4 id="%s_%s">%s</h4>' % (biblist_id, list_cnt, group_value)
+                    elif format == 'txt':
+                        header = '%s' % group_value
+                    else:
+                        header = ''
                     footer = ''
-                    if toc:
+                    if toc and format == 'html':
                         back_string = 'Back to table of contents'
                         if locale.startswith('de'):
                             back_string = 'Zurück zum Inhaltsverzeichnis'
@@ -638,20 +678,24 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                     if str2bool(group_by_type):
                         if pubsort == 'stm':
                             STM_LIST[result.get('groupValue')] = header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style) + footer
-                            STM_TOC[result.get('groupValue')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
-                            STM_COINS[result.get('groupValue')] = coins
+                            if format == 'html':
+                                STM_TOC[result.get('groupValue')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                                STM_COINS[result.get('groupValue')] = coins
                         elif pubsort == 'anh':
                             ANH_LIST[result.get('groupValue')] = header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style) + footer
-                            ANH_TOC[result.get('groupValue')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
-                            ANH_COINS[result.get('groupValue')] = coins
+                            if format == 'html':
+                                ANH_TOC[result.get('groupValue')] = '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                                ANH_COINS[result.get('groupValue')] = coins
                         else:
                             biblist += header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style) + footer
-                            biblist_toc += '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
-                            biblist_coins += coins
+                            if format == 'html':
+                                biblist_toc += '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                                biblist_coins += coins
                     elif str2bool(group_by_year):
                         biblist += header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style) + footer
-                        biblist_toc += '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
-                        biblist_coins += coins
+                        if format == 'html':
+                            biblist_toc += '<li><a href="#%s_%s">%s</a></li>' % (biblist_id, list_cnt, group_value)
+                            biblist_coins += coins
                     else:
                         biblist += header + citeproc_node(wtf_csl.wtf_csl(publist_docs), format, locale, style) + footer
 
@@ -662,8 +706,9 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                         for pubtype in ANH_SORT:
                             if ANH_LIST.get(pubtype):
                                 biblist += ANH_LIST.get(pubtype)
-                                biblist_toc += ANH_TOC.get(pubtype)
-                                biblist_coins += ANH_COINS.get(pubtype)
+                                if format == 'html':
+                                    biblist_toc += ANH_TOC.get(pubtype)
+                                    biblist_coins += ANH_COINS.get(pubtype)
                     elif str2bool(group_by_type) and pubsort == 'stm':
                         # logging.debug(STM_LIST)
                         biblist = ''
@@ -671,8 +716,9 @@ def bibliography(agent='', agent_id='', style='harvard1'):
                         for pubtype in STM_SORT:
                             if STM_LIST.get(pubtype):
                                 biblist += STM_LIST.get(pubtype)
-                                biblist_toc += STM_TOC.get(pubtype)
-                                biblist_coins += STM_COINS.get(pubtype)
+                                if format == 'html':
+                                    biblist_toc += STM_TOC.get(pubtype)
+                                    biblist_coins += STM_COINS.get(pubtype)
 
                     publist_docs = []
 
@@ -684,7 +730,7 @@ def bibliography(agent='', agent_id='', style='harvard1'):
 
         response = ''
 
-        if toc:
+        if toc and format == 'html':
             response += '<ul id="%s_citetoc">' % biblist_id + biblist_toc + '</ul>'
 
         response += biblist + biblist_coins
@@ -700,7 +746,13 @@ def bibliography(agent='', agent_id='', style='harvard1'):
         except Exception as e:
             logging.error('REDIS: %s' % e)
 
-    return response
+    resp = make_response(response)
+    if format == 'txt':
+        resp.headers["Content-Type"] = "text/plain; charset=utf-8"
+    else:
+        resp.headers["Content-Type"] = "text/html; charset=utf-8"
+
+    return resp
 
 
 def citeproc_node(docs=None, format='html', locale='', style=''):
@@ -716,7 +768,7 @@ def citeproc_node(docs=None, format='html', locale='', style=''):
         locale = locales.get('primary-dialects').get(locale)
     # logging.debug('LOCALE: %s' % locale)
 
-    citeproc_url = secrets.CITEPROC_SERVICE_URL % (format, style, locale)
+    citeproc_url = secrets.CITEPROC_SERVICE_URL % ('html', style, locale)
 
     items = OrderedDict()
     for item in docs:
@@ -752,6 +804,10 @@ def citeproc_node(docs=None, format='html', locale='', style=''):
             elif doi.endswith('.</div>'):
                 doi = doi[:-7]
             bib = bib.replace(doi, '<a href="https://doi.org/%s">%s</a>' % (doi.replace('DOI: ', ''), doi))
+
+    if format != 'html':
+        bib = BeautifulSoup(bib, "lxml").text
+        bib = "\n".join([line for line in bib.split('\n') if line.strip().lstrip() != ''])
 
     return bib
 
@@ -1038,6 +1094,12 @@ def theme(ip):
         site = 'dortmund'
 
     return site
+
+
+def cleanhtml(raw_html):
+    cleanr = re.compile('<.*?>')
+    cleantext = re.sub(cleanr, '', raw_html)
+    return cleantext
 
 
 if __name__ == '__main__':
