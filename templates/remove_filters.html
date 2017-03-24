@@ -10,7 +10,7 @@
         </b></li>
         {% for filter in filterquery %}
             {% set filterloop = loop %}
-             <li><a href="{{ request.script_root }}/{{ target }}?core={{core}}&amp;q={{ query|urlencode }}{% for fq in filterquery %}{% if filterloop.index != loop.index %}&amp;filter={{ fq|urlencode }}{% endif %}{% endfor %}" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i> {{ filter }}</a></li>
+             <li><a href="{{ target }}{% for fq in filterquery %}{% if filterloop.index != loop.index %}&amp;filter={{ fq|urlencode }}{% endif %}{% endfor %}" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i> {{ filter }}</a></li>
         {% endfor %}
         </ul>
     {% endif %}

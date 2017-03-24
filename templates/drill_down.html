@@ -4,7 +4,7 @@
         <ul class="list-group">
         {% for bucket in facet.buckets %}
             <li class="list-group-item">
-                <a href="{{ request.script_root }}/{{ target }}?core={{core}}&amp;q={{ query|urlencode }}&amp;filter={{ category }}:%22{{ bucket.val|urlencode }}%22{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq|urlencode }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}" title="{{ bucket.val|safe }}">
+                <a href="{{ target }}filter={{ category }}:%22{{ bucket.val|urlencode }}%22{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq|urlencode }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}" title="{{ bucket.val|safe }}">
                     {% if '#' in bucket.val|safe %}
                         {% if bucket.val|safe %}
                             {% if vocabulary %}
@@ -36,7 +36,7 @@
             <ul class="list-group">
             {% for key in facet.0.keys() %}
                 <li class="list-group-item">
-                    <a href="{{ request.script_root }}/{{ target }}?core={{core}}&amp;q={{ query|urlencode }}&amp;filter={{ category }}:%22{{ key|urlencode }}%22{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
+                    <a href="{{ target }}filter={{ category }}:%22{{ key|urlencode }}%22{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
                        title="{{ key|safe }}">
                         {{ key }}
                     </a><span class="badge">{{ facet.0.get(key) }}</span>
@@ -50,11 +50,11 @@
 {% macro simple_filter(category='', heading='', target='search') %}
     <h4>{{ _('%(title)s', title=heading) }}</h4>
     <ul class="pagination">
-        <li><a href="{{ request.script_root }}/{{ target }}?core={{core}}&amp;q={{ query|urlencode }}{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}"
+        <li><a href="{{ target }}{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}"
                        title="{{ cat|safe }}">{{ _('All') }}</a></li>
-        <li><a href="{{ request.script_root }}/{{ target }}?core={{core}}&amp;q={{ query|urlencode }}&amp;filter={{ category }}:[%22%22%20TO%20*]{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
+        <li><a href="{{ target }}filter={{ category }}:[%22%22%20TO%20*]{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
                        title="{{ cat|safe }}">{{ _('Yes') }}</a></li>
-        <li><a href="{{ request.script_root }}/{{ target }}?core={{core}}&amp;q={{ query|urlencode }}&amp;filter=-{{ category }}:[%22%22%20TO%20*]{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
+        <li><a href="{{ target }}filter=-{{ category }}:[%22%22%20TO%20*]{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
                        title="{{ cat|safe }}">{{ _('No') }}</a></li>
     </ul>
 {% endmacro %}
@@ -62,11 +62,11 @@
 {% macro boolean_filter(category='', heading='', target='search') %}
     <h4>{{ _('%(title)s', title=heading) }}</h4>
     <ul class="pagination">
-        <li><a href="{{ request.script_root }}/{{ target }}?core={{core}}&amp;q={{ query|urlencode }}{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
+        <li><a href="{{ target }}{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
                        title="{{ cat|safe }}">{{ _('All') }}</a></li>
-        <li><a href="{{ request.script_root }}/{{ target }}?core={{core}}&amp;q={{ query|urlencode }}&amp;filter={{ category }}:true{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
+        <li><a href="{{ target }}filter={{ category }}:true{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
                        title="{{ cat|safe }}">{{ _('Yes') }}</a></li>
-        <li><a href="{{ request.script_root }}/{{ target }}?core={{core}}&amp;q={{ query|urlencode }}&amp;filter={{ category }}:false{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
+        <li><a href="{{ target }}filter={{ category }}:false{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
                        title="{{ cat|safe }}">{{ _('No') }}</a></li>
     </ul>
 {% endmacro %}
@@ -74,11 +74,11 @@
 {% macro date_filter(category='', heading='', target='search') %}
     <h4>{{ _('%(title)s', title=heading) }}</h4>
     <ul class="pagination">
-        <li><a href="{{ request.script_root }}/{{ target }}?core={{core}}&amp;q={{ query|urlencode }}{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
+        <li><a href="{{ target }}?core={{core}}&amp;q={{ query|urlencode }}{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
                        title="{{ cat|safe }}">{{ _('All') }}</a></li>
-        <li><a href="{{ request.script_root }}/{{ target }}?core={{core}}&amp;q={{ query|urlencode }}&amp;filter={{ category }}:[*%20TO%20NOW]{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
+        <li><a href="{{ target }}?core={{core}}&amp;q={{ query|urlencode }}&amp;filter={{ category }}:[*%20TO%20NOW]{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
                        title="{{ cat|safe }}">{{ _('Yes') }}</a></li>
-        <li><a href="{{ request.script_root }}/{{ target }}?core={{core}}&amp;q={{ query|urlencode }}&amp;filter=-{{ category }}:[*%20TO%20NOW]{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
+        <li><a href="{{ target }}?core={{core}}&amp;q={{ query|urlencode }}&amp;filter=-{{ category }}:[*%20TO%20NOW]{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}{% if mysort %}&amp;sort={{ mysort }}{% endif %}{% if list == 1 %}&amp;list=1{% endif %}"
                        title="{{ cat|safe }}">{{ _('No') }}</a></li>
     </ul>
 {% endmacro %}

@@ -23,7 +23,9 @@
 import logging
 from logging.handlers import RotatingFileHandler
 import simplejson as json
+import timeit
 import urllib
+import redis
 
 from forms.forms import *
 
@@ -218,11 +220,34 @@ def record2solr(form, action, relitems=True):
     is_rubi = False
     is_tudo = False
 
-    # logging.info('FORM: %s' % form.data)
-
+    # logger.info('FORM: %s' % form.data)
     if form.data.get('id'):
         solr_data.setdefault('id', form.data.get('id').strip())
-        id = form.data.get('id').strip()
+        id = str(form.data.get('id').strip())
+
+    # execution counter
+    r = redis.StrictRedis(host=secrets.REDIS_EXEC_COUNTER_HOST, port=secrets.REDIS_EXEC_COUNTER_PORT,
+                          db=secrets.REDIS_EXEC_COUNTER_DB)
+    if r.hexists('record2solr', 'total'):
+        cnt = int(r.hget('record2solr', 'total'))
+        cnt += 1
+        r.hset('record2solr', 'total', cnt)
+    else:
+        r.hset('record2solr', 'total', 1)
+
+    if r.hexists('record2solr', id):
+        cnt = int(r.hget('record2solr', id))
+        cnt += 1
+        r.hset('record2solr', id, cnt)
+    else:
+        r.hset('record2solr', id, 1)
+
+    # start process
+    start_total = timeit.default_timer()
+    logger.debug('Profiling: start')
+
+    logger.debug('Profiling: start fields')
+    start = timeit.default_timer()
 
     for field in form.data:
         # logging.info('%s => %s' % (field, form.data.get(field)))
@@ -253,60 +278,6 @@ def record2solr(form, action, relitems=True):
             solr_data.setdefault('editorial_status', form.data.get(field).strip())
         if field == 'apparent_dup':
             solr_data.setdefault('apparent_dup', form.data.get(field))
-
-        if field == 'affiliation_context':
-            for context in form.data.get(field):
-                # logging.info(context)
-                if context:
-
-                    result = get_orga(context)
-
-                    if result:
-                        myjson = json.loads(result.get('wtf_json'))
-                        solr_data.setdefault('fakultaet', []).append(
-                            '%s#%s' % (myjson.get('id'), myjson.get('pref_label')))
-                        solr_data.setdefault('affiliation_id', []).append(myjson.get('id'))
-                        # TODO allgemeiner?
-                        for catalog in myjson.get('catalog'):
-                            if 'Bochum' in catalog:
-                                # logging.info("%s, %s: yo! rubi!" % (corporation.get('name'), corporation.get('gnd')))
-                                solr_data.setdefault('frubi_orga', []).append(
-                                    '%s#%s' % (myjson.get('id'), myjson.get('pref_label')))
-                                is_rubi = True
-                            if 'Dortmund' in catalog:
-                                solr_data.setdefault('ftudo_orga', []).append(
-                                    '%s#%s' % (myjson.get('id'), myjson.get('pref_label')))
-                                is_tudo = True
-                    else:
-                        solr_data.setdefault('fakultaet', []).append(context)
-                        message.append('ID from relation "affiliation" could not be found! Ref: %s' % context)
-
-        if field == 'group_context':
-            for context in form.data.get(field):
-                # logging.info(context)
-                if context:
-
-                    result = get_group(context)
-
-                    if result:
-                        myjson = json.loads(result.get('wtf_json'))
-                        solr_data.setdefault('group_id', []).append(myjson.get('id'))
-                        solr_data.setdefault('group', []).append(
-                            '%s#%s' % (myjson.get('id'), myjson.get('pref_label')))
-                        # TODO allgemeiner?
-                        for catalog in myjson.get('catalog'):
-                            if 'Bochum' in catalog:
-                                # logging.info("%s, %s: yo! rubi!" % (corporation.get('name'), corporation.get('gnd')))
-                                solr_data.setdefault('frubi_orga', []).append(
-                                    '%s#%s' % (myjson.get('id'), myjson.get('pref_label')))
-                                is_rubi = True
-                            if 'Dortmund' in catalog:
-                                solr_data.setdefault('ftudo_orga', []).append(
-                                    '%s#%s' % (myjson.get('id'), myjson.get('pref_label')))
-                                is_tudo = True
-                    else:
-                        solr_data.setdefault('group', []).append(context)
-                        message.append('ID from relation "group" could not be found! Ref: %s' % context)
 
         if field == 'locked':
             solr_data.setdefault('locked', form.data.get(field))
@@ -399,88 +370,6 @@ def record2solr(form, action, relitems=True):
             for lang in form.data.get(field):
                 if lang:
                     solr_data.setdefault('language', []).append(lang)
-        if field == 'person':
-            # für alle personen
-            for idx, person in enumerate(form.data.get(field)):
-                # hat die person einen namen?
-                if person.get('name'):
-                    solr_data.setdefault('person', []).append(person.get('name').strip())
-                    solr_data.setdefault('fperson', []).append(person.get('name').strip())
-                    # hat die person eine gnd-id?
-                    if person.get('gnd'):
-                        # logging.info('drin: gnd: %s' % person.get('gnd'))
-                        solr_data.setdefault('pnd', []).append(
-                            '%s#%s' % (person.get('gnd').strip(), person.get('name').strip()))
-                        solr_data.setdefault('pndid', []).append(
-                            '%s' % person.get('gnd').strip())
-                        # prüfe, ob eine 'person' mit GND im System ist.
-                        result = get_person(person.get('gnd'))
-
-                        if result:
-                            myjson = json.loads(result.get('wtf_json'))
-                            # TODO exists aka? then add more pnd-fields
-                            # TODO allgemeiner?
-                            for catalog in myjson.get('catalog'):
-                                if 'Bochum' in catalog:
-                                    # logging.info("%s, %s: yo! rubi!" % (person.get('name'), person.get('gnd')))
-                                    form.person[idx].rubi.data = True
-                                    solr_data.setdefault('frubi_pers', []).append(
-                                        '%s#%s' % (person.get('gnd').strip(), person.get('name').strip()))
-                                    is_rubi = True
-                                if 'Dortmund' in catalog:
-                                    form.person[idx].tudo.data = True
-                                    solr_data.setdefault('ftudo_pers', []).append(
-                                        '%s#%s' % (person.get('gnd').strip(), person.get('name').strip()))
-                                    is_tudo = True
-                        else:
-                            message.append('ID from relation "person" could not be found! Ref: %s' % person.get('gnd'))
-
-                    else:
-                        # dummy gnd für die Identifizierung in "consolidate persons"
-                        solr_data.setdefault('pnd', []).append(
-                            '%s#person-%s#%s' % (form.data.get('id'), idx, person.get('name').strip()))
-
-        if field == 'corporation':
-            for idx, corporation in enumerate(form.data.get(field)):
-                if corporation.get('name'):
-                    solr_data.setdefault('institution', []).append(corporation.get('name').strip())
-                    solr_data.setdefault('fcorporation', []).append(corporation.get('name').strip())
-                    if corporation.get('gnd'):
-                        # logging.info('drin: gnd: %s' % corporation.get('gnd'))
-                        solr_data.setdefault('gkd', []).append(
-                            '%s#%s' % (corporation.get('gnd').strip(), corporation.get('name').strip()))
-                        solr_data.setdefault('gkdid', []).append(
-                            '%s' % corporation.get('gnd').strip())
-                        # prüfe, ob eine 'person' mit GND im System ist.
-                        result = get_orga(corporation.get('gnd'))
-
-                        if result:
-                            myjson = json.loads(result.get('wtf_json'))
-                            # TODO allgemeiner?
-                            for catalog in myjson.get('catalog'):
-                                if 'Bochum' in catalog:
-                                    # logging.info("%s, %s: yo! rubi!" % (corporation.get('name'), corporation.get('gnd')))
-                                    form.corporation[idx].rubi.data = True
-                                    solr_data.setdefault('frubi_orga', []).append(
-                                        '%s#%s' % (corporation.get('gnd').strip(), corporation.get('name').strip()))
-                                    is_rubi = True
-                                if 'Dortmund' in catalog:
-                                    form.corporation[idx].tudo.data = True
-                                    solr_data.setdefault('ftudo_orga', []).append(
-                                        '%s#%s' % (corporation.get('gnd').strip(), corporation.get('name').strip()))
-                                    is_tudo = True
-                        else:
-                            message.append(
-                                'ID from relation "corporation" could not be found! Ref: %s' % corporation.get('gnd'))
-
-                    else:
-                        solr_data.setdefault('gkd', []).append(
-                            '%s#corporation-%s#%s' % (form.data.get('id'), idx, corporation.get('name').strip()))
-                if corporation.get('role'):
-                    if 'RadioTVProgram' in form.data.get('pubtype') and corporation.get('role')[0] == 'edt':
-                        form.corporation[idx].role.data = 'brd'
-                    if 'Thesis' in form.data.get('pubtype') and corporation.get('role')[0] == 'ctb':
-                        form.corporation[idx].role.data = 'dgg'
 
         # content and subjects
         if field == 'abstract':
@@ -511,6 +400,11 @@ def record2solr(form, action, relitems=True):
             for keyword in form.data.get(field):
                 if keyword.get('label') and keyword.get('label').strip():
                     solr_data.setdefault('ddc', []).append(keyword.get('label').strip())
+                    # TODO Feld für ddc-id und ggf. fddc mit id#label
+                    # für die Befüllung muss einerseits das Mapping Kostenstelle<>DDC und andererseits auch
+                    # bei 'parts' die DDC des 'host' berücksichtigt werden
+                    # Muss hier auch die DDC-Hierarchie (zumindest in den ersten 100 Klassen)
+                    # berücksichtigt werden?
         if field == 'mesh_subject':
             for keyword in form.data.get(field):
                 if keyword.get('label') and keyword.get('label').strip():
@@ -604,13 +498,152 @@ def record2solr(form, action, relitems=True):
         if field == 'corresponding_affiliation' and form.data.get(field).strip():
             solr_data.setdefault('corresponding_affiliation', form.data.get(field).strip())
 
-        # related entities
         if field == 'event':
             for event in form.data.get(field):
                 solr_data.setdefault('other_title', event.get('event_name').strip())
+
         if field == 'container_title':
             solr_data.setdefault('journal_title', form.data.get(field).strip())
             solr_data.setdefault('fjtitle', form.data.get(field).strip())
+
+        # related entities using requests to other entities
+        # TODO die hier dürften richtig teuer sein
+        if field == 'person':
+            # für alle personen
+            for idx, person in enumerate(form.data.get(field)):
+                # hat die person einen namen?
+                if person.get('name'):
+                    solr_data.setdefault('person', []).append(person.get('name').strip())
+                    solr_data.setdefault('fperson', []).append(person.get('name').strip())
+                    # hat die person eine gnd-id?
+                    if person.get('gnd'):
+                        # logging.info('drin: gnd: %s' % person.get('gnd'))
+                        solr_data.setdefault('pnd', []).append(
+                            '%s#%s' % (person.get('gnd').strip(), person.get('name').strip()))
+                        solr_data.setdefault('pndid', []).append(
+                            '%s' % person.get('gnd').strip())
+                        # prüfe, ob eine 'person' mit GND im System ist.
+                        result = get_person(person.get('gnd'))
+
+                        if result:
+                            myjson = json.loads(result.get('wtf_json'))
+                            # TODO exists aka? then add more pnd-fields
+                            # TODO allgemeiner?
+                            for catalog in myjson.get('catalog'):
+                                if 'Bochum' in catalog:
+                                    # logging.info("%s, %s: yo! rubi!" % (person.get('name'), person.get('gnd')))
+                                    form.person[idx].rubi.data = True
+                                    solr_data.setdefault('frubi_pers', []).append(
+                                        '%s#%s' % (person.get('gnd').strip(), person.get('name').strip()))
+                                    is_rubi = True
+                                if 'Dortmund' in catalog:
+                                    form.person[idx].tudo.data = True
+                                    solr_data.setdefault('ftudo_pers', []).append(
+                                        '%s#%s' % (person.get('gnd').strip(), person.get('name').strip()))
+                                    is_tudo = True
+                        else:
+                            message.append('ID from relation "person" could not be found! Ref: %s' % person.get('gnd'))
+
+                    else:
+                        # dummy gnd für die Identifizierung in "consolidate persons"
+                        solr_data.setdefault('pnd', []).append(
+                            '%s#person-%s#%s' % (form.data.get('id'), idx, person.get('name').strip()))
+
+        if field == 'corporation':
+            for idx, corporation in enumerate(form.data.get(field)):
+                if corporation.get('name'):
+                    solr_data.setdefault('institution', []).append(corporation.get('name').strip())
+                    solr_data.setdefault('fcorporation', []).append(corporation.get('name').strip())
+                    if corporation.get('gnd'):
+                        # logging.info('drin: gnd: %s' % corporation.get('gnd'))
+                        solr_data.setdefault('gkd', []).append(
+                            '%s#%s' % (corporation.get('gnd').strip(), corporation.get('name').strip()))
+                        solr_data.setdefault('gkdid', []).append(
+                            '%s' % corporation.get('gnd').strip())
+
+                        # prüfe, ob eine 'person' mit GND im System ist.
+                        result = get_orga(corporation.get('gnd'))
+                        if result:
+                            myjson = json.loads(result.get('wtf_json'))
+                            # TODO allgemeiner?
+                            for catalog in myjson.get('catalog'):
+                                if 'Bochum' in catalog:
+                                    # logging.info("%s, %s: yo! rubi!" % (corporation.get('name'), corporation.get('gnd')))
+                                    form.corporation[idx].rubi.data = True
+                                    solr_data.setdefault('frubi_orga', []).append(
+                                        '%s#%s' % (corporation.get('gnd').strip(), corporation.get('name').strip()))
+                                    is_rubi = True
+                                if 'Dortmund' in catalog:
+                                    form.corporation[idx].tudo.data = True
+                                    solr_data.setdefault('ftudo_orga', []).append(
+                                        '%s#%s' % (corporation.get('gnd').strip(), corporation.get('name').strip()))
+                                    is_tudo = True
+                        else:
+                            message.append(
+                                'ID from relation "corporation" could not be found! Ref: %s' % corporation.get('gnd'))
+
+                    else:
+                        solr_data.setdefault('gkd', []).append(
+                            '%s#corporation-%s#%s' % (form.data.get('id'), idx, corporation.get('name').strip()))
+                if corporation.get('role'):
+                    if 'RadioTVProgram' in form.data.get('pubtype') and corporation.get('role')[0] == 'edt':
+                        form.corporation[idx].role.data = 'brd'
+                    if 'Thesis' in form.data.get('pubtype') and corporation.get('role')[0] == 'ctb':
+                        form.corporation[idx].role.data = 'dgg'
+
+        if field == 'affiliation_context':
+            for context in form.data.get(field):
+                # logging.info(context)
+                if context:
+
+                    result = get_orga(context)
+
+                    if result:
+                        myjson = json.loads(result.get('wtf_json'))
+                        solr_data.setdefault('fakultaet', []).append(
+                            '%s#%s' % (myjson.get('id'), myjson.get('pref_label')))
+                        solr_data.setdefault('affiliation_id', []).append(myjson.get('id'))
+                        # TODO allgemeiner?
+                        for catalog in myjson.get('catalog'):
+                            if 'Bochum' in catalog:
+                                # logging.info("%s, %s: yo! rubi!" % (corporation.get('name'), corporation.get('gnd')))
+                                solr_data.setdefault('frubi_orga', []).append(
+                                    '%s#%s' % (myjson.get('id'), myjson.get('pref_label')))
+                                is_rubi = True
+                            if 'Dortmund' in catalog:
+                                solr_data.setdefault('ftudo_orga', []).append(
+                                    '%s#%s' % (myjson.get('id'), myjson.get('pref_label')))
+                                is_tudo = True
+                    else:
+                        solr_data.setdefault('fakultaet', []).append(context)
+                        message.append('ID from relation "affiliation" could not be found! Ref: %s' % context)
+
+        if field == 'group_context':
+            for context in form.data.get(field):
+                # logging.info(context)
+                if context:
+
+                    result = get_group(context)
+
+                    if result:
+                        myjson = json.loads(result.get('wtf_json'))
+                        solr_data.setdefault('group_id', []).append(myjson.get('id'))
+                        solr_data.setdefault('group', []).append(
+                            '%s#%s' % (myjson.get('id'), myjson.get('pref_label')))
+                        # TODO allgemeiner?
+                        for catalog in myjson.get('catalog'):
+                            if 'Bochum' in catalog:
+                                # logging.info("%s, %s: yo! rubi!" % (corporation.get('name'), corporation.get('gnd')))
+                                solr_data.setdefault('frubi_orga', []).append(
+                                    '%s#%s' % (myjson.get('id'), myjson.get('pref_label')))
+                                is_rubi = True
+                            if 'Dortmund' in catalog:
+                                solr_data.setdefault('ftudo_orga', []).append(
+                                    '%s#%s' % (myjson.get('id'), myjson.get('pref_label')))
+                                is_tudo = True
+                    else:
+                        solr_data.setdefault('group', []).append(context)
+                        message.append('ID from relation "group" could not be found! Ref: %s' % context)
 
         if field == 'is_part_of' and len(form.data.get(field)) > 0:
             ipo_ids = []
@@ -753,40 +786,83 @@ def record2solr(form, action, relitems=True):
             except AttributeError as e:
                 logging.error(e)
 
+    stop = timeit.default_timer()
+    fields = stop - start
+    logger.debug('Profiling: fields - %s' % fields)
+
+    logger.debug('Profiling: start wtf_json')
+    start = timeit.default_timer()
     solr_data.setdefault('rubi', is_rubi)
     solr_data.setdefault('tudo', is_tudo)
 
     wtf_json = json.dumps(form.data).replace(' "', '"')
     solr_data.setdefault('wtf_json', wtf_json)
+    stop = timeit.default_timer()
+    wtf = stop - start
+    logger.debug('Profiling: wtf - %s' % wtf)
 
+    # build CSL-JSON
+    logger.debug('Profiling: start csl')
+    start = timeit.default_timer()
     csl_json = json.dumps(wtf_csl.wtf_csl(wtf_records=[json.loads(wtf_json)]))
     solr_data.setdefault('csl_json', csl_json)
+    stop = timeit.default_timer()
+    csl = stop - start
+    logger.debug('Profiling: csl - %s' % csl)
 
-    # TODO build openurl
+    # build openurl
+    logger.debug('Profiling: start openurl')
+    start = timeit.default_timer()
     open_url = openurl_processor.wtf_openurl(json.loads(wtf_json))
     solr_data.setdefault('bibliographicCitation', open_url)
+    stop = timeit.default_timer()
+    z3988 = stop - start
+    logger.debug('Profiling: openurl - %s' % z3988)
 
+    # store record
     record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
                        application=secrets.SOLR_APP, core='hb2', data=[solr_data])
     record_solr.update()
+
+    stop = timeit.default_timer()
+    stored = stop - start_total
+    logger.debug('Profiling: self stored - %s' % stored)
+
     # reload all records listed in has_part, is_part_of, other_version
     # logging.debug('relitems = %s' % relitems)
     # logging.info('has_part: %s' % has_part)
     # logging.info('is_part_of: %s' % is_part_of)
     # logging.info('other_version: %s' % other_version)
     if relitems:
+        logger.debug('Profiling: start relitems')
+        start_relitems = timeit.default_timer()
+
         for record_id in has_part:
+            logger.debug('Profiling: start get part - %s' % record_id)
+            start_part = timeit.default_timer()
+
             # search record
             result = get_work(record_id)
 
+            stop = timeit.default_timer()
+            duration = stop - start
+            logger.debug('Profiling: end get part - %s' % duration)
+
             if result:
                 # lock record
+                logger.debug('Profiling: start lock part')
+                start = timeit.default_timer()
                 lock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
                                         application=secrets.SOLR_APP, core='hb2',
                                         data=[{'id': record_id, 'locked': {'set': 'true'}}])
                 lock_record_solr.update()
+                stop = timeit.default_timer()
+                duration = stop - start
+                logger.debug('Profiling: end lock part - %s' % duration)
 
                 # load record in form and modify changeDate
+                logger.debug('Profiling: start modify part')
+                start = timeit.default_timer()
                 thedata = json.loads(result.get('wtf_json'))
                 form = display_vocabularies.PUBTYPE2FORM.get(thedata.get('pubtype')).from_json(thedata)
 
@@ -808,28 +884,54 @@ def record2solr(form, action, relitems=True):
                     record2solr(form, action='update', relitems=False)
                 except AttributeError as e:
                     logger.error('linking from %s: %s' % (record_id, str(e)))
+                stop = timeit.default_timer()
+                duration = stop - start
+                logger.debug('Profiling: end modify part - %s' % duration)
 
                 # unlock record
+                logger.debug('Profiling: start unlock part')
+                start = timeit.default_timer()
                 unlock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
                                           application=secrets.SOLR_APP, core='hb2',
                                           data=[{'id': record_id, 'locked': {'set': 'false'}}])
                 unlock_record_solr.update()
+                stop = timeit.default_timer()
+                duration = stop - start
+                logger.debug('Profiling: end unlock part - %s' % duration)
             else:
                 message.append('ID from relation "has_part" could not be found! Ref: %s' % record_id)
 
+            stop_part = timeit.default_timer()
+            duration = stop_part - start_part
+            logger.debug('Profiling: end part - %s' % duration)
+
         for record_id in is_part_of:
 
+            logger.debug('Profiling: start get host')
+            start = timeit.default_timer()
             result = get_work(record_id)
+            stop = timeit.default_timer()
+            duration = stop - start
+            logger.debug('Profiling: end get host - %s' % duration)
 
             if result:
-
-                # lock record
+                # TODO next steps only if record is not currently locked; put record_id in "do it later queue"
+                # or put the record_id to the end of the current queue
+                # TODO lock/unlock not necessary because the probability of inconsistency is minimal
+                # as a result of the automatic process
+                logger.debug('Profiling: start lock host')
+                start = timeit.default_timer()
                 lock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
                                         application=secrets.SOLR_APP, core='hb2',
                                         data=[{'id': record_id, 'locked': {'set': 'true'}}])
                 lock_record_solr.update()
+                stop = timeit.default_timer()
+                duration = stop - start
+                logger.debug('Profiling: end lock host - %s' % duration)
 
                 # load record in form and modify changeDate
+                logger.debug('Profiling: start modify host')
+                start = timeit.default_timer()
                 thedata = json.loads(result.get('wtf_json'))
                 form = display_vocabularies.PUBTYPE2FORM.get(thedata.get('pubtype')).from_json(thedata)
 
@@ -851,13 +953,20 @@ def record2solr(form, action, relitems=True):
                     record2solr(form, action='update', relitems=False)
                 except AttributeError as e:
                     logger.error('linking from %s: %s' % (record_id, str(e)))
+                stop = timeit.default_timer()
+                duration = stop - start
+                logger.debug('Profiling: end modify host - %s' % duration)
 
                 # unlock record
+                logger.debug('Profiling: start unlock host')
+                start = timeit.default_timer()
                 unlock_record_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
                                           application=secrets.SOLR_APP, core='hb2',
                                           data=[{'id': record_id, 'locked': {'set': 'false'}}])
                 unlock_record_solr.update()
-
+                stop = timeit.default_timer()
+                duration = stop - start
+                logger.debug('Profiling: end unlock host - %s' % duration)
             else:
                 message.append('ID from relation "is_part_of" could not be found! Ref: %s' % record_id)
 
@@ -908,6 +1017,14 @@ def record2solr(form, action, relitems=True):
         # TODO link all records as 'is_part_of' which has a 'same_as'-ID in 'has_part'
 
         # TODO link all records as 'other_version' which has a 'same_as'-ID in 'other_version'
+
+        stop_relitems = timeit.default_timer()
+        duration = stop_relitems - start_relitems
+        logger.debug('Profiling: end relitems - %s' % duration)
+
+    stop_total = timeit.default_timer()
+    duration = stop_total - start_total
+    logger.debug('Profiling: end - %s' % duration)
 
     return id, message
 

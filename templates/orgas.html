@@ -20,17 +20,17 @@
     </div>#}
     <div class="row">
         <div class="col-sm-3" id="facets">
-            {{ drill_down.facets(facet_data.catalog, 'catalog', heading='Catalog', target='organisations') }}
-            {{ drill_down.facets(facet_data.fparent, 'fparent', heading='PARENTS', target='organisations') }}
-            {{ drill_down.facets(facet_data.destatis_id, 'destatis_id', heading='DESTATIS', target='organisations') }}
-            {{ drill_down.simple_filter('gnd', heading='GND', target='organisations') }}
-            {{ drill_down.facets(facet_data.editorial_status, 'editorial_status', heading='Editorial Status', target='organisations') }}
-            {# drill_down.facets(facet_data.deskman, 'deskman', heading='Deskman', target='organisations') #}
-            {# drill_down.facets(facet_data.owner, 'owner', heading='Owner', target='organisations') #}
+            {{ drill_down.facets(facet_data.catalog, 'catalog', heading='Catalog', target=target) }}
+            {{ drill_down.facets(facet_data.fparent, 'fparent', heading='PARENTS', target=target) }}
+            {{ drill_down.facets(facet_data.destatis_id, 'destatis_id', heading='DESTATIS', target=target) }}
+            {{ drill_down.simple_filter('gnd', heading='GND', target=target) }}
+            {{ drill_down.facets(facet_data.editorial_status, 'editorial_status', heading='Editorial Status', target=target) }}
+            {# drill_down.facets(facet_data.deskman, 'deskman', heading='Deskman', target=target) #}
+            {# drill_down.facets(facet_data.owner, 'owner', heading='Owner', target=target) #}
         </div>
         <div class="col-sm-9">
             {{ pagination.info }}
-            {{ remove_filters.remove_filter(target='organisations') }}
+            {{ remove_filters.remove_filter(target=target) }}
             {{ pagination.links }}
             <table class="table">
                 <thead>

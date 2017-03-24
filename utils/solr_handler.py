@@ -110,7 +110,7 @@ class Solr(object):
         params = ''
         url = 'http://%s:%s/%s/' % (self.host, self.port, self.application)
         if self.core != '':
-            url += '%s/' % self.core
+            url += '%s/%s/' % (self.core, self.handler)
         fuzzy_tilde = ''
         if self.fuzzy == 'true':
             fuzzy_tilde = '~'
@@ -118,8 +118,8 @@ class Solr(object):
         #logging.info(self.facet_fields)
         if self.facet == 'true': # Old-style facetting...
             facets = '&facet.field='.join(self.facet_fields)
-            params = '%s?q=%s%s&wt=%s&start=%s&rows=%s&facet.limit=%s&facet.mincount=%s&facet.offset=%s&facet.field=%s&json.nl=%s&facet=%s&facet.sort=%s&omitHeader=%s&defType=%s&facet.threads=-1' % (
-                self.handler, self.query, fuzzy_tilde, self.writer, self.start, self.rows, self.facet_limit,
+            params = 'q=%s%s&wt=%s&start=%s&rows=%s&facet.limit=%s&facet.mincount=%s&facet.offset=%s&facet.field=%s&json.nl=%s&facet=%s&facet.sort=%s&omitHeader=%s&defType=%s&facet.threads=-1' % (
+                self.query, fuzzy_tilde, self.writer, self.start, self.rows, self.facet_limit,
                 self.facet_mincount, self.facet_offset, facets, self.json_nl, self.facet, self.facet_sort,
                 self.omitHeader, self.defType)
             if self.boost_most_recent == 'true':
@@ -142,8 +142,8 @@ class Solr(object):
                     params += '%s,' % field
                 params = params[:-1]
         else:
-            params = '%s?q=%s%s&wt=%s&start=%s&rows=%s&json.nl=%s&omitHeader=%s&defType=%s' % (
-                self.handler, self.query, fuzzy_tilde, self.writer, self.start, self.rows, self.json_nl,
+            params = 'q=%s%s&wt=%s&start=%s&rows=%s&json.nl=%s&omitHeader=%s&defType=%s' % (
+                self.query, fuzzy_tilde, self.writer, self.start, self.rows, self.json_nl,
                 self.omitHeader, self.defType)
             if self.boost_most_recent == 'true':
                 params += '&boost=recip(ms(NOW/YEAR,year_boost),3.16e-11,1,1)'
@@ -173,8 +173,8 @@ class Solr(object):
             params += '&fl=%s' % '+'.join(self.fields)
         if self.mlt is True:
             self.facet = 'false'
-            mparams = '%s?q=%s&mlt=true&mlt.fl=%s&mlt.count=10&fl=%s&wt=%s&defType=%s' % (
-                self.handler, self.query, '+'.join(self.mlt_fields), '+'.join(self.fields),
+            mparams = 'q=%s&mlt=true&mlt.fl=%s&mlt.count=10&fl=%s&wt=%s&defType=%s' % (
+                self.query, '+'.join(self.mlt_fields), '+'.join(self.fields),
                 self.writer, self.defType)
             # if self.boost_most_recent == 'true':
             #     params += '&boost=recip(ms(NOW/YEAR,year_boost),3.16e-11,1,1)'
@@ -211,6 +211,8 @@ class Solr(object):
             import StringIO
             import gzip
 
+            # logging.debug('Blubb')
+
             request = urllib2.Request(iri_to_uri(self.request_url))
             request.add_header('Accept-encoding', 'gzip')
             opener = urllib2.build_opener()
@@ -221,9 +223,20 @@ class Solr(object):
             self.response = eval(gzipper.read())
         else:
             # logging.error(self.request_url)
+            # logging.debug('Bla')
             try:
-                # self.response = eval(urllib.request.urlopen(iri_to_uri(self.request_url)).read())
-                self.response = eval(requests.get(iri_to_uri(self.request_url)).text)
+                # logging.debug('REQUEST: %s' % url)
+                # logging.debug('REQUEST PARAM: %s' %params)
+                formData = params.encode(encoding='utf_8', errors='strict')
+                # logging.debug('ENCODED: %s' % formData)
+                # logging.debug('IRI: %s' % self.request_url)
+                # logging.debug('URL: %s' % iri_to_uri(self.request_url))
+                # logging.debug('URLPARAM: %s' % iri_to_uri(params))
+                request = urllib.request.Request(url, formData)
+                self.response = eval(urllib.request.urlopen(request).read())
+                # logging.debug('RESPONSE: %s' % self.response)
+
+                #self.response = eval(requests.get(iri_to_uri(self.request_url)).text)
             except NameError:
                 # self.response = urllib.request.urlopen(iri_to_uri(self.request_url)).read()
                 self.response = requests.get(iri_to_uri(self.request_url)).text

@@ -16,6 +16,7 @@ Flask-DebugToolbar==0.10.0
 Flask-DebugToolbar-LineProfilerPanel==1.0.2
 Flask-Login==0.3.2
 flask-paginate==0.4.5
+flask_profiler==1.4
 Flask-SocketIO==2.8.2
 Flask-Swagger==0.2.13
 Flask-WTF==0.14.2

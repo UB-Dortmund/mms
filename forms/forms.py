@@ -352,7 +352,7 @@ class PersonAdminForm(FlaskForm):
                        self.research_interest, self.url], 'label': lazy_gettext('Basic')},
             {'group': [self.gnd, self.orcid, self.dwid, self.viaf, self.isni, self.researcher_id, self.scopus_id,
                        self.arxiv_id], 'label': lazy_gettext('IDs')},
-            {'group': [self.affiliation, self.group], 'label': lazy_gettext('Affiliation')},
+            {'group': [self.rubi, self.tudo, self.affiliation, self.group], 'label': lazy_gettext('Affiliation')},
             {'group': [self.note, self.data_supplied], 'label': lazy_gettext('Notes')},
             {'group': [self.id, self.created, self.changed, self.editorial_status, self.catalog, self.owner,
                        self.deskman, self.same_as], 'label': lazy_gettext('Administrative')},
@@ -994,6 +994,7 @@ class CollectionForm(ContainerForm):
         ('festschrift', lazy_gettext('Festschrift')),
     ])
     peer_reviewed = BooleanField(lazy_gettext('Peer Reviewed'))
+    # TODO muss hier nicht person hin?
     author_editor = FieldList(FormField(PersonUserForm), min_entries=1)
 
     def groups(self):

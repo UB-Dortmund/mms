@@ -20,22 +20,22 @@
     </div>#}
     <div class="row">
         <div class="col-sm-3" id="facets">
-            {{ drill_down.facets(facet_data.catalog, 'catalog', heading='Catalog', target='persons') }}
-            {{ drill_down.facets(facet_data.faffiliation, 'faffiliation', heading='Affiliation', target='persons') }}
-            {{ drill_down.facets(facet_data.fgroup, 'fgroup', heading='Working Groups', target='persons') }}
-            {{ drill_down.boolean_filter('tudo', heading='TUDO Member', target='persons') }}
-            {{ drill_down.boolean_filter('rubi', heading='RUB Member', target='persons') }}
-            {{ drill_down.simple_filter('gnd', heading='GND', target='persons') }}
-            {{ drill_down.simple_filter('orcid', heading='ORCID', target='persons') }}
-            {{ drill_down.date_filter('data_supplied', heading='Data Supplied', target='persons') }}
-            {{ drill_down.facets(facet_data.editorial_status, 'editorial_status', heading='Editorial Status', target='persons') }}
-            {{ drill_down.facets(facet_data.personal_status, 'personal_status', heading='Personal Status', target='persons') }}
-            {# drill_down.facets(facet_data.deskman, 'deskman', heading='Deskman', target='persons') #}
-            {# drill_down.facets(facet_data.owner, 'owner', heading='Owner', target='persons') #}
+            {{ drill_down.facets(facet_data.catalog, 'catalog', heading='Catalog', target=target) }}
+            {{ drill_down.facets(facet_data.faffiliation, 'faffiliation', heading='Affiliation', target=target) }}
+            {{ drill_down.facets(facet_data.fgroup, 'fgroup', heading='Working Groups', target=target) }}
+            {{ drill_down.boolean_filter('tudo', heading='TUDO Member', target=target) }}
+            {{ drill_down.boolean_filter('rubi', heading='RUB Member', target=target) }}
+            {{ drill_down.simple_filter('gnd', heading='GND', target=target) }}
+            {{ drill_down.simple_filter('orcid', heading='ORCID', target=target) }}
+            {{ drill_down.date_filter('data_supplied', heading='Data Supplied', target=target) }}
+            {{ drill_down.facets(facet_data.editorial_status, 'editorial_status', heading='Editorial Status', target=target) }}
+            {{ drill_down.facets(facet_data.personal_status, 'personal_status', heading='Personal Status', target=target) }}
+            {# drill_down.facets(facet_data.deskman, 'deskman', heading='Deskman', target=target) #}
+            {# drill_down.facets(facet_data.owner, 'owner', heading='Owner', target=target) #}
         </div>
         <div class="col-sm-9">
             {{ pagination.info }}
-            {{ remove_filters.remove_filter(target='persons') }}
+            {{ remove_filters.remove_filter(target=target) }}
             {{ pagination.links }}
             <br/><span class="help-block">{{ _('Sort by date of last data supplied:') }} <a href="{{ url_for('persons') }}?sort=data_supplied asc{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}"><i class="glyphicon glyphicon-triangle-top"></i></a>  <a href="{{ url_for('persons') }}?sort=data_supplied desc{% if filterquery %}{% for fq in filterquery %}&amp;filter={{ fq }}{% endfor %}{% endif %}"><i class="glyphicon glyphicon-triangle-bottom"></i></a></span>
             <table class="table table-bordered">

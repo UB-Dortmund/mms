@@ -20,18 +20,18 @@
     </div>#}
     <div class="row">
         <div class="col-sm-3" id="facets">
-            {{ drill_down.facets(facet_data.catalog, 'catalog', heading='Catalog', target='groups') }}
-            {{ drill_down.facets(facet_data.fparent, 'fparent', heading='PARENTS', target='groups') }}
-            {{ drill_down.simple_filter('gnd', heading='GND', target='groups') }}
-            {{ drill_down.facets(facet_data.ffunder, 'ffunder', heading='Funds', target='groups') }}
-            {{ drill_down.facets(facet_data.destatis_id, 'destatis_id', heading='DESTATIS', target='groups') }}
-            {{ drill_down.facets(facet_data.editorial_status, 'editorial_status', heading='Editorial Status', target='groups') }}
-            {# drill_down.facets(facet_data.deskman, 'deskman', heading='Deskman', target='groups') #}
-            {# drill_down.facets(facet_data.owner, 'owner', heading='Owner', target='groups') #}
+            {{ drill_down.facets(facet_data.catalog, 'catalog', heading='Catalog', target=target) }}
+            {{ drill_down.facets(facet_data.fparent, 'fparent', heading='PARENTS', target=target) }}
+            {{ drill_down.simple_filter('gnd', heading='GND', target=target) }}
+            {{ drill_down.facets(facet_data.ffunder, 'ffunder', heading='Funds', target=target) }}
+            {{ drill_down.facets(facet_data.destatis_id, 'destatis_id', heading='DESTATIS', target=target) }}
+            {{ drill_down.facets(facet_data.editorial_status, 'editorial_status', heading='Editorial Status', target=target) }}
+            {# drill_down.facets(facet_data.deskman, 'deskman', heading='Deskman', target=target) #}
+            {# drill_down.facets(facet_data.owner, 'owner', heading='Owner', target=target) #}
         </div>
         <div class="col-sm-9">
             {{ pagination.info }}
-            {{ remove_filters.remove_filter(target='groups') }}
+            {{ remove_filters.remove_filter(target=target) }}
             {{ pagination.links }}
             <table class="table">
                 <thead>

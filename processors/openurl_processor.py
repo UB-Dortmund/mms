@@ -153,6 +153,7 @@ def wtf_openurl(record=None):
                                     open_url += '-%s' % host.get('page_last')
                     except AttributeError as e:
                         logging.error(e)
+                    break
 
         if 'rft.atitle' not in open_url:
             open_url += '&rft.title=%s' % parse.quote(record.get('title'), 'utf-8')

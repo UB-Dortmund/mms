@@ -31,6 +31,7 @@ import xmlrpc.client
 from io import BytesIO
 from logging.handlers import RotatingFileHandler
 from urllib import parse
+import operator
 
 import orcid
 import requests
@@ -95,7 +96,6 @@ class ReverseProxied(object):
             environ['wsgi.url_scheme'] = scheme
         return self.app(environ, start_response)
 
-
 app = Flask(__name__)
 CORS(app)
 
@@ -112,6 +112,9 @@ Redis(app, 'REDIS_CONSOLIDATE_PERSONS')
 
 app.config['REDIS_PUBLIST_CACHE_URL'] = secrets.REDIS_PUBLIST_CACHE_URL
 Redis(app, 'REDIS_PUBLIST_CACHE')
+
+app.config['REDIS_EXEC_COUNTER_URL'] = secrets.REDIS_EXEC_COUNTER_URL
+Redis(app, 'REDIS_EXEC_COUNTER')
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -326,25 +329,60 @@ def stats(affiliation=''):
         return make_response('Bad request! Usage: /stats/<affiliation>', 400)
 
 
-@app.route('/search')
-def search():
-    page = int(request.args.get('page', 1))
-    extended = int(request.args.get('ext', 0))
-    format = request.args.get('format', '')
-    query = request.args.get('q', '')
-    # logging.info(query)
-    if query == '':
-        query = '*:*'
-    core = request.args.get('core', 'hb2')
-    # logging.info(core)
-    filterquery = request.values.getlist('filter')
-    sorting = request.args.get('sort', '')
-    if sorting == '':
-        sorting = 'fdate desc'
-    elif sorting == 'relevance':
+@app.route('/search', methods=['GET', 'POST'])
+def search(data=None):
+    if not data:
+        page = int(request.args.get('page', 1))
+        extended = int(request.args.get('ext', 0))
+        format = request.args.get('format', '')
+        query = request.args.get('q', '')
+        # logging.info(query)
+        if query == '':
+            query = '*:*'
+        core = request.args.get('core', 'hb2')
+        # logging.info(core)
+        filterquery = request.values.getlist('filter')
+        sorting = request.args.get('sort', '')
+        if sorting == '':
+            sorting = 'fdate desc'
+        elif sorting == 'relevance':
+            sorting = ''
+        list = int(request.args.get('list', 0))
+    else:
+        page = 1
+        extended = 0
+        format = ''
+        query = ''
+        core = 'hb2'
+        filterquery = []
         sorting = ''
+        list = 0
+        for param in data.keys():
+            if param == 'list':
+                list = int(data[param])
+            if param == 'q':
+                query = data[param]
+            logging.info(query)
+            if query == '':
+                query = '*:*'
+            if param == 'page':
+                page = int(data[param])
+            if param == 'ext':
+                extended = int(data[param])
+            if param == 'format':
+                format = data[param]
+            if param == 'core':
+                core = data[param]
+            # logging.info(core)
+            if param == 'filter':
+                filterquery = data[param]
+            if param == 'sort':
+                sorting = data[param]
+            if sorting == '':
+                sorting = 'fdate desc'
+            elif sorting == 'relevance':
+                sorting = ''
 
-    list = int(request.args.get('list', 0))
     if list == 1:
         handler = 'query'
     else:
@@ -418,6 +456,7 @@ def search():
             return redirect(url_for('show_group', group_id=search_solr.results[0].get('id')))
     elif num_found == 0:
         flash('%s: %s' % (gettext('Your Search Found no Results'), query), 'error')
+        # TODO add target/core for pre selection of the search box
         return redirect(url_for('homepage'))
         # return render_template('search.html', header=lazy_gettext('Search'), site=theme(request.access_route))
     else:
@@ -435,10 +474,15 @@ def search():
             if '-editorial_status:deleted' in filterquery:
                 del filterquery[filterquery.index('-editorial_status:deleted')]
 
+        target = '%s&' % url_for('search', q=query, core=core)
+        if data and 'target' in data:
+            target = '%s?' % data['target']
+
         if core == 'hb2':
             return render_template('resultlist.html', records=search_solr.results, pagination=pagination,
-                                   facet_data=search_solr.facets, header=lazy_gettext('Resultlist'), target='search',
-                                   core=core, site=theme(request.access_route), offset=mystart - 1, query=query,
+                                   facet_data=search_solr.facets, header=lazy_gettext('Resultlist'),
+                                   target=target,
+                                   core=core, site=theme(request.access_route), offset=mystart - 1,
                                    filterquery=filterquery,
                                    role_map=display_vocabularies.ROLE_MAP,
                                    lang_map=display_vocabularies.LANGUAGE_MAP,
@@ -451,19 +495,22 @@ def search():
                                    list=list)
         if core == 'person':
             return render_template('personlist.html', records=search_solr.results, pagination=pagination,
-                                   facet_data=search_solr.facets, header=lazy_gettext('Resultlist'), target='search',
+                                   facet_data=search_solr.facets, header=lazy_gettext('Resultlist'),
+                                   target=target,
                                    core=core, site=theme(request.access_route), offset=mystart - 1, query=query,
                                    filterquery=filterquery,
                                    list=list)
         if core == 'organisation':
             return render_template('orgalist.html', records=search_solr.results, pagination=pagination,
-                                   facet_data=search_solr.facets, header=lazy_gettext('Resultlist'), target='search',
+                                   facet_data=search_solr.facets, header=lazy_gettext('Resultlist'),
+                                   target=target,
                                    core=core, site=theme(request.access_route), offset=mystart - 1, query=query,
                                    filterquery=filterquery,
                                    list=list)
         if core == 'group':
             return render_template('grouplist.html', records=search_solr.results, pagination=pagination,
-                                   facet_data=search_solr.facets, header=lazy_gettext('Resultlist'), target='search',
+                                   facet_data=search_solr.facets, header=lazy_gettext('Resultlist'),
+                                   target=target,
                                    core=core, site=theme(request.access_route), offset=mystart - 1, query=query,
                                    filterquery=filterquery,
                                    list=list)
@@ -2603,10 +2650,12 @@ def dashboard():
                                 search_msg=lazy_gettext('Showing {start} to {end} of {found} {record_name}'))
         mystart = 1 + (pagination.page - 1) * pagination.per_page
 
+    target = '%s&' % url_for('dashboard', q=query, core='hb2')
+
     return render_template('dashboard.html', records=dashboard_solr.results, facet_data=dashboard_solr.facets,
                            header=lazy_gettext('Dashboard'), site=theme(request.access_route), offset=mystart - 1,
                            query=query, filterquery=filterquery, pagination=pagination, now=datetime.datetime.now(),
-                           core='hb2', target='dashboard', del_redirect='dashboard', numFound=num_found,
+                           target=target, del_redirect='dashboard', numFound=num_found,
                            role_map=display_vocabularies.ROLE_MAP,
                            lang_map=display_vocabularies.LANGUAGE_MAP,
                            pubtype_map=display_vocabularies.PUBTYPE2TEXT,
@@ -2674,10 +2723,13 @@ def persons():
                                 search_msg=lazy_gettext('Showing {start} to {end} of {found} Persons'))
         mystart = 1 + (pagination.page - 1) * pagination.per_page
 
+    target = '%s&' % url_for('persons', q=query, core='person')
+
     return render_template('persons.html', header=lazy_gettext('Persons'), site=theme(request.access_route),
                            facet_data=persons_solr.facets, results=persons_solr.results,
                            offset=mystart - 1, query=query, filterquery=filterquery, pagination=pagination,
-                           now=datetime.datetime.now(), del_redirect='persons', core='person')
+                           now=datetime.datetime.now(), del_redirect='persons',
+                           target=target)
 
 
 @app.route('/organisations')
@@ -2709,10 +2761,13 @@ def orgas():
                                 search_msg=lazy_gettext('Showing {start} to {end} of {found} Organisational Units'))
         mystart = 1 + (pagination.page - 1) * pagination.per_page
 
+    target = '%s&' % url_for('orgas', q=query, core='organisation')
+
     return render_template('orgas.html', header=lazy_gettext('Organisations'), site=theme(request.access_route),
                            facet_data=orgas_solr.facets, results=orgas_solr.results,
                            offset=mystart - 1, query=query, filterquery=filterquery, pagination=pagination,
-                           now=datetime.datetime.now(), core='organisation')
+                           now=datetime.datetime.now(),
+                           target=target)
 
 
 @app.route('/groups')
@@ -2743,10 +2798,14 @@ def groups():
                                 record_name=lazy_gettext('titles'),
                                 search_msg=lazy_gettext('Showing {start} to {end} of {found} Working Groups'))
         mystart = 1 + (pagination.page - 1) * pagination.per_page
+
+    target = '%s&' % url_for('groups', q=query, core='group')
+
     return render_template('groups.html', header=lazy_gettext('Working Groups'), site=theme(request.access_route),
                            facet_data=groups_solr.facets, results=groups_solr.results,
                            offset=mystart - 1, query=query, filterquery=filterquery, pagination=pagination,
-                           now=datetime.datetime.now(), core='group')
+                           now=datetime.datetime.now(),
+                           target=target)
 
 
 @app.route('/units')
@@ -4136,94 +4195,89 @@ def show_related_item(relation='', record_ids=''):
 
 @app.route('/show_members/organisation/<orga_id>')
 def show_members_of_orga(orga_id=''):
-    # get orga doc
-    orga = persistence.get_orga(orga_id)
+    counter = 0
+    query = get_affiliations(orga_id, counter)
 
-    if not orga:
-        return redirect(url_for('show_orga', orga_id=orga_id))
-    else:
-        thedata = json.loads(orga.get('wtf_json'))
-        name = thedata.get('pref_label')
-
-        orgas = {}
-        orgas.setdefault(orga_id, name)
-        # get all children
-        if orga.get('children'):
-            children = thedata.get('children')
-            for child in children:
-                # child = json.loads(child_json)
-                if child.get('child_id'):
-                    orgas.setdefault(child.get('child_id'), child.get('child_label'))
-        # for each orga get all persons
-
-        query = ''
-        idx_p = 0
-        for oid in orgas.keys():
-            query += 'affiliation_id:%s' % oid
-            idx_p += 1
-            if idx_p < len(orgas) and query != '':
-                query += ' OR '
-
-        return redirect('%s?q=%s&core=person&list=1' % (url_for('search'), query))
+    return redirect('%s?q=%s&core=person&list=1' % (url_for('search'), query))
 
 
 @app.route('/show_works/organisation/<orga_id>')
 def show_works_of_orga(orga_id=''):
-    # get orga doc
-    orga = persistence.get_orga(orga_id)
+    counter = 0
+    query = get_members(orga_id, counter)
 
-    if not orga:
-        return redirect(url_for('show_orga', orga_id=orga_id))
-    else:
-        thedata = json.loads(orga.get('wtf_json'))
-        name = thedata.get('pref_label')
+    # request parameter for search
+    page = int(request.args.get('page', 1))
+    extended = int(request.args.get('ext', 0))
+    filterquery = request.values.getlist('filter')
+    sorting = request.args.get('sort', '')
+    if sorting == '':
+        sorting = 'fdate desc'
+    elif sorting == 'relevance':
+        sorting = ''
 
-        orgas = {}
-        orgas.setdefault(orga_id, name)
-        # get all children
+    data = {
+        "q": query,
+        "list": 1,
+        "page": page,
+        "ext": extended,
+        "filter": filterquery,
+        "sort": sorting,
+        "target": url_for('show_works_of_orga', orga_id=orga_id)
+    }
+
+    return search(data=data)
+
+
+def get_affiliations(orga_id, counter):
+    query_part = 'affiliation_id:%s' % orga_id
+
+    thedata = persistence.get_orga(orga_id)
+
+    if thedata:
+        orga = json.loads(thedata.get('wtf_json'))
         if orga.get('children'):
-            children = thedata.get('children')
-            for child in children:
-                # child = json.loads(child_json)
-                if child.get('child_id'):
-                    orgas.setdefault(child.get('child_id'), child.get('child_label'))
-        # for each orga get all persons
+            for child in orga.get('children'):
+                if child.get('child_id') and counter < 100:
+                    counter += 1
+                    query_part += ' OR %s' % get_affiliations(child.get('child_id'), counter)
 
-        query = ''
-        idx_o = 0
-        for oid in orgas.keys():
-            member_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                               application=secrets.SOLR_APP,
-                               query='affiliation_id:"%s"' % oid,
-                               fquery=['gnd:[\'\' TO *]'], fields=['gnd', 'name'], rows=100000,
-                               core='person')
-            member_solr.request()
+    return query_part
 
-            query_part = ''
 
-            if member_solr.results and len(member_solr.results) > 0:
-                # logging.debug('members: %s' % len(member_solr.results))
-                idx_p = 0
-                for member in member_solr.results:
-                    # TODO später nur pndid
-                    query_part += 'pnd:"%s%s%s"' % (member.get('gnd'), '%23', member.get('name'))
-                    idx_p += 1
-                    if idx_p < len(member_solr.results) and query_part != '' and not query_part.endswith(' OR '):
-                        query_part += ' OR '
+def get_members(orga_id, counter):
+    query_part = ''
 
-                if query_part != '':
-                    query += query_part
+    thedata = persistence.get_orga(orga_id)
 
-            idx_o += 1
-            if idx_o < len(orgas) and query != '' and not query.endswith(' OR '):
-                query += ' OR '
+    if thedata:
+        orga = json.loads(thedata.get('wtf_json'))
 
-        while query.endswith(' OR '):
-            query = query[:-4]
+        # TODO die query kann schiefgehen, wenn die child_id keine GND-ID sondern eine UUID war, die
+        # Verknüpfung also nur indirekt über "same_as" läuft.
+        member_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                           application=secrets.SOLR_APP,
+                           query='affiliation_id:"%s"' % orga_id,
+                           fquery=['gnd:[\'\' TO *]'], fields=['gnd', 'name'], rows=100000,
+                           core='person')
+        member_solr.request()
 
-        url = '%s?q=%s&list=1' % (url_for('search'), query)
-        return redirect(url.replace('//', '/'))
-        # return 'poop'
+        if member_solr.results and len(member_solr.results) > 0:
+            # logging.debug('members: %s' % len(member_solr.results))
+            idx_p = 0
+            for member in member_solr.results:
+                query_part += 'pndid:%s' % member.get('gnd')
+                idx_p += 1
+                if idx_p < len(member_solr.results) and query_part != '' and not query_part.endswith(' OR '):
+                    query_part += ' OR '
+
+        if orga.get('children'):
+            for child in orga.get('children'):
+                if child.get('child_id') and counter < 100:
+                    counter += 1
+                    query_part += get_members(child.get('child_id'), counter)
+
+    return query_part
 
 
 @app.route('/show_members/group/<group_id>')
@@ -4240,7 +4294,6 @@ def show_works_of_group(group_id=''):
 def embed_works():
     return render_template('publists.html', header=lazy_gettext('Embed your work list'),
                            site=theme(request.access_route))
-
 
 # ---------- SUPER_ADMIN ----------
 
@@ -4437,6 +4490,19 @@ def redis_stats(db='0'):
         stats.setdefault('items', content)
 
         return jsonify({'stats': stats})
+    elif db == '3':
+        storage = app.extensions['redis']['REDIS_EXEC_COUNTER']
+
+        counter = {}
+
+        cnt = 0
+        for key in storage.keys('*'):
+            counter[key] = sorted(storage.hgetall(key).items(), key=lambda x: int(x[1]), reverse=True)
+            cnt += 1
+            if cnt == 100:
+                break
+
+        return jsonify({'counter': counter})
     else:
         return 'No database with ID %s exists!' % db
 
@@ -4454,6 +4520,10 @@ def redis_clean(db='0'):
         return 'dbsize: %s' % storage.dbsize()
     elif db == '1':
         storage = app.extensions['redis']['REDIS_PUBLIST_CACHE']
+        storage.flushdb()
+        return 'dbsize: %s' % storage.dbsize()
+    elif db == '3':
+        storage = app.extensions['redis']['REDIS_EXEC_COUNTER']
         storage.flushdb()
         return 'dbsize: %s' % storage.dbsize()
     else:

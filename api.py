@@ -504,7 +504,8 @@ def work_put(work_id=''):
                     form.changed.data = timestamp()
 
                     # store it
-                    new_id, message = persistence.record2solr(form, action='update', relitems=False)
+                    rel = str2bool(request.args.get('rel', 'true'))
+                    new_id, message = persistence.record2solr(form, action='update', relitems=rel)
 
                     response_json = {"message": message, "work": original_work}
 
