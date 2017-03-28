@@ -2766,8 +2766,7 @@ def orgas():
     return render_template('orgas.html', header=lazy_gettext('Organisations'), site=theme(request.access_route),
                            facet_data=orgas_solr.facets, results=orgas_solr.results,
                            offset=mystart - 1, query=query, filterquery=filterquery, pagination=pagination,
-                           now=datetime.datetime.now(),
-                           target=target)
+                           now=datetime.datetime.now(), target=target)
 
 
 @app.route('/groups')

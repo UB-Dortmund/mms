@@ -6,10 +6,10 @@
     <div class="row">
         <div class="col-sm-4" id="facets">
             {% if facet_data%}
-                {{ drill_down.facets(facet_data.catalog, 'catalog', heading='Catalog', target='search') }}
-                {{ drill_down.facets(facet_data.fparent, 'fparent', heading='PARENTS', target='search') }}
-                {{ drill_down.facets(facet_data.destatis_id, 'destatis_id', heading='DESTATIS', target='search') }}
-                {{ drill_down.simple_filter('gnd', heading='GND', target='search') }}
+                {{ drill_down.facets(facet_data.catalog, 'catalog', heading='Catalog', target=target) }}
+                {{ drill_down.facets(facet_data.fparent, 'fparent', heading='PARENTS', target=target) }}
+                {{ drill_down.facets(facet_data.destatis_id, 'destatis_id', heading='DESTATIS', target=target) }}
+                {{ drill_down.simple_filter('gnd', heading='GND', target=target) }}
             {% endif %}
         </div>
         <div class="col-sm-8">
