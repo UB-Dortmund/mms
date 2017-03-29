@@ -39,7 +39,7 @@ SWAGGER_TITLE = ''
 SWAGGER_DESCRIPTION = ''
 
 # ---- PERSISTENCE ---- #
-SOLR_HOST = '129.217.132.18'
+SOLR_HOST = 'localhost'
 SOLR_PORT = '5200'
 SOLR_APP = 'solr'
 

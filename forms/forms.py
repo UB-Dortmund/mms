@@ -697,6 +697,10 @@ class WorkForm(FlaskForm):
     id = StringField(lazy_gettext('ID'), validators=[UUID(), Optional()], widget=CustomTextInput(readonly='readonly'))
     created = StringField(lazy_gettext('Record Creation Date'), widget=CustomTextInput(readonly='readonly'))
     changed = StringField(lazy_gettext('Record Change Date'), widget=CustomTextInput(readonly='readonly'))
+    # not readonly
+    # created = StringField(lazy_gettext('Record Creation Date'))
+    # changed = StringField(lazy_gettext('Record Change Date'))
+
     editorial_status = SelectField(lazy_gettext('Editorial Status'), validators=[DataRequired()],
                                    choices=forms_vocabularies.EDITORIAL_STATUS, default='new')
     owner = FieldList(StringField(lazy_gettext('Owner')), min_entries=1)

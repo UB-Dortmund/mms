@@ -25,7 +25,7 @@ LOGFILE = 'log/persistence.log'
 
 # ---- PERSISTENCE ---- #
 SOLR_HOST = 'localhost'
-SOLR_PORT = '8983'
+SOLR_PORT = '5200'
 SOLR_APP = 'solr'
 
 # ---- BACKUP ---- #

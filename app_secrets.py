@@ -72,7 +72,7 @@ orcid_scopes = [
 CSL_DATA_DIR = '/home/hb2/csl'
 CSL_LOCALES_REG = '/home/hb2/csl/locales/locales.json'
 
-SOLR_HOST = '127.0.0.1'
+SOLR_HOST = 'localhost'
 SOLR_PORT = '8983'
 
 SOLR_APP = 'solr'
@@ -368,6 +368,11 @@ REDIS_PUBLIST_CACHE_URL = 'redis://localhost:6379/1'
 REDIS_PUBLIST_CACHE_HOST = 'localhost'
 REDIS_PUBLIST_CACHE_PORT = 6379
 REDIS_PUBLIST_CACHE_DB = 1
+
+REDIS_EXEC_COUNTER_URL = 'redis://localhost:6379/3'
+REDIS_EXEC_COUNTER_HOST = 'localhost'
+REDIS_EXEC_COUNTER_PORT = 6379
+REDIS_EXEC_COUNTER_DB = 3
 
 TRAC_URL = ''
 TRAC_USER = ''

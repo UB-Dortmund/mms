@@ -138,6 +138,7 @@ local_bibliography_secrets.py
 local_p_secrets.py
 local_orcid_secrets.py
 local_oai_pmh_secrets.py
+local_stats_secrets.py
 tests/test_orga_import.py
 /processors/site_secrets.py
 /.python-version
