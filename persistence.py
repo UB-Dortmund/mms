@@ -2105,7 +2105,10 @@ def group2solr(form, action, relitems=True):
         persons_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
                             application=secrets.SOLR_APP, core='person',
                             query='group_id:%s' % id, facet=False, rows=500000)
-        results = persons_solr.request()
+        persons_solr.request()
+        if len(persons_solr.results) > 0:
+            results += persons_solr.results
+
         for entry in same_as:
             persons_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
                                 application=secrets.SOLR_APP, core='person',
