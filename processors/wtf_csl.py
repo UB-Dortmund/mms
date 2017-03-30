@@ -174,18 +174,19 @@ def wtf_csl(wtf_records=None):
                                 csl_record.setdefault('container-title', title)
                                 author = []
                                 editor = []
-                                for person in myjson.get('person'):
-                                    # logging.info(person.get('name'))
-                                    family = person.get('name').split(', ')[0]
-                                    given = ''
-                                    if len(person.get('name').split(', ')) > 1:
-                                        given = person.get('name').split(', ')[1]
-                                    # logging.info('%s, %s' % (family, given))
-                                    if person.get('role'):
-                                        if 'aut' in person.get('role'):
-                                            author.append({'family': family, 'given': given})
-                                        elif 'edt' in person.get('role'):
-                                            editor.append({'family': family, 'given': given})
+                                if myjson.get('person'):
+                                    for person in myjson.get('person'):
+                                        # logging.info(person.get('name'))
+                                        family = person.get('name').split(', ')[0]
+                                        given = ''
+                                        if len(person.get('name').split(', ')) > 1:
+                                            given = person.get('name').split(', ')[1]
+                                        # logging.info('%s, %s' % (family, given))
+                                        if person.get('role'):
+                                            if 'aut' in person.get('role'):
+                                                author.append({'family': family, 'given': given})
+                                            elif 'edt' in person.get('role'):
+                                                editor.append({'family': family, 'given': given})
 
                                 if len(author) > 0:
                                     csl_record.setdefault('author', author)
@@ -249,13 +250,13 @@ def wtf_csl(wtf_records=None):
 
                 # isbn
                 if record.get('isbn'):
-                    csl_record.setdefault('isbn', record.get('ISBN')[0])
+                    csl_record.setdefault('isbn', record.get('isbn')[0])
                 # issn
                 if record.get('issn'):
-                    csl_record.setdefault('issn', record.get('ISSN')[0])
+                    csl_record.setdefault('issn', record.get('issn')[0])
                 # ismn
                 if record.get('ismn'):
-                    csl_record.setdefault('ismn', record.get('ISMN')[0])
+                    csl_record.setdefault('ismn', record.get('ismn')[0])
 
                 # publisher
                 if record.get('publisher'):
@@ -277,7 +278,7 @@ def wtf_csl(wtf_records=None):
                 if record.get('PMID'):
                     csl_record.setdefault('PMID', record.get('PMID'))
                 # abstract
-                if record.get('abstract')[0] and record.get('abstract')[0].get('content') != '':
+                if record.get('abstract') and record.get('abstract')[0] and record.get('abstract')[0].get('content') != '':
                     csl_record.setdefault('abstract', record.get('abstract')[0].get('content'))
 
                 csl_records.append(csl_record)

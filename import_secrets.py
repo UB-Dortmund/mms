@@ -21,10 +21,24 @@
 #  THE SOFTWARE.
 
 BULK_DATA_FILE = ''
+BULK_DATA_QUERY = '*:*'
+BULK_DATA_ENTITY_TYPE = 'work'
+
+WORKER = 2
 
 LOGFILE = ''
 
-REDIS_QUEUE_URL = 'redis://localhost:6379/0'
+REDIS_QUEUE_URL = 'redis://localhost:6379/7'
 REDIS_QUEUE_HOST = 'localhost'
 REDIS_QUEUE_PORT = 6379
 REDIS_QUEUE_DB = 7
+
+# ---- PERSISTENCE ---- #
+SOLR_HOST = 'localhost'
+SOLR_PORT = '5200'
+SOLR_APP = 'solr'
+
+SOLR_CORE = 'hb2'
+SOLR_EXPORT_FIELD = 'wtf_json'
+SOLR_ROWS = '20'
+SOLR_SEARCH_FACETS = {}

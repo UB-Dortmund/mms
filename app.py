@@ -3156,10 +3156,19 @@ def new_person():
                                form=form, action='create', pubtype='person')
 
     if valid:
+
         if current_user.role == 'admin' or current_user.role == 'superadmin':
             if form.data.get('editorial_status') == 'new':
                 form.editorial_status.data = 'in_process'
+
+        if not form.data.get('editorial_status'):
+            form.editorial_status.data = 'new'
+
+        if not form.data.get('owner'):
+            form.owner[0].data = 'daten.ub@tu-dortmund.de'
+
         # logging.info(form.data)
+        # TODO check if person already exists instead of react on 'doit'
         doit, new_id, message = persistence.person2solr(form, action='create')
         if doit:
 

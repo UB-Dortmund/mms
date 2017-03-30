@@ -118,8 +118,9 @@ def wtf_openurl(record=None):
             open_url += '&info:ofi/nam:info:doi:%s' % parse.quote(record.get('DOI')[0], 'utf-8')
 
         # authors
-        for person in record.get('person'):
-            open_url += '&rft.au=%s' % parse.quote(person.get('name'), 'utf8')
+        if record.get('person'):
+            for person in record.get('person'):
+                open_url += '&rft.au=%s' % parse.quote(person.get('name'), 'utf8')
 
         if record.get('is_part_of') and record.get('is_part_of')[0] and record.get('is_part_of')[0].get('is_part_of'):
             for host in record.get('is_part_of'):
@@ -168,11 +169,12 @@ def wtf_openurl(record=None):
             open_url += '&rft.date=%s' % record.get('issued')
         if record.get('publisher_place'):
             open_url += '&rft.place=%s' % parse.quote(record.get('publisher_place'), 'utf-8')
-        if record.get('publisher'):
-            open_url += '&rft.publisher=%s' % parse.quote(record.get('publisher'), 'utf-8')
+        if record.get('publisher') and record.get('publisher')[0]:
+            open_url += '&rft.publisher=%s' % parse.quote(record.get('publisher')[0], 'utf-8')
 
         # other
-        for corporation in record.get('corporation'):
-            open_url += '&rft.inst=%s' % parse.quote(corporation.get('name'), 'utf-8')
+        if record.get('corporation'):
+            for corporation in record.get('corporation'):
+                open_url += '&rft.inst=%s' % parse.quote(corporation.get('name'), 'utf-8')
 
     return open_url

@@ -50,7 +50,7 @@ class Solr(object):
                  spellcheck_count=5, suggest_query='', group=False, group_field='', group_limit=1,
                  group_sort='score desc', group_ngroups='true', coordinates='0,0', json_nl='arrmap',# cursor='',
                  boost_most_recent='false', csv_separator='\t', core=secrets.SOLR_CORE, stats='false', stats_fl=[],
-                 data='', del_id='', export_field='', json_facet={}):
+                 data='', del_id='', export_field='', json_facet={}, commit='true'):
         self.host = host
         self.port = port
         self.application = application
@@ -105,6 +105,7 @@ class Solr(object):
         self.export_field = export_field
         #self.export_dir = export_dir
         self.json_facet = json_facet
+        self.commit = commit
 
     def request(self):
         params = ''
@@ -310,15 +311,20 @@ class Solr(object):
         return self._count
 
     def update(self):
-        url = 'http://%s:%s/%s/%s/update/?commit=true&versions=true' % (self.host, self.port, self.application,
-                                                                        self.core)
+        url = 'http://%s:%s/%s/%s/update/?commit=%s&versions=true' % (self.host, self.port, self.application,
+                                                                      self.core, self.commit)
         resp = requests.post(url, headers={'Content-type': 'application/json'}, data=json.dumps(self.data))
         return resp
 
     def delete(self):
-        url = 'http://%s:%s/%s/%s/update?commit=true' % (self.host, self.port, self.application, self.core)
+        url = 'http://%s:%s/%s/%s/update?commit=%s' % (self.host, self.port, self.application, self.core, self.commit)
         resp = requests.post(url, headers={'Content-type': 'application/json'},
                              data=json.dumps({'delete': {'id': self.del_id}}))
+        return resp.status_code
+
+    def commit(self):
+        url = 'http://%s:%s/%s/%s/update?commit=true' % (self.host, self.port, self.application, self.core)
+        resp = requests.get(url)
         return resp.status_code
 
     def export(self):
