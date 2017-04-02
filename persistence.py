@@ -231,6 +231,14 @@ def work2solr(record=None, storage_is_empty=False, update_related_entities=True,
         solr_data.setdefault('id', record.get('id').strip())
         id = str(record.get('id').strip())
 
+    # creation and change date
+    if not record.get('created'):
+        record['created'] = timestamp()
+        record['changed'] = record.get('created')
+    else:
+        if not storage_is_empty:
+            record['changed'] = timestamp()
+
     # execution counter
     r = redis.StrictRedis(host=secrets.REDIS_EXEC_COUNTER_HOST, port=secrets.REDIS_EXEC_COUNTER_PORT,
                           db=secrets.REDIS_EXEC_COUNTER_DB)
@@ -961,6 +969,14 @@ def person2solr(record=None, storage_is_empty=False, update_related_entities=Tru
         tmp.setdefault('gnd', record.get('gnd'))
         new_id = tmp.get('gnd')
 
+    # creation and change date
+    if not record.get('created'):
+        record['created'] = timestamp()
+        record['changed'] = record.get('created')
+    else:
+        if not storage_is_empty:
+            record['changed'] = timestamp()
+
     for field in record.keys():
         if field == 'name':
             tmp.setdefault('name', record.get(field).strip())
@@ -995,6 +1011,9 @@ def person2solr(record=None, storage_is_empty=False, update_related_entities=Tru
             tmp.setdefault('editorial_status', record.get(field))
         elif field == 'deskman' and record.get(field):
             tmp.setdefault('deskman', record.get(field).strip())
+        elif field == 'owner':
+            for owner in record.get(field):
+                tmp.setdefault('owner', owner.strip())
         elif field == 'url':
             for url in record.get(field):
                 if url.get('label') and url.get('label').strip():
@@ -1076,6 +1095,31 @@ def person2solr(record=None, storage_is_empty=False, update_related_entities=Tru
         except Exception as e:
             logging.error(e)
         record['id'] = new_id
+    else:
+        if not record.get('gnd'):
+            get_request = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                               application=secrets.SOLR_APP, query='gnd:"%s"' % record.get('id'),
+                               core='person', facet='false')
+            get_request.request()
+            if get_request.results:
+                # GND-ID gelöscht
+                if record.get('dwid'):
+                    record['id'] = record.get('dwid')
+                elif record.get('same_as'):
+                    for same_as in record.get('same_as'):
+                        if same_as.strip():
+                            record['id'] = same_as.strip()
+                            break
+                else:
+                    record['id'] = str(uuid.uuid4())
+
+                # delete record with current id
+                try:
+                    delete_person_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                              application=secrets.SOLR_APP, core='person', del_id=new_id)
+                    delete_person_solr.delete()
+                except Exception as e:
+                    logging.error(e)
 
     tmp.setdefault('id', record['id'])
     wtf_json = json.dumps(record)
@@ -1120,382 +1164,394 @@ def person2solr(record=None, storage_is_empty=False, update_related_entities=Tru
     return new_id, message, queue
 
 
-def orga2solr(form, action, relitems=True, getchildren=False):
+# TODO usage of orga2solr without 'action' parameter!!!!!!!
+# TODO usage of orga2solr with parameter 'update_related_entities' instead of 'relitems'
+# TODO usage of orga2solr with an python object instead of a form!!!!!!!
+def orga2solr(record=None, storage_is_empty=False, update_related_entities=True, manage_queue=False):
+
+    if record is None:
+        record = {}
 
     message = []
-
     tmp = {}
+
+    record_id = record.get('id')
+    new_id = record.get('id')
+    if record.get('dwid'):
+        for account in record.get('dwid'):
+            if account.strip():
+                tmp.setdefault('account', []).append(account.strip())
+        if tmp.get('account'):
+            new_id = tmp.get('account')[0]
+    if record.get('gnd') and record.get('gnd').strip():
+        tmp.setdefault('gnd', record.get('gnd'))
+        new_id = tmp.get('gnd')
+
+    # creation and change date
+    if not record.get('created'):
+        record['created'] = timestamp()
+        record['changed'] = record.get('created')
+    else:
+        if not storage_is_empty:
+            record['changed'] = timestamp()
+
     parents = []
     children = []
     projects = []
 
-    id = form.data.get('id').strip()
-    logging.info('ID: %s' % id)
-    dwid = form.data.get('dwid')
-    logging.info('DWID: %s' % dwid)
-
-    if not form.data.get('editorial_status'):
-        form.editorial_status.data = 'new'
-
-    if not form.data.get('owner'):
-        tmp.setdefault('owner', ['daten.ub@tu-dortmund.de'])
-    else:
-        tmp.setdefault('owner', form.data.get('owner'))
-
-    for field in form.data:
+    for field in record.keys():
         if field == 'same_as':
-            for same_as in form.data.get(field):
-                if len(same_as.strip()) > 0:
+            for same_as in record.get(field):
+                if same_as.strip():
                     tmp.setdefault('same_as', []).append(same_as.strip())
         elif field == 'pref_label':
-            tmp.setdefault('pref_label', form.data.get(field).strip())
+            tmp.setdefault('pref_label', record.get(field).strip())
         elif field == 'also_known_as':
-            for also_known_as in form.data.get(field):
-                if len(also_known_as.strip()) > 0:
+            for also_known_as in record.get(field):
+                if also_known_as.strip():
                     tmp.setdefault('also_known_as', []).append(str(also_known_as).strip())
-        elif field == 'dwid':
-            for account in form.data.get(field):
-                tmp.setdefault('account', []).append(account.strip())
-            if len(form.data.get('gnd')) == 0 and len(form.data.get(field)[0].strip()) > 0:
-                form.id.data = form.data.get(field)[0].strip()
-        elif field == 'gnd':
-            if len(form.data.get(field)) > 0:
-                tmp.setdefault('gnd', form.data.get(field).strip())
-                form.id.data = form.data.get(field).strip()
         elif field == 'created':
-            tmp.setdefault('created', form.data.get(field).strip().replace(' ', 'T') + 'Z')
+            tmp.setdefault('created', record.get(field).strip().replace(' ', 'T') + 'Z')
         elif field == 'changed':
-            tmp.setdefault('changed', form.data.get(field).strip().replace(' ', 'T') + 'Z')
-        elif field == 'deskman' and form.data.get(field):
-            tmp.setdefault('deskman', form.data.get(field).strip())
+            tmp.setdefault('changed', record.get(field).strip().replace(' ', 'T') + 'Z')
+        elif field == 'deskman':
+            if record.get(field).strip():
+                tmp.setdefault('deskman', record.get(field).strip())
+        elif field == 'owner':
+            for owner in record.get(field):
+                if owner.strip():
+                    tmp.setdefault('owner', owner.strip())
         elif field == 'editorial_status':
-            tmp.setdefault('editorial_status', form.data.get(field))
+            tmp.setdefault('editorial_status', record.get(field))
         elif field == 'catalog':
-            for catalog in form.data.get(field):
+            for catalog in record.get(field):
                 tmp.setdefault('catalog', catalog.strip())
         elif field == 'destatis':
-            for destatis in form.data.get(field):
+            for destatis in record.get(field):
                 if destatis.get('destatis_label'):
                     tmp.setdefault('destatis_label', []).append(destatis.get('destatis_label').strip())
                 if destatis.get('destatis_id'):
                     tmp.setdefault('destatis_id', []).append(destatis.get('destatis_id').strip())
 
-        elif field == 'parent':
-            parent = form.data.get(field)[0]
-            # logging.info('parent: %s' % parent)
-            if parent.get('parent_id'):
-                # remember ID for work on related entity
-                parents.append(parent.get('parent_id'))
-                # prepare index data and enrich form data
-                tmp.setdefault('parent_id', parent.get('parent_id'))
+        if not storage_is_empty:
+            if field == 'parent':
+                # its a list with only one element (reason form object)
+                parent = record.get(field)[0]
+                # logger.info('parent: %s' % parent)
+                if parent.get('parent_id'):
+                    # remember ID for work on related entity
+                    parents.append(parent.get('parent_id'))
+                    # prepare index data and enrich form data
+                    tmp.setdefault('parent_id', parent.get('parent_id'))
 
-                result = get_orga(parent.get('parent_id'))
+                    result = get_orga(parent.get('parent_id'))
 
-                # print('Treffer für %s: %s' % (parent.get('id'), result))
-                if result:
-                    try:
-                        myjson = json.loads(result.get('wtf_json'))
-                        label = myjson.get('pref_label').strip()
-                        tmp['parent_label'] = label
-                        tmp['fparent'] = '%s#%s' % (myjson.get('id').strip(), label)
-                        # tmp.setdefault('parent_label', label)
-                        # tmp.setdefault('fparent', '%s#%s' % (myjson.get('id').strip(), label))
-                        form.parent[0].parent_label.data = label
-                    except TypeError:
-                        logger.error(result)
-                else:
-                    message.append('ID from relation "parent" could not be found! Ref: %s' % parent.get('parent_id'))
-            elif parent.get('parent_label') and len(parent.get('parent_label')) > 0:
-                tmp.setdefault('fparent', parent.get('parent_label'))
-                tmp.setdefault('parent_label', parent.get('parent_label'))
+                    # print('Treffer für %s: %s' % (parent.get('id'), result))
+                    if result:
+                        try:
+                            myjson = json.loads(result.get('wtf_json'))
+                            label = myjson.get('pref_label').strip()
+                            tmp['parent_label'] = label
+                            tmp['fparent'] = '%s#%s' % (myjson.get('id').strip(), label)
+                            record['parent'][0]['parent_label'] = label
+                        except TypeError:
+                            logger.error(result)
+                    else:
+                        message.append('ID from relation "parent" could not be found! Ref: %s' % parent.get('parent_id'))
+                elif parent.get('parent_label') and len(parent.get('parent_label')) > 0:
+                    tmp.setdefault('fparent', parent.get('parent_label'))
+                    tmp.setdefault('parent_label', parent.get('parent_label'))
 
-        elif field == 'children':
-            # logging.info('children in form of %s : %s' % (id, form.data.get(field)))
-            for idx, child in enumerate(form.data.get(field)):
-                if child:
-                    if 'child_id' in child and 'child_label' in child:
-                        if child.get('child_id'):
-                            # remember ID for work on related entity
-                            children.append(child.get('child_id'))
-                            # prepare index data and enrich form data
-                            result = get_orga(child.get('child_id'))
-
-                            if result:
-                                try:
-                                    myjson = json.loads(result.get('wtf_json'))
-                                    label = myjson.get('pref_label').strip()
-                                    form.children[idx].child_label.data = label
-                                    tmp.setdefault('children', []).append(
-                                        json.dumps({'id': myjson.get('id').strip(),
-                                                    'label': label,
-                                                    'type': 'organisation'}))
-                                    tmp.setdefault('fchildren', []).append(
-                                        '%s#%s' % (myjson.get('id').strip(), label))
-                                except TypeError:
-                                    logger.info(result)
-                            else:
-                                result = get_group(child.get('child_id'))
+            elif field == 'children':
+                # logging.info('children in form of %s : %s' % (id, form.data.get(field)))
+                for idx, child in enumerate(record.get(field)):
+                    if child:
+                        if 'child_id' in child and 'child_label' in child:
+                            if child.get('child_id'):
+                                # remember ID for work on related entity
+                                children.append(child.get('child_id'))
+                                # prepare index data and enrich form data
+                                result = get_orga(child.get('child_id'))
 
                                 if result:
                                     try:
                                         myjson = json.loads(result.get('wtf_json'))
                                         label = myjson.get('pref_label').strip()
-                                        form.children[idx].child_label.data = label
-                                        tmp.setdefault('children', []).append(json.dumps({'id': myjson.get('id').strip(),
-                                                                                          'label': label,
-                                                                                          'type': 'group'}))
+                                        record['children'][idx]['child_label'] = label
+                                        tmp.setdefault('children', []).append(
+                                            json.dumps({'id': myjson.get('id').strip(),
+                                                        'label': label,
+                                                        'type': 'organisation'}))
                                         tmp.setdefault('fchildren', []).append(
                                             '%s#%s' % (myjson.get('id').strip(), label))
                                     except TypeError:
                                         logger.info(result)
                                 else:
-                                    message.append('ID from relation "child" could not be found! Ref: %s' % child.get(
-                                                'child_id'))
-                        elif child.get('child_label'):
-                            tmp.setdefault('children', []).append(json.dumps({'id': '',
-                                                                              'label': child.get('child_label').strip(),
-                                                                              'type': ''}))
-                            tmp.setdefault('fchildren', []).append(child.get('child_label').strip())
+                                    result = get_group(child.get('child_id'))
 
-        elif field == 'projects':
-            # logging.info('projects in form of %s : %s' % (id, form.data.get(field)))
-            for idx, project in enumerate(form.data.get(field)):
-                if project:
-                    if 'project_id' in project and 'project_label' in project:
-                        if project.get('project_id'):
-                            # remember ID for work on related entity
-                            projects.append(project.get('project_id'))
-                            # prepare index data and enrich form data
-                            result = get_group(project.get('project_id'))
+                                    if result:
+                                        try:
+                                            myjson = json.loads(result.get('wtf_json'))
+                                            label = myjson.get('pref_label').strip()
+                                            record['children'][idx]['child_label'] = label
+                                            tmp.setdefault('children', []).append(json.dumps({'id': myjson.get('id').strip(),
+                                                                                              'label': label,
+                                                                                              'type': 'group'}))
+                                            tmp.setdefault('fchildren', []).append(
+                                                '%s#%s' % (myjson.get('id').strip(), label))
+                                        except TypeError:
+                                            logger.info(result)
+                                    else:
+                                        message.append('ID from relation "child" could not be found! Ref: %s' % child.get(
+                                                    'child_id'))
+                            elif child.get('child_label'):
+                                tmp.setdefault('children', []).append(json.dumps({'id': '',
+                                                                                  'label': child.get('child_label').strip(),
+                                                                                  'type': ''}))
+                                tmp.setdefault('fchildren', []).append(child.get('child_label').strip())
 
-                            if result:
-                                try:
-                                    myjson = json.loads(result.get('wtf_json'))
-                                    label = myjson.get('pref_label').strip()
-                                    form.projects[idx].project_label.data = label
-                                    tmp.setdefault('projects', []).append(json.dumps({'id': myjson.get('id').strip(),
-                                                                                      'label': label}))
-                                    tmp.setdefault('fprojects', []).append('%s#%s' % (myjson.get('id').strip(), label))
-                                except TypeError:
-                                    logger.info(result)
-                            else:
-                                message.append('IDs from relation "projects" could not be found! Ref: %s' % project.get('project_id'))
-                        elif project.get('project_label'):
-                            tmp.setdefault('fprojects', []).append(project.get('project_label').strip())
+            elif field == 'projects':
+                # logging.info('projects in form of %s : %s' % (id, form.data.get(field)))
+                for idx, project in enumerate(record.get(field)):
+                    if project:
+                        if 'project_id' in project and 'project_label' in project:
+                            if project.get('project_id'):
+                                # remember ID for work on related entity
+                                projects.append(project.get('project_id'))
+                                # prepare index data and enrich form data
+                                result = get_group(project.get('project_id'))
 
-    # case: gnd deleted
-    del_id = ''
-    if not form.data.get('gnd'):
+                                if result:
+                                    try:
+                                        myjson = json.loads(result.get('wtf_json'))
+                                        label = myjson.get('pref_label').strip()
+                                        record['projects'][idx]['project_label'] = label
+                                        tmp.setdefault('projects', []).append(json.dumps({'id': myjson.get('id').strip(),
+                                                                                          'label': label}))
+                                        tmp.setdefault('fprojects', []).append('%s#%s' % (myjson.get('id').strip(), label))
+                                    except TypeError:
+                                        logger.info(result)
+                                else:
+                                    message.append('IDs from relation "projects" could not be found! Ref: %s' % project.get('project_id'))
+                            elif project.get('project_label'):
+                                tmp.setdefault('fprojects', []).append(project.get('project_label').strip())
+
+    # search existing children from index and possibly add them
+    if not storage_is_empty:
+        search_orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                application=secrets.SOLR_APP, core='organisation', rows=500000,
+                                query='parent_id:%s' % record_id)
+        search_orga_solr.request()
+        if len(search_orga_solr.results) > 0:
+            for result in search_orga_solr.results:
+                exists = False
+                for child in record.get('children'):
+                    # logging.info('%s vs. %s' % (child.get('child_id'), result.get('id')))
+                    if child.get('child_id').strip() == result.get('id'):
+                        exists = True
+                        break
+                if not exists:
+                    record['children'].append({'child_id': result.get('id'), 'child_label': result.get('pref_label')})
+
+        if record.get('dwid'):
+            for dwid in record.get('dwid'):
+                if dwid:
+                    search_orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                            application=secrets.SOLR_APP, core='organisation', rows=500000,
+                                            query='parent_id:%s' % dwid)
+                    search_orga_solr.request()
+                    if len(search_orga_solr.results) > 0:
+                        for result in search_orga_solr.results:
+                            exists = False
+                            for child in record.get('children'):
+                                # logging.info('%s vs. %s' % (child.get('child_id'), result.get('id')))
+                                if child.get('child_id') == result.get('id'):
+                                    exists = True
+                                    break
+                            if not exists:
+                                record['children'].append(
+                                    {'child_id': result.get('id'), 'child_label': result.get('pref_label')})
+
+        if record.get('same_as'):
+            for same_as in record.get('same_as'):
+                if same_as:
+                    search_orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                            application=secrets.SOLR_APP, core='organisation', rows=500000,
+                                            query='parent_id:%s' % same_as)
+                    search_orga_solr.request()
+                    if len(search_orga_solr.results) > 0:
+                        for result in search_orga_solr.results:
+                            exists = False
+                            for child in record.get('children'):
+                                # logging.info('%s vs. %s' % (child.get('child_id'), result.get('id')))
+                                if child.get('child_id') == result.get('id'):
+                                    exists = True
+                                    break
+                            if not exists:
+                                record['children'].append({'child_id': result.get('id'), 'child_label': result.get('pref_label')})
+
+    # set primary id
+    gnd_to_change = ''
+    if new_id != record.get('id'):
+        get_request = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                           application=secrets.SOLR_APP, query='gnd:"%s"' % record.get('id'),
+                           core='organisation', facet='false')
+        get_request.request()
+        if get_request.results and new_id == record.get('gnd'):
+            # Änderung der GND-ID!
+            gnd_to_change = record.get('id')
+        else:
+            record['same_as'].append_entry(record.get('id'))
+            tmp.setdefault('same_as', []).append(record.get('id'))
+
+        # delete record with current id
         try:
-            uuid.UUID(id)
-        except:
-            if not form.data.get('dwid') or (form.data.get('dwid') and id not in form.data.get('dwid')):
-                if form.data.get('dwid'):
-                    del_id = id
-                    id = form.data.get('dwid')[-1]
-                    form.same_as.append_entry(del_id)
-                    form.id.data = id
-                elif form.data.get('same_as'):
-                    del_id = id
-                    id = form.data.get('same_as')[-1]
-                    form.same_as.pop_entry()
-                    form.same_as.append_entry(del_id)
-                    form.id.data = id
+            delete_person_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                      application=secrets.SOLR_APP, core='organisation', del_id=record.get('id'))
+            delete_person_solr.delete()
+        except Exception as e:
+            logging.error(e)
+        record['id'] = new_id
+    else:
+        if not storage_is_empty and not record.get('gnd'):
+            get_request = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                               application=secrets.SOLR_APP, query='gnd:"%s"' % record.get('id'),
+                               core='organisation', facet='false')
+            get_request.request()
+            if get_request.results:
+                # GND-ID gelöscht
+                gnd_to_change = record.get('id')
+                if record.get('dwid'):
+                    for dwid in record.get('same_as'):
+                        if dwid.strip():
+                            record['id'] = dwid.strip()
+                            break
+                elif record.get('same_as'):
+                    for same_as in record.get('same_as'):
+                        if same_as.strip():
+                            record['id'] = same_as.strip()
+                            del record['same_as'][same_as.strip()]
+                            break
                 else:
-                    del_id = id
-                    id = str(uuid.uuid4())
-                    form.same_as.append_entry(del_id)
-                    form.id.data = id
+                    record['id'] = str(uuid.uuid4())
 
-    if del_id:
-        delete_orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                application=secrets.SOLR_APP, core='organisation', del_id=del_id)
-        delete_orga_solr.delete()
-
-    # get existing children from index
-    search_orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                            application=secrets.SOLR_APP, core='organisation', rows=500000,
-                            query='parent_id:%s' % id)
-    search_orga_solr.request()
-    if len(search_orga_solr.results) > 0:
-        for result in search_orga_solr.results:
-            exists = False
-            for child in form.data.get('children'):
-                # logging.info('%s vs. %s' % (child.get('child_id'), result.get('id')))
-                if child.get('child_id') == result.get('id'):
-                    exists = True
-                    break
-            if not exists:
-                childform = ChildForm()
-                childform.child_id.data = result.get('id')
-                childform.child_label.data = result.get('pref_label')
-                form.children.append_entry(childform.data)
-
-    for dwid in form.data.get('dwid'):
-        search_orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                application=secrets.SOLR_APP, core='organisation', rows=500000,
-                                query='parent_id:%s' % dwid)
-        search_orga_solr.request()
-        if len(search_orga_solr.results) > 0:
-            for result in search_orga_solr.results:
-                exists = False
-                for child in form.data.get('children'):
-                    # logging.info('%s vs. %s' % (child.get('child_id'), result.get('id')))
-                    if child.get('child_id') == result.get('id'):
-                        exists = True
-                        break
-                if not exists:
-                    childform = ChildForm()
-                    childform.child_id.data = result.get('id')
-                    childform.child_label.data = result.get('pref_label')
-                    form.children.append_entry(childform.data)
-
-    for same_as in form.data.get('same_as'):
-        search_orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                application=secrets.SOLR_APP, core='organisation', rows=500000,
-                                query='parent_id:%s' % same_as)
-        search_orga_solr.request()
-        if len(search_orga_solr.results) > 0:
-            for result in search_orga_solr.results:
-                exists = False
-                for child in form.data.get('children'):
-                    # logging.info('%s vs. %s' % (child.get('child_id'), result.get('id')))
-                    if child.get('child_id') == result.get('id'):
-                        exists = True
-                        break
-                if not exists:
-                    childform = ChildForm()
-                    childform.child_id.data = result.get('id')
-                    childform.child_label.data = result.get('pref_label')
-                    form.children.append_entry(childform.data)
+                # delete record with current id
+                try:
+                    delete_person_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                              application=secrets.SOLR_APP, core='organisation', del_id=new_id)
+                    delete_person_solr.delete()
+                except Exception as e:
+                    logging.error(e)
 
     # save record to index
-    try:
-        print('%s vs. %s' % (id, form.data.get('id')))
-        if id != form.data.get('id'):
+    tmp.setdefault('id', record['id'])
+    wtf_json = json.dumps(record)
+    tmp.setdefault('wtf_json', wtf_json)
+    # logging.info(tmp)
+    orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                     application=secrets.SOLR_APP, core='organisation', data=[tmp])
+    orga_solr.update()
 
-            # Fall a: id != dwid >> id-Löschen + dwid als id anlegen
-            # Fall b: id != gnd >>
-            # Fall b.1: es existiert ein record mit id = gnd >> wie Fall "id==id"
-            # Fall b.2: es existiert kein record mit id = gnd >> wie Fall a
+    # TODO if GND-ID changed: for all works using the old GND-ID, change the GND-ID
+    if gnd_to_change:
+        logger.debug('build bulk update file and store in "bulk_update_watch_folder"')
 
-            get_request = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                               application=secrets.SOLR_APP, query='id:"%s"' % form.data.get('id'), core='organisation',
-                               facet='false')
-            get_request.request()
+    orgas_queue = None
+    groups_queue = None
+    persons_queue = None
+    works_queue = None
+    # add links to related entities
+    if update_related_entities:
 
-            if len(get_request.results) == 0:
+        if manage_queue:
+            orgas_queue = parents
 
-                delete_orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                        application=secrets.SOLR_APP, core='organisation', del_id=id)
-                delete_orga_solr.delete()
-                form.same_as.append_entry(id)
-                tmp.setdefault('id', form.data.get('id'))
-                tmp.setdefault('same_as', []).append(id)
+            groups_queue = projects
 
-                id = form.data.get('id')
-            else:
-                tmp.setdefault('id', id)
-        else:
-            tmp.setdefault('id', id)
-        # build json
-        wtf_json = json.dumps(form.data)
-        tmp.setdefault('wtf_json', wtf_json)
-        # logging.info(tmp)
-        orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                         application=secrets.SOLR_APP, core='organisation', data=[tmp])
-        orga_solr.update()
-    except AttributeError as e:
-        logging.error(e)
-
-    same_as = form.data.get('same_as')
-    # logging.info('same_as: %s' % same_as)
-
-    logging.info('children: %s' % children)
-
-    # add link to parent
-    if relitems:
-        # logging.info('parents: %s' % parents)
-        for parent_id in parents:
-            # search record
-            result = get_orga(parent_id)
-
-            # load orga in form and modify changeDate
-            if result:
-                # edit
-                try:
-                    thedata = json.loads(result.get('wtf_json'))
-                    form = OrgaAdminForm.from_json(thedata)
-                    # add child to form if not exists
-                    exists = False
-                    for child in form.data.get('children'):
-                        # logging.info('%s == %s ?' % (project.get('child_id'), id))
-                        if child.get('child_id'):
-                            if child.get('child_id') == id:
-                                exists = True
-                                break
-                            elif child.get('child_id') in dwid:
-                                exists = True
-                                break
-                            elif child.get('child_id') in same_as:
-                                exists = True
-                                break
-                    if not exists:
-                        childform = ChildForm()
-                        childform.child_id.data = id
-                        form.children.append_entry(childform.data)
-
-                    # save record
-                    try:
-                        form.changed.data = timestamp()
-                        orga2solr(form, action='update', relitems=False)
-                    except AttributeError as e:
-                        logging.error('linking from %s: %s' % (parent_id, str(e)))
-
-                except TypeError as e:
-                    logging.error(e)
-                    logging.error('thedata: %s' % result.get('wtf_json'))
-            else:
-                logging.info('Currently there is no record for parent_id %s!' % parent_id)
-
-        # logging.info('children: %s' % children)
-        for child_id in children:
-            # search record
-            result = get_orga(child_id)
-
-            # load orga in form and modify changeDate
-            if result:
-                # edit
-                try:
-                    thedata = json.loads(result.get('wtf_json'))
-                    form = OrgaAdminForm.from_json(thedata)
-                    # add parent to form if not exists
-                    if not form.data.get('parent'):
-                        parentform = ParentForm()
-                        parentform.parent_id = id
-                        form.parent.append_entry(parentform.data)
+            if children:
+                for child_id in children:
+                    result = get_orga(child_id)
+                    if result:
+                        orgas_queue.append(child_id)
                     else:
-                        form.parent[0].parent_id = id
+                        result = get_group(child_id)
+                        if result:
+                            groups_queue.append(child_id)
 
-                    # save record
-                    try:
-                        form.changed.data = timestamp()
-                        orga2solr(form, action='update', relitems=False)
-                    except AttributeError as e:
-                        logging.error('linking from %s: %s' % (child_id, str(e)))
+            persons_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                application=secrets.SOLR_APP, core='person',
+                                query='affiliation_id:%s' % record_id, facet=False, rows=500000)
+            persons_solr.request()
+            if persons_solr.results:
+                persons_queue = []
+                for person in persons_solr.results:
+                    persons_queue.append(person.get('id'))
 
-                except TypeError as e:
-                    logging.error(e)
-                    logging.error('thedata: %s' % result.get('wtf_json'))
-            else:
-                result = get_group(child_id)
+            works_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                              application=secrets.SOLR_APP, core='hb2',
+                              query='affiliation_id:%s' % record_id, facet=False, rows=2000000)
+            works_solr.request()
+
+            if works_solr.results:
+                works_queue = []
+                for work in works_solr.results:
+                    works_queue.append(work.get('id'))
+
+        else:
+            # logging.info('parents: %s' % parents)
+            for parent_id in parents:
+                # search record
+                result = get_orga(parent_id)
 
                 # load orga in form and modify changeDate
                 if result:
                     # edit
                     try:
                         thedata = json.loads(result.get('wtf_json'))
-                        form = GroupAdminForm.from_json(thedata)
+                        form = OrgaAdminForm.from_json(thedata)
+                        # add child to form if not exists
+                        exists = False
+                        for child in form.data.get('children'):
+                            # logging.info('%s == %s ?' % (project.get('child_id'), id))
+                            if child.get('child_id'):
+                                if child.get('child_id') == id:
+                                    exists = True
+                                    break
+                                elif child.get('child_id') in dwid:
+                                    exists = True
+                                    break
+                                elif child.get('child_id') in same_as:
+                                    exists = True
+                                    break
+                        if not exists:
+                            childform = ChildForm()
+                            childform.child_id.data = id
+                            form.children.append_entry(childform.data)
+
+                        # save record
+                        try:
+                            form.changed.data = timestamp()
+                            orga2solr(form, action='update', relitems=False)
+                        except AttributeError as e:
+                            logging.error('linking from %s: %s' % (parent_id, str(e)))
+
+                    except TypeError as e:
+                        logging.error(e)
+                        logging.error('thedata: %s' % result.get('wtf_json'))
+                else:
+                    logging.info('Currently there is no record for parent_id %s!' % parent_id)
+
+            # logging.info('children: %s' % children)
+            for child_id in children:
+                # search record
+                result = get_orga(child_id)
+
+                # load orga in form and modify changeDate
+                if result:
+                    # edit
+                    try:
+                        thedata = json.loads(result.get('wtf_json'))
+                        form = OrgaAdminForm.from_json(thedata)
                         # add parent to form if not exists
                         if not form.data.get('parent'):
                             parentform = ParentForm()
@@ -1507,7 +1563,7 @@ def orga2solr(form, action, relitems=True, getchildren=False):
                         # save record
                         try:
                             form.changed.data = timestamp()
-                            group2solr(form, action='update', relitems=False)
+                            orga2solr(form, update_related_entities=False)
                         except AttributeError as e:
                             logging.error('linking from %s: %s' % (child_id, str(e)))
 
@@ -1515,172 +1571,200 @@ def orga2solr(form, action, relitems=True, getchildren=False):
                         logging.error(e)
                         logging.error('thedata: %s' % result.get('wtf_json'))
                 else:
-                    logging.info('Currently there is no record for child_id %s!' % child_id)
+                    result = get_group(child_id)
 
-        # logging.debug('partners: %s' % partners)
-        for project_id in projects:
-            # search record
-            result = get_group(project_id)
+                    # load orga in form and modify changeDate
+                    if result:
+                        # edit
+                        try:
+                            thedata = json.loads(result.get('wtf_json'))
+                            form = GroupAdminForm.from_json(thedata)
+                            # add parent to form if not exists
+                            if not form.data.get('parent'):
+                                parentform = ParentForm()
+                                parentform.parent_id = id
+                                form.parent.append_entry(parentform.data)
+                            else:
+                                form.parent[0].parent_id = id
 
-            # load orga in form and modify changeDate
-            if result:
+                            # save record
+                            try:
+                                form.changed.data = timestamp()
+                                group2solr(form, action='update', relitems=False)
+                            except AttributeError as e:
+                                logging.error('linking from %s: %s' % (child_id, str(e)))
+
+                        except TypeError as e:
+                            logging.error(e)
+                            logging.error('thedata: %s' % result.get('wtf_json'))
+                    else:
+                        logging.info('Currently there is no record for child_id %s!' % child_id)
+
+            # logging.debug('partners: %s' % partners)
+            for project_id in projects:
+                # search record
+                result = get_group(project_id)
+
+                # load orga in form and modify changeDate
+                if result:
+                    # edit
+                    try:
+                        thedata = json.loads(result.get('wtf_json'))
+                        form = GroupAdminForm.from_json(thedata)
+                        # add project to form if not exists
+                        exists = False
+                        for partner in form.data.get('partners'):
+                            # logging.info('%s == %s ?' % (project.get('project_id'), id))
+                            if partner.get('partner_id'):
+                                if partner.get('partner_id') == id:
+                                    exists = True
+                                    break
+                                elif partner.get('partner_id') in same_as:
+                                    exists = True
+                                    break
+                        # logging.debug('exists? %s' % exists)
+                        if not exists:
+                            partnerform = PartnerForm()
+                            partnerform.partner_id.data = id
+                            form.partners.append_entry(partnerform.data)
+
+                        # save record
+                        try:
+                            form.changed.data = timestamp()
+                            group2solr(form, action='update', relitems=False)
+                        except AttributeError as e:
+                            logging.error('ERROR linking from %s: %s' % (project_id, str(e)))
+
+                    except TypeError as e:
+                        logging.error(e)
+                        logging.error('thedata: %s' % result.get('wtf_json'))
+                else:
+                    logging.info('Currently there is no record for project_id %s!' % project_id)
+
+            # store work records again
+            works_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                              application=secrets.SOLR_APP, core='hb2',
+                              query='affiliation_id:%s' % id, facet=False, rows=500000)
+            works_solr.request()
+
+            for work in works_solr.results:
                 # edit
                 try:
-                    thedata = json.loads(result.get('wtf_json'))
-                    form = GroupAdminForm.from_json(thedata)
-                    # add project to form if not exists
-                    exists = False
-                    for partner in form.data.get('partners'):
-                        # logging.info('%s == %s ?' % (project.get('project_id'), id))
-                        if partner.get('partner_id'):
-                            if partner.get('partner_id') == id:
-                                exists = True
-                                break
-                            elif partner.get('partner_id') in same_as:
-                                exists = True
-                                break
-                    # logging.debug('exists? %s' % exists)
-                    if not exists:
-                        partnerform = PartnerForm()
-                        partnerform.partner_id.data = id
-                        form.partners.append_entry(partnerform.data)
-
-                    # save record
-                    try:
-                        form.changed.data = timestamp()
-                        group2solr(form, action='update', relitems=False)
-                    except AttributeError as e:
-                        logging.error('ERROR linking from %s: %s' % (project_id, str(e)))
-
+                    thedata = json.loads(work.get('wtf_json'))
+                    form = display_vocabularies.PUBTYPE2FORM.get(thedata.get('pubtype')).from_json(thedata)
+                    form.changed.data = timestamp()
+                    work2solr(record=form.data, update_related_entities=False)
                 except TypeError as e:
                     logging.error(e)
-                    logging.error('thedata: %s' % result.get('wtf_json'))
-            else:
-                logging.info('Currently there is no record for project_id %s!' % project_id)
+                    logging.error('thedata: %s' % work.get('wtf_json'))
 
-        # store work records again
-        works_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                          application=secrets.SOLR_APP, core='hb2',
-                          query='affiliation_id:%s' % id, facet=False, rows=500000)
-        works_solr.request()
-
-        for work in works_solr.results:
-            # edit
-            try:
-                thedata = json.loads(work.get('wtf_json'))
-                form = display_vocabularies.PUBTYPE2FORM.get(thedata.get('pubtype')).from_json(thedata)
-                form.changed.data = timestamp()
-                work2solr(record=form.data, update_related_entities=False)
-            except TypeError as e:
-                logging.error(e)
-                logging.error('thedata: %s' % work.get('wtf_json'))
-
-        # store person records again
-        results = []
-        persons_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                            application=secrets.SOLR_APP, core='person',
-                            query='affiliation_id:%s' % id, facet=False, rows=500000)
-        persons_solr.request()
-        if len(persons_solr.results) > 0:
-            results.append(persons_solr.results)
-        for entry in dwid:
+            # store person records again
+            results = []
             persons_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
                                 application=secrets.SOLR_APP, core='person',
-                                query='affiliation_id:%s' % entry, facet=False, rows=500000)
+                                query='affiliation_id:%s' % id, facet=False, rows=500000)
             persons_solr.request()
             if len(persons_solr.results) > 0:
-                results += persons_solr.results
-        for entry in same_as:
-            persons_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                application=secrets.SOLR_APP, core='person',
-                                query='affiliation_id:%s' % entry, facet=False, rows=500000)
-            persons_solr.request()
-            if len(persons_solr.results) > 0:
-                results += persons_solr.results
+                results.append(persons_solr.results)
+            for entry in dwid:
+                persons_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                    application=secrets.SOLR_APP, core='person',
+                                    query='affiliation_id:%s' % entry, facet=False, rows=500000)
+                persons_solr.request()
+                if len(persons_solr.results) > 0:
+                    results += persons_solr.results
+            for entry in same_as:
+                persons_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                    application=secrets.SOLR_APP, core='person',
+                                    query='affiliation_id:%s' % entry, facet=False, rows=500000)
+                persons_solr.request()
+                if len(persons_solr.results) > 0:
+                    results += persons_solr.results
 
-        for person in results:
-            # edit
-            try:
-                thedata = json.loads(person.get('wtf_json'))
-                form = PersonAdminForm.from_json(thedata)
-                form.changed.data = timestamp()
-                person2solr(form, action='update')
-            except TypeError as e:
-                logging.error(e)
-                logging.error('thedata: %s' % person.get('wtf_json'))
-            except AttributeError as e:
-                logging.error(e)
+            for person in results:
+                # edit
+                try:
+                    thedata = json.loads(person.get('wtf_json'))
+                    form = PersonAdminForm.from_json(thedata)
+                    form.changed.data = timestamp()
+                    person2solr(form, action='update')
+                except TypeError as e:
+                    logging.error(e)
+                    logging.error('thedata: %s' % person.get('wtf_json'))
+                except AttributeError as e:
+                    logging.error(e)
 
-    return id, message
+    return record['id'], message, orgas_queue, groups_queue, persons_queue, works_queue
 
 
-def group2solr(form, action, relitems=True):
+def group2solr(record=None, storage_is_empty=False, update_related_entities=True, manage_queue=False):
+
+    if record is None:
+        record = {}
 
     message = []
-
     tmp = {}
+
+    new_id = record.get('id')
+    if record.get('dwid') and record.get('dwid').strip():
+        tmp.setdefault('dwid', record.get('dwid'))
+        new_id = tmp.get('dwid')
+    if record.get('gnd') and record.get('gnd').strip():
+        tmp.setdefault('gnd', record.get('gnd'))
+        new_id = tmp.get('gnd')
+
+    # creation and change date
+    if not record.get('created'):
+        record['created'] = timestamp()
+        record['changed'] = record.get('created')
+    else:
+        record['changed'] = timestamp()
+
     parents = []
     children = []
     partners = []
 
-    id = form.data.get('id').strip()
-    # logging.info('ID: %s' % id)
-
-    if not form.data.get('editorial_status'):
-        form.editorial_status.data = 'new'
-
-    if action == 'update':
-        if form.data.get('editorial_status') == 'new':
-            form.editorial_status.data = 'in_process'
-
-    if not form.data.get('owner'):
-        tmp.setdefault('owner', ['daten.ub@tu-dortmund.de'])
-    else:
-        tmp.setdefault('owner', form.data.get('owner'))
-
-    for field in form.data:
+    for field in record.keys():
         if field == 'same_as':
-            for same_as in form.data.get(field):
-                if len(same_as.strip()) > 0:
+            for same_as in record.get(field):
+                if same_as.strip():
                     tmp.setdefault('same_as', []).append(same_as.strip())
         elif field == 'funds':
-            for funder in form.data.get(field):
-                if len(funder.get('organisation').strip()) > 0:
+            for funder in record.get(field):
+                if funder.get('organisation') and funder.get('organisation').strip():
                     tmp.setdefault('funder_id', []).append(funder.get('organisation_id').strip())
                     tmp.setdefault('funder', []).append(funder.get('organisation').strip())
                     tmp.setdefault('ffunder', []).append(funder.get('organisation').strip())
         elif field == 'pref_label':
-            tmp.setdefault('pref_label', form.data.get(field).strip())
+            tmp.setdefault('pref_label', record.get(field).strip())
         elif field == 'also_known_as':
-            for also_known_as in form.data.get(field):
-                if len(also_known_as.strip()) > 0:
+            for also_known_as in record.get(field):
+                if also_known_as.strip():
                     tmp.setdefault('also_known_as', []).append(str(also_known_as).strip())
-        elif field == 'dwid':
-            tmp.setdefault('account', form.data.get(field))
-        elif field == 'gnd':
-            if len(form.data.get(field)) > 0:
-                tmp.setdefault('gnd', form.data.get(field).strip())
-                form.id.data = form.data.get(field).strip()
         elif field == 'created':
-            tmp.setdefault('created', form.data.get(field).strip().replace(' ', 'T') + 'Z')
+            tmp.setdefault('created', record.get(field).strip().replace(' ', 'T') + 'Z')
         elif field == 'changed':
-            tmp.setdefault('changed', form.data.get(field).strip().replace(' ', 'T') + 'Z')
-        elif field == 'deskman' and form.data.get(field):
-            tmp.setdefault('deskman', form.data.get(field).strip())
+            tmp.setdefault('changed', record.get(field).strip().replace(' ', 'T') + 'Z')
+        elif field == 'deskman' and record.get(field):
+            tmp.setdefault('deskman', record.get(field).strip())
+        elif field == 'owner':
+            for owner in record.get(field):
+                if owner.strip():
+                    tmp.setdefault('owner', owner.strip())
         elif field == 'editorial_status':
-            tmp.setdefault('editorial_status', form.data.get(field))
+            tmp.setdefault('editorial_status', record.get(field))
         elif field == 'catalog':
-            for catalog in form.data.get(field):
+            for catalog in record.get(field):
                 tmp.setdefault('catalog', catalog.strip())
         elif field == 'destatis':
-            for destatis in form.data.get(field):
+            for destatis in record.get(field):
                 if destatis.get('destatis_label'):
                     tmp.setdefault('destatis_label', []).append(destatis.get('destatis_label').strip())
                 if destatis.get('destatis_id'):
                     tmp.setdefault('destatis_id', []).append(destatis.get('destatis_id').strip())
 
         elif field == 'parent':
-            parent = form.data.get(field)[0]
+            parent = record.get(field)[0]
             # logging.info('parent: %s' % parent)
             if parent.get('parent_id'):
                 # remember ID for work on related entity
@@ -1695,7 +1779,7 @@ def group2solr(form, action, relitems=True):
                     tmp.setdefault('parent_type', 'group')
                     tmp.setdefault('parent_label', myjson.get('pref_label'))
                     tmp.setdefault('fparent', '%s#%s' % (myjson.get('id'), myjson.get('pref_label')))
-                    form.parent[0].parent_label.data = myjson.get('pref_label')
+                    record['parent'][0]['parent_label'] = myjson.get('pref_label')
                 else:
                     result = get_orga(parent.get('parent_id'))
 
@@ -1704,7 +1788,7 @@ def group2solr(form, action, relitems=True):
                         tmp.setdefault('parent_type', 'organisation')
                         tmp.setdefault('parent_label', myjson.get('pref_label'))
                         tmp.setdefault('fparent', '%s#%s' % (myjson.get('id'), myjson.get('pref_label')))
-                        form.parent[0].parent_label.data = myjson.get('pref_label')
+                        record['parent'][0]['parent_label'] = myjson.get('pref_label')
                     else:
                         message.append(
                             'IDs from relation "parent" could not be found! Ref: %s' % parent.get('parent_id'))
@@ -1715,7 +1799,7 @@ def group2solr(form, action, relitems=True):
 
         elif field == 'children':
             # logging.info('children in form of %s : %s' % (id, form.data.get(field)))
-            for idx, child in enumerate(form.data.get(field)):
+            for idx, child in enumerate(record.get(field)):
                 if child:
                     if 'child_id' in child and 'child_label' in child:
                         if child.get('child_id'):
@@ -1728,7 +1812,7 @@ def group2solr(form, action, relitems=True):
                             if result:
                                 myjson = json.loads(result.get('wtf_json'))
                                 label = myjson.get('pref_label').strip()
-                                form.children[idx].child_label.data = label
+                                record['children'][idx]['child_label'] = label
                                 tmp.setdefault('children', []).append(json.dumps({'id': myjson.get('id'),
                                                                                   'label': label}))
                                 tmp.setdefault('fchildren', []).append('%s#%s' % (myjson.get('id'), label))
@@ -1742,7 +1826,7 @@ def group2solr(form, action, relitems=True):
 
         elif field == 'partners':
             # logging.info('partners in form of %s : %s' % (id, form.data.get(field)))
-            for idx, partner in enumerate(form.data.get(field)):
+            for idx, partner in enumerate(record.get(field)):
                 if partner:
                     if 'partner_id' in partner and 'partner_label' in partner:
                         if partner.get('partner_id'):
@@ -1755,7 +1839,7 @@ def group2solr(form, action, relitems=True):
                             if result:
                                 myjson = json.loads(result.get('wtf_json'))
                                 label = myjson.get('pref_label').strip()
-                                form.partners[idx].partner_label.data = label
+                                record['partners'][idx]['partner_label'] = label
                                 tmp.setdefault('partners', []).append(json.dumps({'id': myjson.get('id'),
                                                                                   'label': label}))
                                 tmp.setdefault('fpartners', []).append('%s#%s' % (myjson.get('id'), label))
@@ -1767,64 +1851,78 @@ def group2solr(form, action, relitems=True):
                             tmp.setdefault('partners', []).append(partner.get('partner_label'))
                             tmp.setdefault('fpartners', []).append(partner.get('partner_label'))
 
-    # case: gnd deleted
-    del_id = ''
-    if not form.data.get('gnd'):
-        try:
-            uuid.UUID(id)
-        except:
-            if not form.data.get('dwid') or (form.data.get('dwid') and id not in form.data.get('dwid')):
-                if form.data.get('dwid'):
-                    del_id = id
-                    id = form.data.get('dwid')[-1]
-                    form.same_as.append_entry(del_id)
-                    form.id.data = id
-                elif form.data.get('same_as'):
-                    del_id = id
-                    id = form.data.get('same_as')[-1]
-                    form.same_as.pop_entry()
-                    form.same_as.append_entry(del_id)
-                    form.id.data = id
-                else:
-                    del_id = id
-                    id = str(uuid.uuid4())
-                    form.same_as.append_entry(del_id)
-                    form.id.data = id
+    # set primary id
+    gnd_to_change = ''
+    if new_id != record.get('id'):
+        get_request = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                           application=secrets.SOLR_APP, query='gnd:"%s"' % record.get('id'),
+                           core='group', facet='false')
+        get_request.request()
+        if get_request.results and new_id == record.get('gnd'):
+            # Änderung der GND-ID!
+            gnd_to_change = record.get('id')
+        else:
+            record['same_as'].append_entry(record.get('id'))
+            tmp.setdefault('same_as', []).append(record.get('id'))
 
-    if del_id:
-        delete_orga_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                application=secrets.SOLR_APP, core='group', del_id=del_id)
-        delete_orga_solr.delete()
+        # delete record with current id
+        try:
+            delete_person_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                      application=secrets.SOLR_APP, core='group', del_id=record.get('id'))
+            delete_person_solr.delete()
+        except Exception as e:
+            logging.error(e)
+        record['id'] = new_id
+    else:
+        if not storage_is_empty and not record.get('gnd'):
+            get_request = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                               application=secrets.SOLR_APP, query='gnd:"%s"' % record.get('id'),
+                               core='group', facet='false')
+            get_request.request()
+            if get_request.results:
+                # GND-ID gelöscht
+                gnd_to_change = record.get('id')
+                if record.get('dwid'):
+                    for dwid in record.get('same_as'):
+                        if dwid.strip():
+                            record['id'] = dwid.strip()
+                            break
+                elif record.get('same_as'):
+                    for same_as in record.get('same_as'):
+                        if same_as.strip():
+                            record['id'] = same_as.strip()
+                            del record['same_as'][same_as.strip()]
+                            break
+                else:
+                    record['id'] = str(uuid.uuid4())
+
+                # delete record with current id
+                try:
+                    delete_person_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                                              application=secrets.SOLR_APP, core='group', del_id=new_id)
+                    delete_person_solr.delete()
+                except Exception as e:
+                    logging.error(e)
 
     # save record to index
-    try:
-        # logging.info('%s vs. %s' % (id, form.data.get('id')))
-        if id != form.data.get('id'):
-            delete_group_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                                     application=secrets.SOLR_APP, core='group', del_id=id)
-            delete_group_solr.delete()
-            form.same_as.append_entry(id)
-            tmp.setdefault('id', form.data.get('id'))
-            tmp.setdefault('same_as', []).append(id)
+    tmp.setdefault('id', record['id'])
+    wtf_json = json.dumps(record)
+    tmp.setdefault('wtf_json', wtf_json)
+    # logging.info(tmp)
+    groups_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
+                       application=secrets.SOLR_APP, core='group', data=[tmp])
+    groups_solr.update()
 
-            id = form.data.get('id')
-        else:
-            tmp.setdefault('id', id)
-        # build json
-        wtf_json = json.dumps(form.data)
-        tmp.setdefault('wtf_json', wtf_json)
-        # logging.info(tmp)
-        groups_solr = Solr(host=secrets.SOLR_HOST, port=secrets.SOLR_PORT,
-                           application=secrets.SOLR_APP, core='group', data=[tmp])
-        groups_solr.update()
-    except AttributeError as e:
-        logging.error(e)
-
-    same_as = form.data.get('same_as')
-    # logging.info('same_as: %s' % same_as)
+    # TODO if GND-ID changed: for all works using the old GND-ID, change the GND-ID
+    if gnd_to_change:
+        logger.debug('build bulk update file and store in "bulk_update_watch_folder"')
 
     # add links to related entities
-    if relitems:
+    groups_queue = None
+    orgas_queue = None
+    persons_queue = None
+    works_queue = None
+    if update_related_entities:
         # logging.debug('parents: %s' % parents)
         for parent_id in parents:
             # search record
@@ -2018,4 +2116,4 @@ def group2solr(form, action, relitems=True):
             except AttributeError as e:
                 logging.error(e)
 
-    return id, message
+    return record['id'], message, groups_queue, orgas_queue, persons_queue, works_queue

@@ -1,0 +1,168 @@
+{
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "catalog": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
+            "projects": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "project_label": {
+                            "type": "string"
+                        },
+                        "project_id": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "project_id",
+                        "project_label"
+                    ]
+                }
+            },
+            "created": {
+                "type": "string"
+            },
+            "gnd": {
+                "type": "string"
+            },
+            "changed": {
+                "type": "string"
+            },
+            "same_as": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
+            "dwid": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
+            "deskman": {
+                "type": "string"
+            },
+            "id": {
+                "type": "string"
+            },
+            "destatis": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "label": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "id",
+                        "label"
+                    ]
+                }
+            },
+            "parent_id": {
+                "type": "string"
+            },
+            "correction_request": {
+                "type": "string"
+            },
+            "children": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "child_label": {
+                            "type": "string"
+                        },
+                        "child_id": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "child_id",
+                        "child_label"
+                    ]
+                }
+            },
+            "parent_label": {
+                "type": "string"
+            },
+            "url": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "url": {
+                            "type": "string"
+                        },
+                        "label": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "label",
+                        "url"
+                    ]
+                }
+            },
+            "editorial_status": {
+                "type": "string"
+            },
+            "end_date": {
+                "type": "string"
+            },
+            "owner": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
+            "pref_label": {
+                "type": "string"
+            },
+            "start_date": {
+                "type": "string"
+            },
+            "parent": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "parent_id": {
+                            "type": "string"
+                        },
+                        "parent_label": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "parent_id",
+                        "parent_label"
+                    ]
+                }
+            }
+        },
+        "required": [
+            "catalog",
+            "changed",
+            "created",
+            "deskman",
+            "editorial_status",
+            "id",
+            "owner",
+            "pref_label"
+        ]
+    }
+}

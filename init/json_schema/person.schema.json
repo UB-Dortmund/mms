@@ -1,0 +1,197 @@
+{
+    "items": {
+        "properties": {
+            "group": {
+                "items": {
+                    "properties": {
+                        "end": {
+                            "type": "string"
+                        },
+                        "group_id": {
+                            "type": "string"
+                        },
+                        "label": {
+                            "type": "string"
+                        },
+                        "start": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object",
+                    "required": [
+                        "end",
+                        "group_id",
+                        "label",
+                        "start"
+                    ]
+                },
+                "type": "array"
+            },
+            "dwid": {
+                "type": "string"
+            },
+            "affiliation": {
+                "items": {
+                    "properties": {
+                        "end": {
+                            "type": "string"
+                        },
+                        "organisation_id": {
+                            "type": "string"
+                        },
+                        "label": {
+                            "type": "string"
+                        },
+                        "start": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object",
+                    "required": [
+                        "end",
+                        "label",
+                        "organisation_id",
+                        "start"
+                    ]
+                },
+                "type": "array"
+            },
+            "researcher_id": {
+                "type": "string"
+            },
+            "data_supplied": {
+                "type": "string"
+            },
+            "viaf": {
+                "type": "string"
+            },
+            "isni": {
+                "type": "string"
+            },
+            "id": {
+                "type": "string"
+            },
+            "contact": {
+                "type": "string"
+            },
+            "rubi": {
+                "type": "boolean"
+            },
+            "created": {
+                "type": "string"
+            },
+            "status": {
+                "items": {
+                    "type": "string"
+                },
+                "type": "array"
+            },
+            "tudo": {
+                "type": "boolean"
+            },
+            "url": {
+                "items": {
+                    "properties": {
+                        "label": {
+                            "type": "string"
+                        },
+                        "url": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object",
+                    "required": [
+                        "label",
+                        "url"
+                    ]
+                },
+                "type": "array"
+            },
+            "arxiv_id": {
+                "type": "string"
+            },
+            "owner": {
+                "items": {
+                    "type": "string"
+                },
+                "type": "array"
+            },
+            "editorial_status": {
+                "type": "string"
+            },
+            "deskman": {
+                "type": "string"
+            },
+            "orcid": {
+                "type": "string"
+            },
+            "scopus_id": {
+                "items": {
+                    "type": "string"
+                },
+                "type": "array"
+            },
+            "same_as": {
+                "items": {
+                    "type": "string"
+                },
+                "type": "array"
+            },
+            "catalog": {
+                "items": {
+                    "type": "string"
+                },
+                "type": "array"
+            },
+            "note": {
+                "type": "string"
+            },
+            "name": {
+                "type": "string"
+            },
+            "account": {
+                "items": {},
+                "type": "array"
+            },
+            "email": {
+                "type": "string"
+            },
+            "also_known_as": {
+                "items": {
+                    "type": "string"
+                },
+                "type": "array"
+            },
+            "salutation": {
+                "type": "string"
+            },
+            "research_interest": {
+                "items": {
+                    "type": "string"
+                },
+                "type": "array"
+            },
+            "gnd": {
+                "type": "string"
+            },
+            "changed": {
+                "type": "string"
+            }
+        },
+        "type": "object",
+        "required": [
+            "catalog",
+            "changed",
+            "created",
+            "deskman",
+            "editorial_status",
+            "id",
+            "name",
+            "owner",
+            "rubi",
+            "same_as",
+            "tudo"
+        ]
+    },
+    "type": "array"
+}

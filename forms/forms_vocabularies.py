@@ -54,6 +54,7 @@ LANGUAGES = [
     ('baq', lazy_gettext('Basque')),
     ('gag', lazy_gettext('Galician')),
     ('tib', lazy_gettext('Tibetan')),
+    ('mac', lazy_gettext('Macedonian')),
 ]
 
 USER_ROLES = [

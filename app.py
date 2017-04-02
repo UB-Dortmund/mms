@@ -2627,7 +2627,7 @@ def dashboard():
     page = int(request.args.get('page', 1))
     sorting = request.args.get('sort', '')
     if sorting == '':
-        sorting = 'recordCreationDate desc'
+        sorting = 'recordChangeDate desc'
     elif sorting == 'relevance':
         sorting = ''
     mystart = 0
@@ -3327,13 +3327,21 @@ def new_orga():
         if current_user.role == 'admin' or current_user.role == 'superadmin':
             if form.data.get('editorial_status') == 'new':
                 form.editorial_status.data = 'in_process'
-        if len(form.data.get('owner')) == 0 or form.data.get('owner')[0] == '':
-            form.owner[0].data = current_user.email
-        if len(form.data.get('catalog')) == 0 or form.data.get('catalog')[0] == '':
+
+        if not form.data.get('editorial_status'):
+            form.editorial_status.data = 'new'
+
+        if not form.data.get('owner'):
+            if current_user and current_user.email:
+                form.owner[0].data = current_user.email
+            else:
+                form.owner[0].data = 'daten.ub@tu-dortmund.de'
+
+        if not form.data.get('catalog') or not form.data.get('catalog')[0]:
             # TODO use config data
-            if current_user.affiliation == 'tudo':
+            if current_user and current_user.affiliation == 'tudo':
                 form.catalog.data = ['Technische Universität Dortmund']
-            if current_user.affiliation == 'rub':
+            if current_user and current_user.affiliation == 'rub':
                 form.catalog.data = ['Ruhr-Universität Bochum']
         # logging.info(form.data)
         redirect_id, message = persistence.orga2solr(form, action='create')
@@ -3371,13 +3379,21 @@ def new_group():
         if current_user.role == 'admin' or current_user.role == 'superadmin':
             if form.data.get('editorial_status') == 'new':
                 form.editorial_status.data = 'in_process'
-        if len(form.data.get('owner')) == 0 or form.data.get('owner')[0] == '':
-            form.owner[0].data = current_user.email
-        if len(form.data.get('catalog')) == 0 or form.data.get('catalog')[0] == '':
+
+        if not form.data.get('editorial_status'):
+            form.editorial_status.data = 'new'
+
+        if not form.data.get('owner'):
+            if current_user and current_user.email:
+                form.owner[0].data = current_user.email
+            else:
+                form.owner[0].data = 'daten.ub@tu-dortmund.de'
+
+        if not form.data.get('catalog') or not form.data.get('catalog')[0]:
             # TODO use config data
-            if current_user.affiliation == 'tudo':
+            if current_user and current_user.affiliation == 'tudo':
                 form.catalog.data = ['Technische Universität Dortmund']
-            if current_user.affiliation == 'rub':
+            if current_user and current_user.affiliation == 'rub':
                 form.catalog.data = ['Ruhr-Universität Bochum']
 
         # logging.info(form.data)

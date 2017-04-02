@@ -1,0 +1,190 @@
+{
+    "type": "array",
+    "items": {
+        "required": [
+            "catalog",
+            "changed",
+            "created",
+            "deskman",
+            "editorial_status",
+            "id",
+            "owner",
+            "pref_label"
+        ],
+        "type": "object",
+        "properties": {
+            "parent_label": {
+                "type": "string"
+            },
+            "funds": {
+                "type": "array",
+                "items": {
+                    "required": [
+                        "organisation",
+                        "organisation_id",
+                        "project_id"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "organisation_id": {
+                            "type": "string"
+                        },
+                        "project_id": {
+                            "type": "string"
+                        },
+                        "organisation": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "parent_id": {
+                "type": "string"
+            },
+            "description": {
+                "type": "string"
+            },
+            "deskman": {
+                "type": "string"
+            },
+            "note": {
+                "type": "string"
+            },
+            "editorial_status": {
+                "type": "string"
+            },
+            "gnd": {
+                "type": "string"
+            },
+            "catalog": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
+            "correction_request": {
+                "type": "string"
+            },
+            "created": {
+                "type": "string"
+            },
+            "id": {
+                "type": "string"
+            },
+            "end_date": {
+                "type": "string"
+            },
+            "partners": {
+                "type": "array",
+                "items": {
+                    "required": [
+                        "partner_id",
+                        "partner_label"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "partner_id": {
+                            "type": "string"
+                        },
+                        "partner_label": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "url": {
+                "type": "array",
+                "items": {
+                    "required": [
+                        "label",
+                        "url"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "url": {
+                            "type": "string"
+                        },
+                        "label": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "pref_label": {
+                "type": "string"
+            },
+            "parent": {
+                "type": "array",
+                "items": {
+                    "required": [
+                        "parent_id",
+                        "parent_label"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "parent_label": {
+                            "type": "string"
+                        },
+                        "parent_id": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "start_date": {
+                "type": "string"
+            },
+            "destatis": {
+                "type": "array",
+                "items": {
+                    "required": [
+                        "id",
+                        "label"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "label": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "changed": {
+                "type": "string"
+            },
+            "same_as": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
+            "children": {
+                "type": "array",
+                "items": {
+                    "required": [
+                        "child_id",
+                        "child_label"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "child_id": {
+                            "type": "string"
+                        },
+                        "child_label": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "owner": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

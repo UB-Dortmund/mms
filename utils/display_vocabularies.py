@@ -253,6 +253,8 @@ LANGUAGE_MAP = {
     'slv': lazy_gettext('Slovenian'),
     'baq': lazy_gettext('Basque'),
     'gag': lazy_gettext('Galician'),
+    'tib': lazy_gettext('Tibetan'),
+    'mac': lazy_gettext('Macedonian'),
 }
 
 FREQUENCY_MAP = {
