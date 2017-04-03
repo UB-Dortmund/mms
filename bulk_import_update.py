@@ -64,7 +64,8 @@ def _validate_data(thedata=None, entity_type='work'):
         try:
             validate(thedata, schema)
             return True
-        except:
+        except Exception as e:
+            logger.error(e)
             return False
 
 
@@ -136,6 +137,26 @@ def _insert2queue(key='', items=None, cnt=0):
     return del_cnt
 
 
+def _restore_orga_data(record):
+    persistence.orga2solr(record=record, storage_is_empty=True,
+                          update_related_entities=False, manage_queue=False)
+
+
+def _restore_group_data(record):
+    persistence.group2solr(record=record, storage_is_empty=True,
+                           update_related_entities=False, manage_queue=False)
+
+
+def _restore_person_data(record):
+    persistence.person2solr(record=record, storage_is_empty=True,
+                            update_related_entities=False, manage_queue=False)
+
+
+def _restore_work_data(record):
+    persistence.work2solr(record=record, storage_is_empty=True,
+                          update_related_entities=False, manage_queue=False)
+
+
 def _index_orga_data(record):
     persistence.orga2solr(record=record, storage_is_empty=False,
                           update_related_entities=False, manage_queue=False)
@@ -161,212 +182,242 @@ def _manage_bulk_upload(entity_type='work', records=None, storage_is_empty=False
     if records is None:
         records = []
 
-    summary_time = 0
-    time_to_manage_queue = 0
-    cnt = 0
+    if records:
+        summary_time = 0
+        time_to_manage_queue = 0
+        cnt = 0
+        queue_cnt = 0
 
-    del_works_cnt = 0
-    del_orgas_cnt = 0
-    del_groups_cnt = 0
-    del_persons_cnt = 0
+        del_works_cnt = 0
+        del_orgas_cnt = 0
+        del_groups_cnt = 0
+        del_persons_cnt = 0
 
-    queue_id = str(uuid.uuid4())
-    works_queue_key = 'queue-works-%s' % queue_id
-    logger.info('init new works queue "%s"' % works_queue_key)
-    groups_queue_key = 'queue-groups-%s' % queue_id
-    logger.info('init new groups queue "%s"' % groups_queue_key)
-    organisations_queue_key = 'queue-orgas-%s' % queue_id
-    logger.info('init new orgas queue "%s"' % organisations_queue_key)
-    persons_queue_key = 'queue-persons-%s' % queue_id
-    logger.info('init new persons queue "%s"' % persons_queue_key)
+        queue_id = str(uuid.uuid4())
+        works_queue_key = 'queue-works-%s' % queue_id
+        logger.info('init new works queue "%s"' % works_queue_key)
+        groups_queue_key = 'queue-groups-%s' % queue_id
+        logger.info('init new groups queue "%s"' % groups_queue_key)
+        organisations_queue_key = 'queue-orgas-%s' % queue_id
+        logger.info('init new orgas queue "%s"' % organisations_queue_key)
+        persons_queue_key = 'queue-persons-%s' % queue_id
+        logger.info('init new persons queue "%s"' % persons_queue_key)
 
-    start_total = timeit.default_timer()
+        start_total = timeit.default_timer()
 
-    start_primary_data = timeit.default_timer()
-    for record in records:
-        cnt += 1
-        start = timeit.default_timer()
-        # *2solr()
-        works_queue = []
-        groups_queue = []
-        orgas_queue = []
-        persons_queue = []
-        if entity_type == 'work':
-            record_id, message, works_queue = persistence.work2solr(record=record, storage_is_empty=storage_is_empty,
-                                                                    update_related_entities=update_related_entities,
-                                                                    manage_queue=manage_queue)
-            size = 0
-            if works_queue:
-                size = len(works_queue)
-            logger.debug('size works_queue = %s' % size)
-        elif entity_type == 'group':
-            record_id, message, groups_queue, orgas_queue, persons_queue, works_queue = persistence.group2solr(
-                record=record, storage_is_empty=storage_is_empty, update_related_entities=update_related_entities,
-                manage_queue=manage_queue)
-            size = 0
-            if groups_queue:
-                size = len(groups_queue)
-            logger.debug('size groups_queue = %s' % size)
-        elif entity_type == 'organisation':
-            record_id, message, orgas_queue, groups_queue, persons_queue, works_queue = persistence.orga2solr(
-                record=record, storage_is_empty=storage_is_empty, update_related_entities=update_related_entities,
-                manage_queue=manage_queue)
-            size = 0
-            if orgas_queue:
-                size = len(orgas_queue)
-            logger.debug('size orgas_queue = %s' % size)
-            size = 0
-            if groups_queue:
-                size = len(groups_queue)
-            logger.debug('size groups_queue = %s' % size)
-            size = 0
-            if persons_queue:
-                size = len(persons_queue)
-            logger.debug('size persons_queue = %s' % size)
-            size = 0
-            if works_queue:
-                size = len(works_queue)
-            logger.debug('size works_queue = %s' % size)
-        elif entity_type == 'person':
-            record_id, message, works_queue = persistence.person2solr(record=record, storage_is_empty=storage_is_empty,
-                                                                      update_related_entities=update_related_entities,
-                                                                      manage_queue=manage_queue)
-            size = 0
-            if works_queue:
-                size = len(works_queue)
-            logger.debug('size works_queue = %s' % size)
+        if not update_related_entities:
+            cnt = len(records)
+            # execute pool
+            start = timeit.default_timer()
+            pool = Pool(processes=secrets.WORKER)
+            if entity_type == 'work':
+                if storage_is_empty:
+                    pool.map(_restore_work_data, records)
+                else:
+                    pool.map(_index_work_data, records)
+            elif entity_type == 'group':
+                if storage_is_empty:
+                    pool.map(_restore_group_data, records)
+                else:
+                    pool.map(_index_group_data, records)
+            elif entity_type == 'organisation':
+                if storage_is_empty:
+                    pool.map(_restore_orga_data, records)
+                else:
+                    pool.map(_index_orga_data, records)
+            elif entity_type == 'person':
+                if storage_is_empty:
+                    pool.map(_restore_person_data, records)
+                else:
+                    pool.map(_index_person_data, records)
+            stop = timeit.default_timer()
+            pool_duration = stop - start
+            logger.info('duration for %s pool: %s' % (entity_type, pool_duration))
+        else:
+            start_primary_data = timeit.default_timer()
+            for record in records:
+                cnt += 1
+                start = timeit.default_timer()
+                # *2solr()
+                works_queue = []
+                groups_queue = []
+                orgas_queue = []
+                persons_queue = []
+                if entity_type == 'work':
+                    record_id, message, works_queue = persistence.work2solr(record=record, storage_is_empty=storage_is_empty,
+                                                                            update_related_entities=update_related_entities,
+                                                                            manage_queue=manage_queue)
+                    size = 0
+                    if works_queue:
+                        size = len(works_queue)
+                    logger.debug('size works_queue = %s' % size)
+                elif entity_type == 'group':
+                    record_id, message, groups_queue, orgas_queue, persons_queue, works_queue = persistence.group2solr(
+                        record=record, storage_is_empty=storage_is_empty, update_related_entities=update_related_entities,
+                        manage_queue=manage_queue)
+                    size = 0
+                    if groups_queue:
+                        size = len(groups_queue)
+                    logger.debug('size groups_queue = %s' % size)
+                elif entity_type == 'organisation':
+                    record_id, message, orgas_queue, groups_queue, persons_queue, works_queue = persistence.orga2solr(
+                        record=record, storage_is_empty=storage_is_empty, update_related_entities=update_related_entities,
+                        manage_queue=manage_queue)
+                    size = 0
+                    if orgas_queue:
+                        size = len(orgas_queue)
+                    logger.debug('size orgas_queue = %s' % size)
+                    size = 0
+                    if groups_queue:
+                        size = len(groups_queue)
+                    logger.debug('size groups_queue = %s' % size)
+                    size = 0
+                    if persons_queue:
+                        size = len(persons_queue)
+                    logger.debug('size persons_queue = %s' % size)
+                    size = 0
+                    if works_queue:
+                        size = len(works_queue)
+                    logger.debug('size works_queue = %s' % size)
+                elif entity_type == 'person':
+                    record_id, message, works_queue = persistence.person2solr(record=record, storage_is_empty=storage_is_empty,
+                                                                              update_related_entities=update_related_entities,
+                                                                              manage_queue=manage_queue)
+                    size = 0
+                    if works_queue:
+                        size = len(works_queue)
+                    logger.debug('size works_queue = %s' % size)
 
-        start_manage_queue = timeit.default_timer()
-        if works_queue:
-            del_works_cnt += _insert2queue(key=works_queue_key, items=works_queue, cnt=cnt)
-        if groups_queue:
-            del_groups_cnt += _insert2queue(key=groups_queue_key, items=groups_queue, cnt=cnt)
-        if orgas_queue:
-            del_orgas_cnt += _insert2queue(key=organisations_queue_key, items=orgas_queue, cnt=cnt)
-        if persons_queue:
-            del_persons_cnt += _insert2queue(key=persons_queue_key, items=persons_queue, cnt=cnt)
-        stop_manage_queue = timeit.default_timer()
-        manage_queue_duration = stop_manage_queue - start_manage_queue
-        time_to_manage_queue += manage_queue_duration
-        logger.debug('duration for manage queue: %s' % manage_queue_duration)
+                start_manage_queue = timeit.default_timer()
+                if works_queue:
+                    del_works_cnt += _insert2queue(key=works_queue_key, items=works_queue, cnt=cnt)
+                if groups_queue:
+                    del_groups_cnt += _insert2queue(key=groups_queue_key, items=groups_queue, cnt=cnt)
+                if orgas_queue:
+                    del_orgas_cnt += _insert2queue(key=organisations_queue_key, items=orgas_queue, cnt=cnt)
+                if persons_queue:
+                    del_persons_cnt += _insert2queue(key=persons_queue_key, items=persons_queue, cnt=cnt)
+                stop_manage_queue = timeit.default_timer()
+                manage_queue_duration = stop_manage_queue - start_manage_queue
+                time_to_manage_queue += manage_queue_duration
+                logger.debug('duration for manage queue: %s' % manage_queue_duration)
 
-        stop = timeit.default_timer()
-        summary_time += stop - start
+                stop = timeit.default_timer()
+                summary_time += stop - start
 
-        if cnt % 100 == 0:
+                if cnt % 100 == 0:
+                    logger.info('>>>>>>>>>> %s / %s <<<<<<<<<<' % (cnt, len(records)))
+
+            stop_primary_data = timeit.default_timer()
+            primary_data_duration = stop_primary_data - start_primary_data
+
             logger.info('>>>>>>>>>> %s / %s <<<<<<<<<<' % (cnt, len(records)))
+            logger.info('duration for storing primary data: %s' % primary_data_duration)
+            average_time = summary_time / cnt
+            logger.info('average: %s' % average_time)
 
-    stop_primary_data = timeit.default_timer()
-    primary_data_duration = stop_primary_data - start_primary_data
+            # process queue
+            r = redis.StrictRedis(host=secrets.REDIS_QUEUE_HOST, port=secrets.REDIS_QUEUE_PORT,
+                                  db=secrets.REDIS_QUEUE_DB)
 
-    logger.info('>>>>>>>>>> %s / %s <<<<<<<<<<' % (cnt, len(records)))
-    logger.info('duration for storing primary data: %s' % primary_data_duration)
-    average_time = summary_time / cnt
-    logger.info('average: %s' % average_time)
+            if r.exists(groups_queue_key):
+                logger.info('groups queue - items de-duplicated: %s' % del_groups_cnt)
+                queue = r.hkeys(groups_queue_key)
+                queue_cnt = len(queue)
+                logger.info('groups queue size: %s' % queue_cnt)
+                # prepare items for pool
+                records = []
+                for item in queue:
+                    try:
+                        records.append(json.loads(persistence.get_group(group_id=item.decode('utf-8')).get('wtf_json')))
+                    except Exception:
+                        logger.error('group item not found: %s' % item)
+                # execute pool
+                start = timeit.default_timer()
+                pool = Pool(processes=secrets.WORKER)
+                pool.map(_index_group_data, records)
+                stop = timeit.default_timer()
+                pool_duration = stop - start
+                logger.info('duration for groups pool: %s' % pool_duration)
 
-    # process queue
-    queue_cnt = 0
-    r = redis.StrictRedis(host=secrets.REDIS_QUEUE_HOST, port=secrets.REDIS_QUEUE_PORT,
-                          db=secrets.REDIS_QUEUE_DB)
+                r.delete(groups_queue_key)
 
-    if r.exists(groups_queue_key):
-        logger.info('groups queue - items de-duplicated: %s' % del_groups_cnt)
-        queue = r.hkeys(groups_queue_key)
-        queue_cnt = len(queue)
-        logger.info('groups queue size: %s' % queue_cnt)
-        # prepare items for pool
-        records = []
-        for item in queue:
-            try:
-                records.append(json.loads(persistence.get_group(group_id=item.decode('utf-8')).get('wtf_json')))
-            except Exception:
-                logger.error('group item not found: %s' % item)
-        # execute pool
-        start = timeit.default_timer()
-        pool = Pool(processes=secrets.WORKER)
-        pool.map(_index_group_data, records)
-        stop = timeit.default_timer()
-        pool_duration = stop - start
-        logger.info('duration for groups pool: %s' % pool_duration)
+            if r.exists(organisations_queue_key):
+                logger.info('orgas queue - items de-duplicated: %s' % del_orgas_cnt)
+                queue = r.hkeys(organisations_queue_key)
+                queue_cnt = len(queue)
+                logger.info('orgas queue size: %s' % queue_cnt)
+                # prepare items for pool
+                records = []
+                for item in queue:
+                    try:
+                        records.append(json.loads(persistence.get_orga(orga_id=item.decode('utf-8')).get('wtf_json')))
+                    except Exception:
+                        logger.error('orga item not found: %s' % item)
+                # execute pool
+                start = timeit.default_timer()
+                pool = Pool(processes=secrets.WORKER)
+                pool.map(_index_orga_data, records)
+                stop = timeit.default_timer()
+                pool_duration = stop - start
+                logger.info('duration for orgas pool: %s' % pool_duration)
 
-        r.delete(groups_queue_key)
+                r.delete(organisations_queue_key)
 
-    if r.exists(organisations_queue_key):
-        logger.info('orgas queue - items de-duplicated: %s' % del_orgas_cnt)
-        queue = r.hkeys(organisations_queue_key)
-        queue_cnt = len(queue)
-        logger.info('orgas queue size: %s' % queue_cnt)
-        # prepare items for pool
-        records = []
-        for item in queue:
-            try:
-                records.append(json.loads(persistence.get_orga(orga_id=item.decode('utf-8')).get('wtf_json')))
-            except Exception:
-                logger.error('orga item not found: %s' % item)
-        # execute pool
-        start = timeit.default_timer()
-        pool = Pool(processes=secrets.WORKER)
-        pool.map(_index_orga_data, records)
-        stop = timeit.default_timer()
-        pool_duration = stop - start
-        logger.info('duration for orgas pool: %s' % pool_duration)
+            if r.exists(persons_queue_key):
+                logger.info('persons queue - items de-duplicated: %s' % del_persons_cnt)
+                queue = r.hkeys(persons_queue_key)
+                queue_cnt = len(queue)
+                logger.info('persons queue size: %s' % queue_cnt)
+                # prepare items for pool
+                records = []
+                for item in queue:
+                    try:
+                        records.append(json.loads(persistence.get_person(person_id=item.decode('utf-8')).get('wtf_json')))
+                    except Exception:
+                        logger.error('person item not found: %s' % item)
+                # execute pool
+                start = timeit.default_timer()
+                pool = Pool(processes=secrets.WORKER)
+                pool.map(_index_person_data, records)
+                stop = timeit.default_timer()
+                pool_duration = stop - start
+                logger.info('duration for persons pool: %s' % pool_duration)
 
-        r.delete(organisations_queue_key)
+                r.delete(persons_queue_key)
 
-    if r.exists(persons_queue_key):
-        logger.info('persons queue - items de-duplicated: %s' % del_persons_cnt)
-        queue = r.hkeys(persons_queue_key)
-        queue_cnt = len(queue)
-        logger.info('persons queue size: %s' % queue_cnt)
-        # prepare items for pool
-        records = []
-        for item in queue:
-            try:
-                records.append(json.loads(persistence.get_person(person_id=item.decode('utf-8')).get('wtf_json')))
-            except Exception:
-                logger.error('person item not found: %s' % item)
-        # execute pool
-        start = timeit.default_timer()
-        pool = Pool(processes=secrets.WORKER)
-        pool.map(_index_person_data, records)
-        stop = timeit.default_timer()
-        pool_duration = stop - start
-        logger.info('duration for persons pool: %s' % pool_duration)
+            if r.exists(works_queue_key):
+                # get queue
+                logger.info('works queue - items de-duplicated: %s' % del_works_cnt)
+                queue = r.hkeys(works_queue_key)
+                queue_cnt = len(queue)
+                logger.info('works queue size: %s' % queue_cnt)
+                # prepare items for pool
+                records = []
+                for item in queue:
+                    try:
+                        records.append(json.loads(persistence.get_work(work_id=item.decode('utf-8')).get('wtf_json')))
+                    except Exception:
+                        logger.error('work item not found: %s' % item)
+                # execute pool
+                start = timeit.default_timer()
+                pool = Pool(processes=secrets.WORKER)
+                pool.map(_index_work_data, records)
+                stop = timeit.default_timer()
+                pool_duration = stop - start
+                logger.info('duration for works pool: %s' % pool_duration)
 
-        r.delete(persons_queue_key)
+                r.delete(works_queue_key)
 
-    if r.exists(works_queue_key):
-        # get queue
-        logger.info('works queue - items de-duplicated: %s' % del_works_cnt)
-        queue = r.hkeys(works_queue_key)
-        queue_cnt = len(queue)
-        logger.info('works queue size: %s' % queue_cnt)
-        # prepare items for pool
-        records = []
-        for item in queue:
-            try:
-                records.append(json.loads(persistence.get_work(work_id=item.decode('utf-8')).get('wtf_json')))
-            except Exception:
-                logger.error('work item not found: %s' % item)
-        # execute pool
-        start = timeit.default_timer()
-        pool = Pool(processes=secrets.WORKER)
-        pool.map(_index_work_data, records)
-        stop = timeit.default_timer()
-        pool_duration = stop - start
-        logger.info('duration for works pool: %s' % pool_duration)
+        # report
+        logger.info('>>>>>>>>>> REPORT <<<<<<<<<<')
+        stop_total = timeit.default_timer()
+        duration = stop_total - start_total
+        logger.info('duration %s' % duration)
 
-        r.delete(works_queue_key)
-
-    # report
-    logger.info('>>>>>>>>>> REPORT <<<<<<<<<<')
-    stop_total = timeit.default_timer()
-    duration = stop_total - start_total
-    logger.info('duration %s' % duration)
-
-    average_time = summary_time / (cnt + queue_cnt)
-    logger.info('average: %s' % average_time)
-    logger.info('time to manage queue: %s' % time_to_manage_queue)
+        average_time = summary_time / (cnt + queue_cnt)
+        logger.info('average: %s' % average_time)
+        logger.info('time to manage queue: %s' % time_to_manage_queue)
 
 
 def restore_backup(entity_type='work', file=''):
@@ -463,9 +514,9 @@ parser.add_argument('--data_file', help='data file to reindex', type=str)
 parser.add_argument('--data_query', help='query for data to reindex', type=str)
 parser.add_argument('--preprocess_data',
                     help='pre-process data; you have to implement the _preprocess_data function in this code!',
-                    type=bool)
+                    type=bool, default=False)
 parser.add_argument('--bears_related_entities',
-                    help='if pre-processing bears the data of related entities, set to True!', type=bool)
+                    help='if pre-processing bears the data of related entities, set to True!', type=bool, default=False)
 args = parser.parse_args()
 params = vars(args)
 
@@ -475,8 +526,8 @@ if params.get('restore') and (not params.get('backup_file') or not params.get('e
 elif params.get('restore') and params.get('backup_file') and params.get('entity_type'):
     restore_backup(entity_type=params.get('entity_type'), file=params.get('backup_file'))
 # reindex
-elif params.get('reindex') and (not params.get('data_file') or not params.get('data_query') or not params.get('entity_type')):
-    print('If you want to reindex data to the system, you have to add the --data_file and the --entity_type argument!')
+elif params.get('reindex') and not ((params.get('data_file') and params.get('entity_type')) or (params.get('data_query') and params.get('entity_type'))):
+    print('If you want to reindex data to the system, you have to add the --data_file or --data_query and the --entity_type argument!')
 elif params.get('reindex') and params.get('entity_type') and (params.get('data_file') or params.get('data_query')):
     # from file
     if params.get('data_file'):

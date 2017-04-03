@@ -19,11 +19,6 @@
             "funds": {
                 "type": "array",
                 "items": {
-                    "required": [
-                        "organisation",
-                        "organisation_id",
-                        "project_id"
-                    ],
                     "type": "object",
                     "properties": {
                         "organisation_id": {
@@ -78,8 +73,7 @@
                 "type": "array",
                 "items": {
                     "required": [
-                        "partner_id",
-                        "partner_label"
+                        "partner_id"
                     ],
                     "type": "object",
                     "properties": {
@@ -117,8 +111,7 @@
                 "type": "array",
                 "items": {
                     "required": [
-                        "parent_id",
-                        "parent_label"
+                        "parent_id"
                     ],
                     "type": "object",
                     "properties": {
@@ -165,8 +158,7 @@
                 "type": "array",
                 "items": {
                     "required": [
-                        "child_id",
-                        "child_label"
+                        "child_id"
                     ],
                     "type": "object",
                     "properties": {

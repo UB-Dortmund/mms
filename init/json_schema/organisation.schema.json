@@ -22,8 +22,7 @@
                         }
                     },
                     "required": [
-                        "project_id",
-                        "project_label"
+                        "project_id"
                     ]
                 }
             },
@@ -91,8 +90,7 @@
                         }
                     },
                     "required": [
-                        "child_id",
-                        "child_label"
+                        "child_id"
                     ]
                 }
             },
@@ -148,8 +146,7 @@
                         }
                     },
                     "required": [
-                        "parent_id",
-                        "parent_label"
+                        "parent_id"
                     ]
                 }
             }

@@ -73,8 +73,7 @@
                         }
                     },
                     "required": [
-                        "is_part_of",
-                        "volume"
+                        "is_part_of"
                     ]
                 }
             },
@@ -173,11 +172,7 @@
                         "language": {
                             "type": "string"
                         }
-                    },
-                    "required": [
-                        "language",
-                        "other_title"
-                    ]
+                    }
                 }
             },
             "priority_date": {
@@ -250,10 +245,7 @@
                         }
                     },
                     "required": [
-                        "corresponding_author",
-                        "gnd",
                         "name",
-                        "orcid",
                         "rubi",
                         "tudo"
                     ]
@@ -351,13 +343,7 @@
                         "language": {
                             "type": "string"
                         }
-                    },
-                    "required": [
-                        "address",
-                        "content",
-                        "language",
-                        "shareable"
-                    ]
+                    }
                 }
             },
             "event": {
@@ -380,14 +366,7 @@
                         "event_place": {
                             "type": "string"
                         }
-                    },
-                    "required": [
-                        "event_enddate",
-                        "event_name",
-                        "event_numbering",
-                        "event_place",
-                        "event_startdate"
-                    ]
+                    }
                 }
             },
             "frequency": {
@@ -490,7 +469,6 @@
                         }
                     },
                     "required": [
-                        "gnd",
                         "name",
                         "rubi",
                         "tudo"
@@ -597,10 +575,7 @@
                         }
                     },
                     "required": [
-                        "corresponding_author",
-                        "gnd",
-                        "name",
-                        "orcid"
+                        "name"
                     ]
                 }
             },
@@ -710,16 +685,7 @@
                     "access_level": {
                         "type": "string"
                     }
-                },
-                "required": [
-                    "access_level",
-                    "embargo_end_date",
-                    "fee",
-                    "mime_type",
-                    "project_identifier",
-                    "project_type",
-                    "publication_version"
-                ]
+                }
             },
             "number_of_volumes": {
                 "type": "string"
@@ -783,11 +749,7 @@
                         "uri": {
                             "type": "string"
                         }
-                    },
-                    "required": [
-                        "toc",
-                        "uri"
-                    ]
+                    }
                 }
             },
             "additions": {

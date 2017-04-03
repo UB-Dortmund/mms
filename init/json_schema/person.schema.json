@@ -19,10 +19,7 @@
                     },
                     "type": "object",
                     "required": [
-                        "end",
-                        "group_id",
-                        "label",
-                        "start"
+                        "group_id"
                     ]
                 },
                 "type": "array"
@@ -48,10 +45,7 @@
                     },
                     "type": "object",
                     "required": [
-                        "end",
-                        "label",
-                        "organisation_id",
-                        "start"
+                        "organisation_id"
                     ]
                 },
                 "type": "array"
