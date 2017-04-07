@@ -1742,6 +1742,7 @@ class OtherForm(WorkForm):
         ('', lazy_gettext('Select a Subtype')),
         ('article_lexicon', lazy_gettext('Article in Lexicon')),
         ('festschrift', lazy_gettext('Festschrift')),
+        ('report', lazy_gettext('Report')),
         ('sermon', lazy_gettext('Sermon')),
         ('lecture_notes', lazy_gettext('Lecture Notes')),
         ('poster', lazy_gettext('Poster')),

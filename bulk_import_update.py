@@ -484,11 +484,8 @@ def reindex_data_from_index(entity_type='work', query='*:*', preprocessing=False
             # TODO if you want to pre-process the input data, you have to implement the _preprocess_data function for your case
             records = _preprocess_data(records=records)
 
-            _manage_bulk_upload(entity_type=entity_type, records=records, storage_is_empty=False,
-                                update_related_entities=bears_related_entities, manage_queue=bears_related_entities)
-        else:
-            _manage_bulk_upload(entity_type=entity_type, records=records, storage_is_empty=False,
-                                update_related_entities=False, manage_queue=False)
+        _manage_bulk_upload(entity_type=entity_type, records=records, storage_is_empty=False,
+                            update_related_entities=bears_related_entities, manage_queue=bears_related_entities)
     else:
         print('ERROR: The given data is invalid!')
 
