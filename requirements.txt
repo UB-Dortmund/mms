@@ -25,7 +25,7 @@ greenlet==0.4.12
 humanize==0.5.1
 Humanize-Flask==0.2.0
 itsdangerous==0.24
-Jinja2==2.9.5
+Jinja2==2.11.3
 jsonmerge==1.2.1
 line-profiler==1.0
 lxml==3.7.2
