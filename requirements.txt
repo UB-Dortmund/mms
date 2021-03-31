@@ -28,7 +28,7 @@ itsdangerous==0.24
 Jinja2==2.9.5
 jsonmerge==1.2.1
 line-profiler==1.0
-lxml==3.7.2
+lxml==4.6.3
 MarkupSafe==0.23
 orcid==0.7.0
 pyisbn==1.0.1
