@@ -1,3 +1,6 @@
+**HINT: This project is out of date and internally not relevant anymore!**
+
+
 # Metadata Management System
 
 The Metadata Management System is based on the Research Bibliography Platform, which is a joint project between
